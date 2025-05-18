@@ -1,0 +1,235 @@
+.my-tickets-container {
+    min-height: calc(100vh - var(--header-height));
+    padding: 2rem;
+    color: var(--color-text);
+}
+
+.my-tickets-wrapper {
+    background: linear-gradient(to bottom, #1a1a1a, #000000);
+    padding: 2rem;
+    border-radius: 12px;
+    box-shadow: 0 2px 10px rgba(255, 255, 255, 0.1);
+    margin: 0 auto;
+    max-width: 1200px;
+}
+
+.my-tickets-list {
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+}
+
+.my-tickets-card {
+    background: rgba(255, 255, 255, 0.05);
+    border: 2px solid transparent;
+    border-radius: 8px;
+    overflow: hidden;
+    transition: var(--transition-default);
+    position: relative;
+}
+
+.my-tickets-card::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    border-radius: 6px;
+    padding: 2px;
+    background: linear-gradient(90deg, var(--color-primary), var(--color-secondary));
+    -webkit-mask: 
+        linear-gradient(#fff 0 0) content-box, 
+        linear-gradient(#fff 0 0);
+    mask: 
+        linear-gradient(#fff 0 0) content-box, 
+        linear-gradient(#fff 0 0);
+    -webkit-mask-composite: xor;
+    mask-composite: exclude;
+    pointer-events: none;
+}
+
+.my-tickets-card:hover {
+    transform: translateY(-2px);
+    box-shadow: var(--glow-effect);
+}
+
+.my-tickets-content {
+    padding: 1.5rem;
+}
+
+.my-tickets-header {
+    display: flex;
+    width: 100%;
+    align-items: center;
+    margin-bottom: 1rem;
+}
+
+.my-tickets-header h3 {
+    color: var(--color-primary);
+    font-size: 1.2rem;
+    margin: 0;
+}
+
+.my-tickets-status {
+    padding: 0.5rem 1rem;
+    border-radius: 20px;
+    font-size: 0.9rem;
+    font-weight: 500;
+}
+
+.my-tickets-status.paid {
+    background: rgba(0, 255, 0, 0.1);
+    color: #00ff00;
+    border: 1px solid #00ff00;
+}
+
+.my-tickets-status.pending {
+    background: rgba(255, 193, 7, 0.1);
+    color: #ffc107;
+    border: 1px solid #ffc107;
+}
+
+.my-tickets-status.expired {
+    background: rgba(255, 0, 0, 0.1);
+    color: #ff0000;
+    border: 1px solid #ff0000;
+}
+
+.my-tickets-details {
+    background: rgba(0, 0, 0, 0.3);
+    border-radius: 8px;
+    padding: 1rem;
+}
+
+.my-tickets-info {
+    display: flex;
+    gap: 2rem;
+    margin-bottom: 1rem;
+}
+
+.my-tickets-info span {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    color: var(--color-text);
+}
+
+.my-tickets-info i {
+    color: var(--color-secondary);
+}
+
+.my-tickets-items {
+    border-top: 1px solid rgba(255, 255, 255, 0.1);
+    padding-top: 1rem;
+}
+
+.my-tickets-items h4 {
+    color: var(--color-secondary);
+    font-size: 1rem;
+    margin-bottom: 0.5rem;
+}
+
+.my-tickets-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 0.75rem;
+    background: rgba(255, 255, 255, 0.05);
+    border-radius: 4px;
+    margin-bottom: 0.5rem;
+}
+
+.my-tickets-type {
+    color: var(--color-text);
+}
+
+.my-tickets-info-group {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+}
+
+.my-tickets-price-group {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-end;
+    gap: 0.25rem;
+}
+
+.my-tickets-unit-price {
+    color: var(--color-text);
+    font-size: 0.9rem;
+    opacity: 0.8;
+}
+
+.my-tickets-total-price {
+    color: var(--color-primary);
+    font-weight: 500;
+}
+
+.my-tickets-quantity {
+    color: var(--color-secondary);
+    font-weight: 500;
+    font-size: 0.9rem;
+    background: rgba(0, 247, 255, 0.1);
+    padding: 0.2rem 0.5rem;
+    border-radius: 4px;
+    border: 1px solid var(--color-secondary);
+}
+
+.my-tickets-img-container {
+    display: flex;
+    align-items: center;
+    flex: 1;
+    gap: 20px;
+    justify-content: start;
+}
+
+.my-tickets-img-container img {
+    height: 100px;
+    aspect-ratio: 16/9;
+    object-fit: contain;
+}
+
+.no-tickets-message {
+    text-align: center;
+    padding: 3rem;
+    color: var(--color-text);
+}
+
+.no-tickets-message i {
+    font-size: 3rem;
+    color: var(--color-secondary);
+    margin-bottom: 1rem;
+}
+
+.my-tickets-summary {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+}
+
+.my-tickets-status-group {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+}
+
+.my-tickets-pay-button {
+    padding: 0.4rem 1rem;
+    font-size: 0.9rem;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    transition: all 0.3s ease;
+}
+
+.my-tickets-pay-button:hover {
+    transform: translateY(-2px);
+    box-shadow: var(--glow-effect);
+}
+
+.my-tickets-pay-button i {
+    font-size: 1rem;
+} 

@@ -1,0 +1,132 @@
+.payment-result-container {
+  margin: 2rem auto;
+  padding: 1rem;
+}
+
+.result-card {
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+  border: none;
+  border-radius: 8px;
+  padding: 1.5rem;
+  max-width: 800px;
+  margin: 0 auto;
+  min-height: calc(100vh - var(--header-height));
+}
+
+.card-body {
+  display: flex;
+  flex-direction: column;
+  gap: 25px;
+}
+
+.payment-result-loading-container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  min-height: 300px;
+  text-align: center;
+}
+
+.loading-container .spinner-border {
+  width: 3rem;
+  height: 3rem;
+}
+
+.success-icon,
+.failure-icon {
+  font-size: 5rem;
+  margin-bottom: 1rem;
+}
+
+.success-icon {
+  color: #28a745;
+}
+
+.failure-icon {
+  color: #dc3545;
+}
+
+.result-message {
+  font-size: 1.1rem;
+  color: #6c757d;
+  max-width: 80%;
+  margin: 1rem auto;
+}
+
+.payment-result-payment-details {
+  background-color: #f8f9fa;
+  border-radius: 8px;
+  padding: 1.5rem;
+  margin: 1.5rem 0;
+}
+
+.payment-result-detail-item {
+  display: flex;
+  justify-content: space-between;
+  margin-bottom: 1rem;
+  border-bottom: 1px dashed #dee2e6;
+  padding-bottom: 0.5rem;
+}
+
+.payment-result-detail-item:last-child {
+  margin-bottom: 0;
+  border-bottom: none;
+  padding-bottom: 0;
+}
+
+.payment-result-detail-item span:first-child {
+  color: #6c757d;
+  font-weight: 500;
+}
+
+.payment-result-detail-item span:last-child {
+  font-weight: 600;
+}
+
+.payment-result-action-buttons {
+  display: flex;
+  justify-content: center;
+  margin-top: 2rem;
+  display: flex;
+  gap: 0.75rem;
+}
+
+.payment-result-btn {
+  min-width: 60px;
+  border: 1px solid transparent;
+  transition: var(--transition-default);
+}
+
+.payment-result-btn:hover {
+  border: 1px solid var(--color-secondary);
+  background-color: white !important;
+  color: var(--color-dark);
+  transition: var(--transition-default);
+}
+
+.payment-result-more-btn {
+  background-color: var(--color-background);
+}
+
+@media (max-width: 576px) {
+  .payment-result-container {
+    padding: 0.5rem;
+  }
+
+  .result-message {
+    max-width: 100%;
+  }
+
+  .payment-result-action-buttons {
+    flex-direction: column;
+  }
+
+  .payment-result-action-buttons button {
+    margin: 0.5rem 0;
+  }
+
+  .payment-result-action-buttons .me-3 {
+    margin-right: 0 !important;
+  }
+}

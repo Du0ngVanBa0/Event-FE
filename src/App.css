@@ -1,0 +1,49 @@
+:root {
+  --color-background: #000000;
+  --color-background-gradient: linear-gradient(to right, #000000, #1a1a1a);
+  --color-primary: #a787ff;
+  --color-secondary: #00f7ff;
+  --color-success: #16a922;
+  --color-text: #ffffff;
+  --color-text-dark: #000000;
+  --glow-effect: 0 0 15px rgba(167, 135, 255, 0.6);
+  --transition-default: all 0.3s ease;
+  --header-height: 64px;
+}
+
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+  margin: 0;
+}
+
+#root {
+  min-height: 100vh;
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  background-color: var(--color-background);
+}
+
+.container {
+  width: 100% !important;
+  max-width: 100% !important;
+  margin: 0 !important;
+  padding: 0 !important;
+}
+
+.loading-container {
+  min-height: calc(100vh - var(--header-height));
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-top: var(--header-height);
+}
+
+.loading-container .spinner-border {
+  width: 3rem;
+  height: 3rem;
+  color: var(--color-primary);
+}
+
