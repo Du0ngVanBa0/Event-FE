@@ -21,6 +21,7 @@ import eventService from "../../../api/eventService";
 import { CreateSuKienDTO } from "../../../types/EventTypes";
 import { useParams } from "react-router-dom";
 import { getImageUrl } from "../../../utils/helper";
+import { DanhMucSuKien } from "../../../types/EventTypeTypes";
 
 interface EventForm {
   maSuKien: string;
@@ -201,7 +202,7 @@ const EditEvent = () => {
         maPhuongXa: eventForm.phuongXa,
         maDanhMucs: eventForm.danhMucSuKiens,
         // eslint-disable-next-line @typescript-eslint/no-unused-vars
-        loaiVes: ticketTypes.map(({ id: _id, ...rest }) => rest),
+        loaiVes: ticketTypes.map(({ maLoaiVe: _id, ...rest }) => rest),
         ...combinedDateTime,
         anhBia: eventForm.anhBiaFile,
       };
@@ -227,7 +228,7 @@ const EditEvent = () => {
         setNotification(null);
       }, 3000);
     }
-        
+
     return () => {
       if (timeoutId) {
         clearTimeout(timeoutId);
@@ -252,18 +253,18 @@ const EditEvent = () => {
     loadData();
   }, [id]);
 
-  
+
   useEffect(() => {
     const loadEvent = async () => {
       if (id) {
         const response = await eventService.getEventById(id);
         if (response.data) {
           const eventData = response.data;
-  
+
           if (eventData.anhBia) {
             setSelectedImage(eventData.anhBia);
           }
-  
+
           const tinhThanh = places.find(p => p.maTinhThanh === eventData.diaDiem.maTinhThanh);
           if (tinhThanh) {
             setSelectedTinhThanh(tinhThanh);
@@ -272,7 +273,7 @@ const EditEvent = () => {
               setSelectedQuanHuyen(quanHuyen);
             }
           }
-          
+
           setEventForm({
             maSuKien: eventData?.maSuKien,
             tieuDe: eventData.tieuDe,
@@ -290,21 +291,23 @@ const EditEvent = () => {
             gioBatDau: eventData.thoiGianBatDau.split('T')[1].substring(0, 5),
             ngayKetThuc: eventData.thoiGianKetThuc.split('T')[0],
             gioKetThuc: eventData.thoiGianKetThuc.split('T')[1].substring(0, 5),
-            danhMucSuKiens: eventData.danhMucs.map(dm => dm.maDanhMuc)
+            danhMucSuKiens: eventData.danhMucs.map((dm: DanhMucSuKien) => dm.maDanhMuc)
           });
-  
-          setTicketTypes(eventData.loaiVes.map(ve => ({
+
+          setTicketTypes(eventData.loaiVes.map((ve: TicketType) => ({
             id: ve.maLoaiVe || Date.now().toString(),
             tenLoaiVe: ve.tenLoaiVe,
             moTa: ve.moTa,
             soLuong: ve.soLuong,
-            giaTien: ve.giaTien
+            giaTien: ve.giaTien,
+            soLuongToiThieu: ve.soLuongToiThieu,
+            soLuongToiDa: ve.soLuongToiDa,
           })));
         }
       }
     }
     loadEvent();
-  // eslint-disable-next-line react-hooks/exhaustive-deps
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [places])
 
   useEffect(() => {
