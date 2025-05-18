@@ -170,7 +170,7 @@ const EventType = () => {
 
             <div className="event-type-wrapper">
                 <div className="d-flex justify-content-between align-items-center mb-4">
-                    <h2>Quản lý Danh mục Sự kiện</h2>
+                    <h2 className='page-title'>Quản lý Danh mục Sự kiện</h2>
                     <Button
                         variant="primary"
                         onClick={() => {

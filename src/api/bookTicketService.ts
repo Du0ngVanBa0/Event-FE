@@ -1,4 +1,4 @@
-import { BookingTicket } from '../types/BookingTypes';
+import { BookingTicket, BookingTicketSearchParams } from '../types/BookingTypes';
 import { BookTicketRequest } from '../types/RequestTypes';
 import { ApiResponse, PaginatedData } from '../types/ResponseTypes';
 import axiosInstance from './axios';
@@ -40,6 +40,27 @@ class BookTicketService {
         const response = await axiosInstance.get<ApiResponse<BookingTicket>>(
             `/ticket-holder/${id}`
         );
+
+        return response.data;
+    }
+
+    async getBookManage(page: number, size: number, requestBody?: BookingTicketSearchParams): Promise<ApiResponse<PaginatedData<BookingTicket>>> {
+        const params = new URLSearchParams({
+            page: page.toString(),
+            size: size.toString(),
+            sort: 'ngayTao,desc'
+        });
+        const response = await axiosInstance.post<ApiResponse<PaginatedData<BookingTicket>>>(
+            `/ticket-holder/search?${params.toString()}`, requestBody
+        )
+
+        return response.data;
+    }
+
+    async deleteById(maDatVe?: string): Promise<void> {
+        const response = await axiosInstance.delete(
+            `/ticket-holder/${maDatVe}`
+        )
 
         return response.data;
     }

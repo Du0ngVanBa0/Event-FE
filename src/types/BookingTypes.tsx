@@ -21,3 +21,13 @@ export interface TicketDetailBooking {
     thoiGianKiemVe: Date,
     loaiVe: TicketType
 }
+
+export interface BookingTicketSearchParams {
+    maDatVe?: string;
+    maKhachHang?: string;
+    trangThai?: string;
+    fromMoney?: number;
+    toMoney?: number;
+    fromDate?: string;
+    toDate?: string;
+}
