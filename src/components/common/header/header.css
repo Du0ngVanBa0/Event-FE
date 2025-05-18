@@ -1,0 +1,83 @@
+.header-navbar {
+    background: linear-gradient(to right, #000000, #1a1a1a);
+    box-shadow: 0 2px 10px rgba(255, 255, 255, 0.1);
+    height: var(--header-height);
+}
+
+.nav-link {
+    color: #ffffff !important;
+    position: relative;
+    transition: all 0.3s ease;
+}
+
+.nav-link:hover {
+    color: #a787ff !important;
+    text-shadow: 0 0 8px rgba(167, 135, 255, 0.6);
+}
+
+.nav-link::after {
+    content: '';
+    position: absolute;
+    bottom: -2px;
+    left: 50%;
+    width: 0;
+    height: 2px;
+    background: linear-gradient(90deg, #a787ff, #00f7ff);
+    transition: all 0.3s ease;
+    transform: translateX(-50%);
+}
+
+.nav-link:hover::after {
+    width: 100%;
+}
+
+.logo-image {
+    filter: brightness(0) invert(1);
+    transition: all 0.3s ease;
+}
+
+.logo-image:hover {
+    filter: drop-shadow(0 0 8px rgba(167, 135, 255, 0.6));
+}
+
+.user-dropdown {
+    background: transparent !important;
+    border: none !important;
+    padding: 0 !important;
+}
+
+.avatar-circle {
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    border: 2px solid #a787ff;
+    transition: all 0.3s ease;
+    cursor: pointer;
+}
+
+.avatar-circle:hover {
+    box-shadow: 0 0 15px rgba(167, 135, 255, 0.6);
+    transform: scale(1.05);
+}
+
+.auth-buttons .btn {
+    background: transparent;
+    border: 2px solid #a787ff;
+    color: #ffffff;
+    transition: all 0.3s ease;
+}
+
+.auth-buttons .btn:hover {
+    background: #a787ff;
+    color: #000000;
+    box-shadow: 0 0 15px rgba(167, 135, 255, 0.6);
+    transform: scale(1.05);
+}
+
+.auth-loading {
+    width: 40px;
+    height: 40px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}

@@ -1,0 +1,333 @@
+.create-event-container {
+    min-height: calc(100vh - var(--header-height));
+    padding: 2rem;
+    color: var(--color-text);
+}
+
+.create-event-wrapper {
+    background: linear-gradient(to bottom, #1a1a1a, #000000);
+    padding: 2rem;
+    border-radius: 12px;
+    box-shadow: 0 2px 10px rgba(255, 255, 255, 0.1);
+    margin: 0 auto;
+    max-width: 1200px;
+    position: relative;
+}
+
+.universe-tabs-container {
+    position: sticky;
+    top: 0;
+    background: inherit;
+    z-index: 10;
+    border-top-left-radius: 12px;
+    border-top-right-radius: 12px;
+    padding-bottom: 1rem;
+}
+
+.tab-content {
+    max-height: calc(100vh - var(--header-height) - 150px);
+    overflow-y: auto;
+    overflow-x: hidden;
+    padding-right: 10px;
+}
+
+.tab-content::-webkit-scrollbar {
+    width: 8px;
+}
+
+.tab-content::-webkit-scrollbar-track {
+    background: rgba(255, 255, 255, 0.1);
+    border-radius: 4px;
+}
+
+.tab-content::-webkit-scrollbar-thumb {
+    background: var(--color-primary);
+    border-radius: 4px;
+}
+
+.tab-content::-webkit-scrollbar-thumb:hover {
+    background: var(--color-secondary);
+}
+
+.universe-tabs {
+    border-bottom: 1px solid var(--color-primary);
+}
+
+.universe-tabs .nav-link {
+    color: var(--color-text) !important;
+    background: transparent;
+    border: none;
+    padding: 1rem 2rem;
+    position: relative;
+    transition: var(--transition-default);
+}
+
+.universe-tabs .nav-link.active {
+    color: var(--color-primary) !important;
+    background: transparent;
+    border: none;
+}
+
+.universe-tabs .nav-link::after {
+    content: '';
+    position: absolute;
+    bottom: 0;
+    left: 50%;
+    width: 0;
+    height: 2px;
+    background: linear-gradient(90deg, var(--color-primary), var(--color-secondary));
+    transition: var(--transition-default);
+    transform: translateX(-50%);
+}
+
+.universe-tabs .nav-link.active::after {
+    width: 100%;
+}
+
+.form-control,
+.form-select {
+    background-color: rgba(255, 255, 255, 0.1) !important;
+    border: 1px solid #333 !important;
+    color: white !important;
+}
+
+.form-control:focus,
+.form-select:focus {
+    background-color: rgba(255, 255, 255, 0.15) !important;
+    border-color: var(--color-primary) !important;
+    box-shadow: 0 0 0 0.2rem rgba(167, 135, 255, 0.25) !important;
+}
+
+.image-upload-container {
+    border: 2px dashed var(--color-primary);
+    border-radius: 8px;
+    overflow: hidden;
+}
+
+.image-upload-label {
+    display: block;
+    cursor: pointer;
+    padding: 2rem;
+    text-align: center;
+}
+
+.image-preview {
+    max-width: 100%;
+    max-height: 300px;
+    object-fit: contain;
+}
+
+.upload-placeholder {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 1rem;
+    color: var(--color-primary);
+}
+
+.upload-placeholder i {
+    font-size: 2rem;
+}
+
+.ck-editor__editable {
+    background-color: rgba(255, 255, 255, 0.1) !important;
+    color: white !important;
+    min-height: 200px;
+}
+
+.ck.ck-editor__main>.ck-editor__editable {
+    background: rgba(255, 255, 255, 0.1) !important;
+    border-color: #333 !important;
+}
+
+.ck.ck-toolbar {
+    background: rgba(255, 255, 255, 0.05) !important;
+    border-color: #333 !important;
+}
+
+.ck.ck-button,
+.ck.ck-button.ck-on {
+    color: white !important;
+    background: transparent !important;
+}
+
+.ck.ck-button:hover,
+.ck.ck-button.ck-on:hover {
+    background: var(--color-primary) !important;
+    color: black !important;
+}
+
+.ck.ck-toolbar .ck.ck-toolbar__separator {
+    background: rgba(255, 255, 255, 0.2);
+}
+
+.ck.ck-dropdown .ck-dropdown__panel {
+    background: #1a1a1a !important;
+    border-color: #333 !important;
+}
+
+.ck.ck-dropdown .ck-dropdown__panel * {
+    color: white !important;
+    background: #1a1a1a !important;
+}
+
+.ck.ck-dropdown .ck-dropdown__panel .ck-list__item:hover {
+    background: var(--color-primary) !important;
+}
+
+.ck.ck-dropdown .ck-dropdown__panel .ck-button.ck-on {
+    background: var(--color-primary) !important;
+}
+
+.universe-tabs .nav-link.disabled-tab {
+    opacity: 0.5;
+    cursor: not-allowed;
+    pointer-events: none;
+}
+
+.form-select {
+    background-color: rgba(255, 255, 255, 0.1) !important;
+    border: 1px solid #333 !important;
+    color: white !important;
+}
+
+.form-select option {
+    background-color: #1a1a1a !important;
+    color: white !important;
+}
+
+.ticket-types-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+    gap: 1rem;
+    margin-top: 1rem;
+}
+
+.ticket-type-card {
+    background: rgba(255, 255, 255, 0.05);
+    border: 2px solid transparent;
+    border-radius: 8px;
+    padding: 1.5rem;
+    cursor: pointer;
+    transition: var(--transition-default);
+    position: relative;
+    overflow: hidden;
+}
+
+.ticket-type-card::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    border-radius: 6px;
+    padding: 2px;
+    background: linear-gradient(90deg, var(--color-primary), var(--color-secondary));
+    -webkit-mask: 
+        linear-gradient(#fff 0 0) content-box, 
+        linear-gradient(#fff 0 0);
+    mask: 
+        linear-gradient(#fff 0 0) content-box, 
+        linear-gradient(#fff 0 0);
+    -webkit-mask-composite: xor;
+    mask-composite: exclude;
+}
+
+.ticket-type-card:hover {
+    transform: translateY(-2px);
+    box-shadow: var(--glow-effect);
+}
+
+.ticket-type-name {
+    color: var(--color-text);
+    font-size: 1.1rem;
+    font-weight: 500;
+    text-align: center;
+}
+
+.universe-modal .modal-content {
+    background: linear-gradient(to bottom, #1a1a1a, #000000);
+    border: 2px solid transparent;
+    border-radius: 12px;
+    position: relative;
+}
+
+.universe-modal .modal-content::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    border-radius: 10px;
+    padding: 2px;
+    background: linear-gradient(90deg, var(--color-primary), var(--color-secondary));
+    -webkit-mask: 
+        linear-gradient(#fff 0 0) content-box, 
+        linear-gradient(#fff 0 0);
+    mask: 
+        linear-gradient(#fff 0 0) content-box, 
+        linear-gradient(#fff 0 0);
+    -webkit-mask-composite: xor;
+    mask-composite: exclude;
+}
+
+.universe-modal .modal-header {
+    border-bottom: 1px solid rgba(167, 135, 255, 0.2);
+    padding: 1.5rem;
+}
+
+.universe-modal .modal-body {
+    padding: 1.5rem;
+}
+
+.universe-modal .modal-title {
+    color: var(--color-primary);
+    font-size: 1.5rem;
+}
+
+.universe-modal .btn-close {
+    color: white;
+    filter: invert(1) grayscale(100%) brightness(200%);
+}
+
+.universe-modal .form-label {
+    color: var(--color-secondary);
+    margin-bottom: 0.5rem;
+}
+
+.universe-modal .btn {
+    padding: 0.5rem 1.5rem;
+}
+
+.validation-error {
+    margin-top: 0.5rem;
+    padding-left: 1rem;
+    position: relative;
+}
+
+.validation-error::before {
+    content: "•";
+    position: absolute;
+    left: 0;
+    color: var(--color-primary);
+}
+
+.universe-tabs .nav-link.has-error {
+    color: var(--bs-danger);
+}
+
+.universe-tabs .nav-link.has-error::after {
+    background: var(--bs-danger);
+}
+
+.alert-danger {
+    animation: fadeOut 3s forwards;
+}
+
+@keyframes fadeOut {
+    0% { opacity: 1; }
+    70% { opacity: 1; }
+    100% { opacity: 0; }
+}

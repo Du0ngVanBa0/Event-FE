@@ -1,0 +1,58 @@
+.universe-table-container {
+    position: relative;
+}
+
+.pagination {
+    gap: 0.5rem;
+}
+
+.pagination .page-item .page-link {
+    background: transparent;
+    border: 2px solid var(--color-primary);
+    color: var(--color-text);
+    padding: 0.5rem 1rem;
+    transition: var(--transition-default);
+    border-radius: 8px;
+}
+
+.pagination .page-item .page-link:hover:not(:disabled) {
+    background: var(--color-primary);
+    color: var(--color-text-dark);
+    box-shadow: var(--glow-effect);
+}
+
+.pagination .page-item.active .page-link {
+    background: var(--color-primary);
+    color: var(--color-text-dark);
+    border-color: var(--color-primary);
+}
+
+.pagination .page-item.disabled .page-link {
+    background: transparent;
+    border-color: rgba(167, 135, 255, 0.2);
+    color: rgba(255, 255, 255, 0.5);
+    cursor: not-allowed;
+}
+
+.universe-table tr.loading-row td {
+    padding: 2rem;
+}
+
+.page-size-select {
+    background: transparent;
+    border: 2px solid var(--color-primary);
+    color: var(--color-text);
+    padding: 0.25rem 2rem 0.25rem 0.5rem;
+    border-radius: 8px;
+    transition: var(--transition-default);
+}
+
+.page-size-select:focus {
+    box-shadow: var(--glow-effect);
+    border-color: var(--color-primary);
+}
+
+.page-size-select option {
+    background: #1a1a1a;
+    color: var(--color-text);
+}
