@@ -2,7 +2,7 @@ import html2canvas from 'html2canvas';
 import jsPDF from 'jspdf';
 import QRCode from 'qrcode';
 import { BookingTicket } from '../types/BookingTypes';
-import { formatDate, formatCurrency, formatFullAddress } from '../utils/helper';
+import { formatDate, formatCurrency, formatFullAddress } from './helper';
 
 const generateQRCode = async (text: string): Promise<string> => {
     try {
@@ -25,6 +25,8 @@ const createTicketElement = async (ticket: BookingTicket['chiTietVes'][0], booki
                 <h1>Universe Events</h1>
                 <h2>${booking.suKien.tieuDe}</h2>
                 <div class="ticket-meta">
+                    <p><i class="fas fa-user"></i> Người dùng: ${booking?.khachHang?.tenHienThi}</p>
+                    <p><i class="fas fa-clock"></i> Email: ${booking?.khachHang?.email}</p>
                     <p><i class="fas fa-calendar"></i> ${formatDate(booking.suKien.thoiGianBatDau)}</p>
                     <p><i class="fas fa-map-marker-alt"></i> ${formatFullAddress(booking.suKien.diaDiem)}</p>
                 </div>

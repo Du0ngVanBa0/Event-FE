@@ -63,102 +63,110 @@ const Dashboard = () => {
         fetchData();
     }, []);
 
-    const renderDashboardContent = () => (
-        <div className="dashboard-content">
-            <h2 className="mb-4">Tổng quan hệ thống</h2>
-            
-            <Row className="stats-cards">
-                <Col md={3}>
-                    <Card className="stat-card">
-                        <Card.Body>
-                            <div className="stat-icon">
-                                <i className="fas fa-calendar-alt"></i>
-                            </div>
-                            <div className="stat-info">
-                                <h3>{reportData.totalEvents}</h3>
-                                <p>Tổng số sự kiện</p>
-                            </div>
-                        </Card.Body>
-                    </Card>
-                </Col>
-                <Col md={3}>
-                    <Card className="stat-card">
-                        <Card.Body>
-                            <div className="stat-icon">
-                                <i className="fas fa-users"></i>
-                            </div>
-                            <div className="stat-info">
-                                <h3>{reportData.totalUsers}</h3>
-                                <p>Người dùng</p>
-                            </div>
-                        </Card.Body>
-                    </Card>
-                </Col>
-                <Col md={3}>
-                    <Card className="stat-card">
-                        <Card.Body>
-                            <div className="stat-icon">
-                                <i className="fas fa-clock"></i>
-                            </div>
-                            <div className="stat-info">
-                                <h3>{reportData.pendingEvents}</h3>
-                                <p>Sự kiện chờ duyệt</p>
-                            </div>
-                        </Card.Body>
-                    </Card>
-                </Col>
-                <Col md={3}>
-                    <Card className="stat-card">
-                        <Card.Body>
-                            <div className="stat-icon">
-                                <i className="fas fa-money-bill-wave"></i>
-                            </div>
-                            <div className="stat-info">
-                                <h3>{formatCurrency(reportData.monthlyRevenue)}</h3>
-                                <p>Doanh thu tháng</p>
-                            </div>
-                        </Card.Body>
-                    </Card>
-                </Col>
-            </Row>
+    const renderDashboardContent = () => {
+        if (loading) {
+            return (
+                <div className="alert alert-info" role="alert">
+                    <i className="fas fa-spinner fa-spin"></i> Đang tải dữ liệu thống kê...
+                </div>
+            );
+        } else return (
+            <div className="dashboard-content">
+                <h2 className="mb-4">Tổng quan hệ thống</h2>
+                
+                <Row className="stats-cards">
+                    <Col md={3}>
+                        <Card className="stat-card">
+                            <Card.Body>
+                                <div className="stat-icon">
+                                    <i className="fas fa-calendar-alt"></i>
+                                </div>
+                                <div className="stat-info">
+                                    <h3>{reportData.totalEvents}</h3>
+                                    <p>Tổng số sự kiện</p>
+                                </div>
+                            </Card.Body>
+                        </Card>
+                    </Col>
+                    <Col md={3}>
+                        <Card className="stat-card">
+                            <Card.Body>
+                                <div className="stat-icon">
+                                    <i className="fas fa-users"></i>
+                                </div>
+                                <div className="stat-info">
+                                    <h3>{reportData.totalUsers}</h3>
+                                    <p>Người dùng</p>
+                                </div>
+                            </Card.Body>
+                        </Card>
+                    </Col>
+                    <Col md={3}>
+                        <Card className="stat-card">
+                            <Card.Body>
+                                <div className="stat-icon">
+                                    <i className="fas fa-clock"></i>
+                                </div>
+                                <div className="stat-info">
+                                    <h3>{reportData.pendingEvents}</h3>
+                                    <p>Sự kiện chờ duyệt</p>
+                                </div>
+                            </Card.Body>
+                        </Card>
+                    </Col>
+                    <Col md={3}>
+                        <Card className="stat-card">
+                            <Card.Body>
+                                <div className="stat-icon">
+                                    <i className="fas fa-money-bill-wave"></i>
+                                </div>
+                                <div className="stat-info">
+                                    <h3>{formatCurrency(reportData.monthlyRevenue)}</h3>
+                                    <p>Doanh thu tháng</p>
+                                </div>
+                            </Card.Body>
+                        </Card>
+                    </Col>
+                </Row>
 
-            <Row className="mt-4">
-                <Col md={6}>
-                    <Card className="chart-card">
-                        <Card.Body>
-                            <h4>Danh mục phổ biến</h4>
-                            <div className="category-stats">
-                                {reportData.popularCategories.map((category, index) => (
-                                    <div key={index} className="category-stat-item">
-                                        <span className="category-name">{category.name}</span>
-                                        <span className="category-count">{category.count} sự kiện</span>
-                                    </div>
-                                ))}
-                            </div>
-                        </Card.Body>
-                    </Card>
-                </Col>
-                <Col md={6}>
-                    <Card className="chart-card">
-                        <Card.Body>
-                            <h4>Sự kiện nổi bật gần đây</h4>
-                            <div className="recent-events">
-                                {reportData.recentEvents.map((event, index) => (
-                                    <div key={index} className="recent-event-item">
-                                        <span className="event-name">{event.name}</span>
-                                        <div className="event-stats">
-                                            <span>{event.tickets} vé</span>
-                                            <span>{formatCurrency(event.revenue)}</span>
+                <Row className="mt-4">
+                    <Col md={6}>
+                        <Card className="chart-card">
+                            <Card.Body>
+                                <h4>Danh mục phổ biến</h4>
+                                <div className="category-stats">
+                                    {reportData.popularCategories.map((category, index) => (
+                                        <div key={index} className="category-stat-item">
+                                            <span className="category-name">{category.name}</span>
+                                            <span className="category-count">{category.count} sự kiện</span>
                                         </div>
-                                    </div>
-                                ))}
-                            </div>
-                        </Card.Body>
-                    </Card>
-                </Col>
-            </Row>
-        </div>
-    );
+                                    ))}
+                                </div>
+                            </Card.Body>
+                        </Card>
+                    </Col>
+                    <Col md={6}>
+                        <Card className="chart-card">
+                            <Card.Body>
+                                <h4>Sự kiện nổi bật gần đây</h4>
+                                <div className="recent-events">
+                                    {reportData.recentEvents.map((event, index) => (
+                                        <div key={index} className="recent-event-item">
+                                            <span className="event-name">{event.name}</span>
+                                            <div className="event-stats">
+                                                <span>{event.tickets} vé</span>
+                                                <span>{formatCurrency(event.revenue)}</span>
+                                            </div>
+                                        </div>
+                                    ))}
+                                </div>
+                            </Card.Body>
+                        </Card>
+                    </Col>
+                </Row>
+            </div>
+        )
+    };
 
     return (
         <Container fluid className="admin-dashboard">
@@ -188,6 +196,14 @@ const Dashboard = () => {
                         >
                             <i className="fas fa-tags"></i>
                             Quản lý danh mục
+                        </Nav.Link>
+                        <Nav.Link
+                            as={Link}
+                            to="/admin/booking-tickets"
+                            className={currentPath.includes('booking-tickets') ? 'active' : ''}
+                        >
+                            <i className="fas fa-ticket"></i>
+                            Quản lý vé
                         </Nav.Link>
                     </Nav>
                 </Col>

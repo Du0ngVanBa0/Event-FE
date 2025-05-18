@@ -18,11 +18,9 @@ const PaymentResult = () => {
             try {
                 setLoading(true);
                 
-                // Get URL parameters
                 const searchParams = new URLSearchParams(location.search);
                 const params: URLSearchParams[] = [];
                 
-                // Convert URLSearchParams to the format expected by the API
                 searchParams.forEach((value, key) => {
                     const param = new URLSearchParams();
                     param.append(key, value);
@@ -147,9 +145,9 @@ const PaymentResult = () => {
                                 </button>
                             </>
                         ) : (
-                            <Button variant="primary" onClick={() => navigate(-1)}>
-                                Thử lại
-                            </Button>
+                            <button className='payment-result-more-btn payment-result-btn' onClick={() => navigate("/")}>
+                                Trang chủ
+                            </button>
                         )}
                     </div>
                 </Card.Body>

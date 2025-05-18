@@ -17,3 +17,9 @@ export interface User {
     role: 'ADMIN' | 'USER';
     avatar?: string;
 }
+
+export interface SecurityUser {
+    maNguoiDung?: string;
+    tenHienThi?: string;
+    email?: string;
+}

@@ -13,7 +13,6 @@ const Payment = () => {
     const [error, setError] = useState<string | null>(null);
     const [paymentUrl, setPaymentUrl] = useState<string | null>(null);
     
-    // Xử lý return từ VNPay
     const handleVnpayReturn = async () => {
         const searchParams = new URLSearchParams(window.location.search);
         if (searchParams.toString()) {
@@ -108,7 +107,6 @@ const Payment = () => {
     }
 
     if (paymentUrl) {
-        // Redirect to payment gateway
         window.location.href = paymentUrl;
         return (
             <Container className="payment-container">

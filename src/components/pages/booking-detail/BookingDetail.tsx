@@ -4,7 +4,7 @@ import { Link, useParams } from 'react-router-dom';
 import { formatDate, formatCurrency, getImageUrl, formatFullAddress } from '../../../utils/helper';
 import { bookTicketService } from '../../../api/bookTicketService';
 import { BookingTicket } from '../../../types/BookingTypes';
-import { generateTicketPDF } from '../../../services/ticketGenerator';
+import { generateTicketPDF } from '../../../utils/ticketGenerator';
 import './BookingDetail.css';
 
 const BookingDetail = () => {
@@ -86,12 +86,12 @@ const BookingDetail = () => {
                                                 {formatDate(booking.suKien.thoiGianBatDau)}
                                             </span>
                                             <span>
-                                                <i className="fas fa-clock"></i>
-                                                {formatDate(booking.suKien.thoiGianBatDau)} - {formatDate(booking.suKien.thoiGianKetThuc)}
-                                            </span>
-                                            <span>
                                                 <i className="fas fa-map-marker-alt"></i>
                                                 {formatFullAddress(booking.suKien?.diaDiem)}
+                                            </span>
+                                            <span>
+                                                <i className="fas fa-clock"></i>
+                                                {formatDate(booking.suKien.thoiGianBatDau)} - {formatDate(booking.suKien.thoiGianKetThuc)}
                                             </span>
                                         </div>
                                     </div>
