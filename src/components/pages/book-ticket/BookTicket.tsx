@@ -223,7 +223,7 @@ const BookTicket = () => {
                                     <div key={ticket.maLoaiVe} className="ticket-price-item">
                                         <span>{ticket.tenLoaiVe}</span>
                                         <span>{formatCurrency(ticket.giaTien)}</span>
-                                        <span className="text-muted ms-2 small">
+                                        <span>
                                             (Tối thiểu {ticket.soLuongToiThieu || 0} / Tối đa {ticket.soLuongToiDa || ticket.veConLai || 0})
                                         </span>
                                     </div>
@@ -261,7 +261,6 @@ const BookTicket = () => {
                                                     ) : (
                                                         <span>
                                                             Còn {ticket.veConLai} vé&nbsp;
-                                                            <span className="text-muted small">(min {min} / max {max})</span>
                                                         </span>
                                                     )}
                                                 </p>
