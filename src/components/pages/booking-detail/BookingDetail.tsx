@@ -191,6 +191,22 @@ const BookingDetail = () => {
                                 </div>
                             </Card.Body>
                         </Card>
+                        
+                        <Card className="booking-summary-card">
+                            <Card.Body>
+                                <h4>Thông tin khách hàng</h4>
+                                <div className="booking-detail-summary-content">
+                                    <div className="booking-detail-summary-row">
+                                        <span className="label">Tên khách hàng</span>
+                                        <span className="value">{booking?.khachHang?.tenHienThi}</span>
+                                    </div>
+                                    <div className="booking-detail-summary-row">
+                                        <span className="label">Email</span>
+                                        <span className="value">{booking?.khachHang?.email}</span>
+                                    </div>
+                                </div>
+                            </Card.Body>
+                        </Card>
                     </Col>
                 </Row>
             </div>
