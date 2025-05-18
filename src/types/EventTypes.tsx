@@ -1,10 +1,13 @@
 export interface TicketType {
+    maLoaiVe?: string;
     id: string;
     tenLoaiVe: string;
     moTa: string;
     soLuong: number;
     giaTien: number;
-    soVeConLai?: number;
+    veConLai?: number;
+    soLuongToiThieu: number;
+    soLuongToiDa: number;
 }
 
 export interface DiaDiem {
@@ -23,15 +26,6 @@ export interface DanhMucSuKienRef {
     tenDanhMuc: string;
 }
 
-export interface LoaiVe {
-    maLoaiVe?: string;
-    tenLoaiVe: string;
-    moTa: string;
-    soLuong: number;
-    veConLai?: number;
-    giaTien: number;
-}
-
 export interface SuKien {
     maSuKien: string;
     tieuDe: string;
@@ -44,7 +38,7 @@ export interface SuKien {
     hoatDong: boolean;
     diaDiem: DiaDiem;
     danhMucs: DanhMucSuKienRef[];
-    loaiVes: LoaiVe[];
+    loaiVes: TicketType[];
     ngayTao?: string;
 }
 
@@ -59,7 +53,7 @@ export interface CreateSuKienDTO {
     tenDiaDiem: string;
     maPhuongXa: string;
     maDanhMucs: string[];
-    loaiVes: Omit<LoaiVe, 'maLoaiVe'>[];
+    loaiVes: Omit<TicketType, 'maLoaiVe'>[];
 }
 
 export interface UpdateSuKienDTO extends Omit<CreateSuKienDTO, 'anhBia'> {

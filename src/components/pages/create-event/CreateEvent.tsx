@@ -169,7 +169,7 @@ const CreateEvent = () => {
                 maPhuongXa: eventForm.phuongXa,
                 maDanhMucs: eventForm.danhMucSuKiens,
                 // eslint-disable-next-line @typescript-eslint/no-unused-vars
-                loaiVes: ticketTypes.map(({ id: _id, ...rest }) => rest),
+                loaiVes: ticketTypes.map(({ maLoaiVe: _id, ...rest }) => rest),
                 ...combinedDateTime,
                 anhBia: eventForm.anhBiaFile
             };

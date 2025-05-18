@@ -26,18 +26,36 @@ const BookTicket = () => {
         return `${event.diaDiem.tenDiaDiem}, ${event.diaDiem.tenPhuongXa}, ${event.diaDiem.tenQuanHuyen}, ${event.diaDiem.tenTinhThanh}`;
     };
 
+    // Helper: Find current selected quantity for a ticket
+    const getSelectedQuantity = (ticketId: string) =>
+        selectedTickets.find(t => t.id === ticketId)?.quantity || 0;
+
     const handleQuantityChange = (ticketId: string, change: number) => {
+        const ticket = event?.loaiVes.find(t => t.maLoaiVe === ticketId);
+        if (!ticket) return;
+
+        const min = ticket.soLuongToiThieu || 0;
+        const max = Math.min(ticket.soLuongToiDa || ticket.veConLai || 0, ticket.veConLai || 0);
+
         setSelectedTickets(prev => {
             const existing = prev.find(t => t.id === ticketId);
+            const current = existing?.quantity || 0;
+            let newQuantity = current + change;
+
+            // Clamp to min/max and never below 0
+            if (newQuantity < min && newQuantity !== 0) newQuantity = min;
+            if (newQuantity > max) newQuantity = max;
+            if (newQuantity < 0) newQuantity = 0;
+
             if (!existing) {
-                if (change > 0) {
-                    return [...prev, { id: ticketId, quantity: 1 }];
+                if (change > 0 && newQuantity >= min) {
+                    return [...prev, { id: ticketId, quantity: newQuantity }];
                 }
                 return prev;
             }
 
-            const newQuantity = Math.max(0, existing.quantity + change);
             if (newQuantity === 0) {
+                // Remove selection if quantity is zero
                 return prev.filter(t => t.id !== ticketId);
             }
 
@@ -48,24 +66,30 @@ const BookTicket = () => {
     };
 
     const handleQuantityInput = (ticketId: string, value: string) => {
-        const quantity = parseInt(value) || 0;
         const ticket = event?.loaiVes.find(t => t.maLoaiVe === ticketId);
-        const maxQuantity = ticket?.veConLai ?? 0;
+        if (!ticket) return;
+
+        let quantity = parseInt(value) || 0;
+        const min = ticket.soLuongToiThieu || 0;
+        const max = Math.min(ticket.soLuongToiDa || ticket.veConLai || 0, ticket.veConLai || 0);
+
+        if (quantity > max) quantity = max;
+        if (quantity < min && quantity !== 0) quantity = min;
+        if (quantity < 0) quantity = 0;
 
         setSelectedTickets(prev => {
             if (quantity === 0) {
                 return prev.filter(t => t.id !== ticketId);
             }
 
-            const newQuantity = Math.min(Math.max(0, quantity), maxQuantity);
             const existing = prev.find(t => t.id === ticketId);
 
             if (!existing) {
-                return [...prev, { id: ticketId, quantity: newQuantity }];
+                return [...prev, { id: ticketId, quantity }];
             }
 
             return prev.map(t =>
-                t.id === ticketId ? { ...t, quantity: newQuantity } : t
+                t.id === ticketId ? { ...t, quantity } : t
             );
         });
     };
@@ -81,7 +105,27 @@ const BookTicket = () => {
         }, 0);
     };
 
+    const validateBooking = () => {
+        // Check all selected tickets satisfy min/max
+        for (const selection of selectedTickets) {
+            const ticket = event?.loaiVes.find(t => t.maLoaiVe === selection.id);
+            if (!ticket) continue;
+            const min = ticket.soLuongToiThieu || 0;
+            const max = Math.min(ticket.soLuongToiDa || ticket.veConLai || 0, ticket.veConLai || 0);
+            if (selection.quantity < min || selection.quantity > max) {
+                return `Số lượng mua cho loại vé "${ticket.tenLoaiVe}" phải từ ${min} đến ${max}`;
+            }
+        }
+        return '';
+    };
+
     const handlePayment = async () => {
+        // Validate min/max before booking
+        const bookingValidationError = validateBooking();
+        if (bookingValidationError) {
+            setBookingError(bookingValidationError);
+            return;
+        }
         try {
             setIsBooking(true);
             setBookingError(null);
@@ -101,11 +145,11 @@ const BookTicket = () => {
             // eslint-disable-next-line @typescript-eslint/no-explicit-any
         } catch (err: any) {
             let errorMessage = 'Có lỗi xảy ra khi đặt vé. Vui lòng thử lại sau.';
-            
+
             if (err.message) {
                 errorMessage = err?.message || errorMessage;
             }
-            
+
             setBookingError(errorMessage);
             console.error('Error booking tickets:', err);
         } finally {
@@ -179,6 +223,9 @@ const BookTicket = () => {
                                     <div key={ticket.maLoaiVe} className="ticket-price-item">
                                         <span>{ticket.tenLoaiVe}</span>
                                         <span>{formatCurrency(ticket.giaTien)}</span>
+                                        <span className="text-muted ms-2 small">
+                                            (Tối thiểu {ticket.soLuongToiThieu || 0} / Tối đa {ticket.soLuongToiDa || ticket.veConLai || 0})
+                                        </span>
                                     </div>
                                 ))}
                             </div>
@@ -200,51 +247,58 @@ const BookTicket = () => {
                             )}
 
                             <div className="ticket-selection-list">
-                                {event.loaiVes.map(ticket => (
-                                    <div key={ticket.maLoaiVe} className="ticket-selection-item">
-                                        <div className="ticket-info">
-                                            <h4>{ticket.tenLoaiVe}</h4>
-                                            <p className="ticket-price">{formatCurrency(ticket.giaTien)}</p>
-                                            <p className="tickets-remaining">
-                                                {ticket.veConLai === 0 ? (
-                                                    <span className="sold-out">Đã bán hết</span>
-                                                ) : (
-                                                    <span>Còn {ticket.veConLai} vé</span>
-                                                )}
-                                            </p>
+                                {event.loaiVes.map(ticket => {
+                                    const min = ticket.soLuongToiThieu || 0;
+                                    const max = Math.min(ticket.soLuongToiDa || ticket.veConLai || 0, ticket.veConLai || 0);
+                                    return (
+                                        <div key={ticket.maLoaiVe} className="ticket-selection-item">
+                                            <div className="ticket-info">
+                                                <h4>{ticket.tenLoaiVe}</h4>
+                                                <p className="ticket-price">{formatCurrency(ticket.giaTien)}</p>
+                                                <p className="tickets-remaining">
+                                                    {ticket.veConLai === 0 ? (
+                                                        <span className="sold-out">Đã bán hết</span>
+                                                    ) : (
+                                                        <span>
+                                                            Còn {ticket.veConLai} vé&nbsp;
+                                                            <span className="text-muted small">(min {min} / max {max})</span>
+                                                        </span>
+                                                    )}
+                                                </p>
+                                            </div>
+                                            <div className="quantity-control">
+                                                <Button
+                                                    variant="outline-primary"
+                                                    onClick={() => handleQuantityChange(ticket.maLoaiVe ?? '', -1)}
+                                                    className="quantity-button"
+                                                    disabled={ticket.veConLai === 0 || getSelectedQuantity(ticket.maLoaiVe ?? '') <= min}
+                                                >
+                                                    -
+                                                </Button>
+                                                <Form.Control
+                                                    type="number"
+                                                    min={min}
+                                                    max={max}
+                                                    value={getSelectedQuantity(ticket.maLoaiVe ?? '')}
+                                                    onChange={(e) => handleQuantityInput(ticket.maLoaiVe ?? '', e.target.value)}
+                                                    className="quantity-input"
+                                                    disabled={ticket.veConLai === 0}
+                                                />
+                                                <Button
+                                                    variant="outline-primary"
+                                                    onClick={() => handleQuantityChange(ticket.maLoaiVe ?? '', 1)}
+                                                    className="quantity-button"
+                                                    disabled={
+                                                        ticket.veConLai === 0 ||
+                                                        getSelectedQuantity(ticket.maLoaiVe ?? '') >= max
+                                                    }
+                                                >
+                                                    +
+                                                </Button>
+                                            </div>
                                         </div>
-                                        <div className="quantity-control">
-                                            <Button 
-                                                variant="outline-primary"
-                                                onClick={() => handleQuantityChange(ticket.maLoaiVe ?? '', -1)}
-                                                className="quantity-button"
-                                                disabled={ticket.veConLai === 0}
-                                            >
-                                                -
-                                            </Button>
-                                            <Form.Control
-                                                type="number"
-                                                min="0"
-                                                max={ticket.veConLai ?? 0}
-                                                value={selectedTickets.find(t => t.id === ticket.maLoaiVe)?.quantity || 0}
-                                                onChange={(e) => handleQuantityInput(ticket.maLoaiVe ?? '', e.target.value)}
-                                                className="quantity-input"
-                                                disabled={ticket.veConLai === 0}
-                                            />
-                                            <Button 
-                                                variant="outline-primary"
-                                                onClick={() => handleQuantityChange(ticket.maLoaiVe ?? '', 1)}
-                                                className="quantity-button"
-                                                disabled={
-                                                    ticket.veConLai === 0 || 
-                                                    (selectedTickets.find(t => t.id === ticket.maLoaiVe)?.quantity || 0) >= (ticket.veConLai ?? 0)
-                                                }
-                                            >
-                                                +
-                                            </Button>
-                                        </div>
-                                    </div>
-                                ))}
+                                    );
+                                })}
                             </div>
 
                             <div className="payment-section">

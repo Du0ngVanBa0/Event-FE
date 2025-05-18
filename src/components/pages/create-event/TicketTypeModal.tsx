@@ -1,4 +1,4 @@
-import { Modal, Form, Button } from 'react-bootstrap';
+import { Modal, Form, Button, Alert } from 'react-bootstrap';
 import { useState, useEffect } from 'react';
 import { TicketType } from '../../../types/EventTypes';
 
@@ -10,13 +10,18 @@ interface TicketTypeModalProps {
     editTicket?: TicketType;
 }
 
+const initialForm = {
+    tenLoaiVe: '',
+    moTa: '',
+    soLuong: 0,
+    giaTien: 0,
+    soLuongToiThieu: 0,
+    soLuongToiDa: 0
+};
+
 const TicketTypeModal = ({ show, onHide, onSave, onDelete, editTicket }: TicketTypeModalProps) => {
-    const [ticketForm, setTicketForm] = useState({
-        tenLoaiVe: '',
-        moTa: '',
-        soLuong: 0,
-        giaTien: 0
-    });
+    const [notification, setNotification] = useState<{ message: string; type: string } | null>(null);
+    const [ticketForm, setTicketForm] = useState(initialForm);
 
     useEffect(() => {
         if (editTicket) {
@@ -24,23 +29,40 @@ const TicketTypeModal = ({ show, onHide, onSave, onDelete, editTicket }: TicketT
                 tenLoaiVe: editTicket.tenLoaiVe,
                 moTa: editTicket.moTa,
                 soLuong: editTicket.soLuong,
-                giaTien: editTicket.giaTien
+                giaTien: editTicket.giaTien,
+                soLuongToiThieu: editTicket.soLuongToiThieu,
+                soLuongToiDa: editTicket.soLuongToiDa
             });
         } else {
-            setTicketForm({
-                tenLoaiVe: '',
-                moTa: '',
-                soLuong: 0,
-                giaTien: 0
-            });
+            setTicketForm(initialForm);
         }
-    }, [editTicket]);
+        setNotification(null);
+    }, [editTicket, show]);
+
+    useEffect(() => {
+        let timeoutId: NodeJS.Timeout;
+        if (notification) {
+            timeoutId = setTimeout(() => {
+                setNotification(null);
+            }, 3000);
+        }
+        return () => {
+            if (timeoutId) {
+                clearTimeout(timeoutId);
+            }
+        };
+    }, [notification]);
 
     const handleSubmit = (e: React.FormEvent) => {
         e.preventDefault();
+        if (ticketForm.soLuongToiDa > ticketForm.soLuong) {
+            setNotification({ message: 'Số lượng tối đa không được lớn hơn tổng số lượng!', type: 'danger' });
+            return;
+        }
         onSave(ticketForm);
         onHide();
-        setTicketForm({ tenLoaiVe: '', moTa: '', soLuong: 0, giaTien: 0 });
+        setTicketForm(initialForm);
+        setNotification(null);
     };
 
     return (
@@ -59,7 +81,6 @@ const TicketTypeModal = ({ show, onHide, onSave, onDelete, editTicket }: TicketT
                             required
                         />
                     </Form.Group>
-
                     <Form.Group className="mb-3">
                         <Form.Label>Mô tả</Form.Label>
                         <Form.Control
@@ -69,7 +90,6 @@ const TicketTypeModal = ({ show, onHide, onSave, onDelete, editTicket }: TicketT
                             onChange={(e) => setTicketForm({ ...ticketForm, moTa: e.target.value })}
                         />
                     </Form.Group>
-
                     <Form.Group className="mb-3">
                         <Form.Label>Số lượng</Form.Label>
                         <Form.Control
@@ -80,7 +100,6 @@ const TicketTypeModal = ({ show, onHide, onSave, onDelete, editTicket }: TicketT
                             required
                         />
                     </Form.Group>
-
                     <Form.Group className="mb-3">
                         <Form.Label>Giá tiền (VNĐ)</Form.Label>
                         <Form.Control
@@ -89,6 +108,26 @@ const TicketTypeModal = ({ show, onHide, onSave, onDelete, editTicket }: TicketT
                             step="1000"
                             value={ticketForm.giaTien}
                             onChange={(e) => setTicketForm({ ...ticketForm, giaTien: parseInt(e.target.value) })}
+                            required
+                        />
+                    </Form.Group>
+                    <Form.Group className="mb-3">
+                        <Form.Label>Số lượng tối thiểu</Form.Label>
+                        <Form.Control
+                            type="number"
+                            min="1"
+                            value={ticketForm.soLuongToiThieu}
+                            onChange={(e) => setTicketForm({ ...ticketForm, soLuongToiThieu: parseInt(e.target.value) })}
+                            required
+                        />
+                    </Form.Group>
+                    <Form.Group className="mb-3">
+                        <Form.Label>Số lượng tối đa</Form.Label>
+                        <Form.Control
+                            type="number"
+                            min="1"
+                            value={ticketForm.soLuongToiDa}
+                            onChange={(e) => setTicketForm({ ...ticketForm, soLuongToiDa: parseInt(e.target.value) })}
                             required
                         />
                     </Form.Group>
@@ -114,6 +153,12 @@ const TicketTypeModal = ({ show, onHide, onSave, onDelete, editTicket }: TicketT
                         </Button>
                     </div>
                 </Form>
+
+                {notification && (
+                    <Alert variant={notification.type} className="mt-3">
+                        <div className="validation-error">{notification.message}</div>
+                    </Alert>
+                )}
             </Modal.Body>
         </Modal>
     );
