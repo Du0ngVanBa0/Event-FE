@@ -44,11 +44,11 @@
     border-radius: 6px;
     padding: 2px;
     background: linear-gradient(90deg, var(--color-primary), var(--color-secondary));
-    -webkit-mask: 
-        linear-gradient(#fff 0 0) content-box, 
+    -webkit-mask:
+        linear-gradient(#fff 0 0) content-box,
         linear-gradient(#fff 0 0);
-    mask: 
-        linear-gradient(#fff 0 0) content-box, 
+    mask:
+        linear-gradient(#fff 0 0) content-box,
         linear-gradient(#fff 0 0);
     -webkit-mask-composite: xor;
     mask-composite: exclude;
@@ -166,7 +166,7 @@
     font-size: 0.9rem;
 }
 
-.event-description{
+.event-description {
     overflow: scroll;
 }
 
@@ -199,6 +199,7 @@
         transform: translateY(-100%);
         opacity: 0;
     }
+
     to {
         transform: translateY(0);
         opacity: 1;
@@ -331,11 +332,11 @@
     border-radius: 6px;
     padding: 2px;
     background: linear-gradient(90deg, var(--color-primary), var(--color-secondary));
-    -webkit-mask: 
-        linear-gradient(#fff 0 0) content-box, 
+    -webkit-mask:
+        linear-gradient(#fff 0 0) content-box,
         linear-gradient(#fff 0 0);
-    mask: 
-        linear-gradient(#fff 0 0) content-box, 
+    mask:
+        linear-gradient(#fff 0 0) content-box,
         linear-gradient(#fff 0 0);
     -webkit-mask-composite: xor;
     mask-composite: exclude;

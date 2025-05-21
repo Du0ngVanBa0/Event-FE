@@ -1,0 +1,589 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
+import { useState, useEffect } from "react";
+import {
+  Container,
+  Card,
+  Button,
+  Row,
+  Col,
+  Badge,
+  Spinner,
+  Alert,
+  Modal,
+} from "react-bootstrap";
+import { QrReader } from "react-qr-reader";
+import { bookTicketService } from "../../../api/bookTicketService";
+import {
+  formatCurrency,
+  getImageUrl,
+  formatDate,
+  formatFullAddress,
+} from "../../../utils/helper";
+import {
+  TicketResponse,
+} from "../../../types/BookingTypes";
+import "./TicketScanner.css";
+
+const EventTicketScanner = () => {
+  const [ticketCode, setTicketCode] = useState<string>("");
+
+  const [ticketData, setTicketData] = useState<TicketResponse | null>(null);
+  const [processingTicket, setProcessingTicket] =
+    useState<TicketResponse | null>(null);
+  const [loading, setLoading] = useState<boolean>(false);
+  const [error, setError] = useState<string | null>(null);
+  const [success, setSuccess] = useState<string>("");
+  const [activeTab, setActiveTab] = useState<"scan" | "manual" | "result">(
+    "scan"
+  );
+  const [showVerifyModal, setShowVerifyModal] = useState<boolean>(false);
+  const [verifyLoading, setVerifyLoading] = useState<boolean>(false);
+  const [facingMode, setFacingMode] = useState<"environment" | "user">(
+    "environment"
+  );
+
+  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    setTicketCode(e.target.value);
+  };
+
+  const handleScan = async (result: any | null) => {
+    if (result?.text && !loading) {
+      const scannedText = result.text;
+      setTicketCode(scannedText);
+
+      try {
+        setLoading(true);
+        setError(null);
+
+        const checkInResponse = await bookTicketService.checkInTicket(
+          scannedText
+        );
+
+        if (checkInResponse.success && checkInResponse.data) {
+          setTicketData(checkInResponse.data);
+          setActiveTab("result");
+        } else {
+          setError(checkInResponse?.message);
+        }
+      } catch (err: any) {
+        console.error("Error checking in ticket:", err);
+        setError(
+          err.response?.data?.message ||
+            "Không thể kiểm tra vé. Vui lòng thử lại."
+        );
+      } finally {
+        setLoading(false);
+      }
+    }
+  };
+
+  useEffect(() => {
+    let timeoutId: NodeJS.Timeout | undefined;
+    if (success || error) {
+      timeoutId = setTimeout(() => {
+        setSuccess("");
+        setError(null);
+      }, 3000);
+    }
+    return () => {
+      if (timeoutId) {
+        clearTimeout(timeoutId);
+      }
+    };
+  }, [success, error]);
+
+  // Toggle camera facing mode
+  const toggleCamera = () => {
+    setFacingMode(facingMode === "environment" ? "user" : "environment");
+  };
+
+  const handleSearch = async (overrideCode?: string) => {
+    const code = overrideCode ?? ticketCode;
+    if (!code.trim()) {
+      setError("Vui lòng nhập mã đặt vé");
+      return;
+    }
+
+    try {
+      setLoading(true);
+      setError(null);
+      const response = await bookTicketService.checkInTicket(code.trim());
+
+      if (response.success && response.data) {
+        setTicketData(response.data);
+        setActiveTab("result");
+      } else {
+        setError("Không tìm thấy thông tin vé");
+      }
+    } catch (err) {
+      console.error("Error fetching ticket:", err);
+      setError("Không thể tìm thấy thông tin vé. Vui lòng kiểm tra lại mã.");
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleVerifyTicket = async () => {
+    if (!processingTicket) return;
+
+    try {
+      setVerifyLoading(true);
+
+      const response = await bookTicketService.verifyTicket(
+        processingTicket.maVe
+      );
+
+      if (response.success && response.data) {
+        setTicketData(response.data);
+        setSuccess(`Vé ${processingTicket.maVe} đã được sử dụng thành công`);
+        setShowVerifyModal(false);
+
+        setSuccess(`Vé ${processingTicket.maVe} đã được sử dụng thành công`);
+        setShowVerifyModal(false);
+      } else {
+        throw new Error("Không thể xác thực vé");
+      }
+    } catch (err: any) {
+      console.error("Error verifying ticket:", err);
+      setError(
+        err.response?.data?.message ||
+          "Không thể xác thực vé. Vui lòng thử lại."
+      );
+    } finally {
+      setVerifyLoading(false);
+    }
+  };
+
+  // Reset scanner and search
+  const handleReset = () => {
+    setTicketData(null);
+    setTicketCode("");
+    setActiveTab("scan");
+    setError(null);
+    setSuccess("");
+  };
+
+  const isTicketUsed = (ticket: TicketResponse) => {
+    return ticket.trangThai === "DA_SU_DUNG";
+  };
+
+  const getTicketStatusBadge = (ticket: TicketResponse) => {
+    switch (ticket.trangThai) {
+      case "DA_SU_DUNG":
+        return <Badge bg="danger">Đã sử dụng</Badge>;
+      case "DA_THANH_TOAN":
+        return <Badge bg="success">Chưa sử dụng</Badge>;
+      default:
+        return (
+          <Badge bg="warning" text="dark">
+            Chưa xác định
+          </Badge>
+        );
+    }
+  };
+
+  const getBookingStatusBadge = (ticket: TicketResponse) => {
+    if (ticket?.datVe?.hoatDong) {
+      return <Badge bg="success">Đã thanh toán</Badge>;
+    } else if (new Date(ticket?.datVe?.thoiGianHetHan) > new Date()) {
+      return (
+        <Badge bg="warning" text="dark">
+          Chờ thanh toán
+        </Badge>
+      );
+    } else {
+      return <Badge bg="danger">Hết hạn</Badge>;
+    }
+  };
+
+  // Open verify modal for a specific ticket
+  const openVerifyModal = (ticket: TicketResponse) => {
+    setProcessingTicket(ticket);
+    setShowVerifyModal(true);
+  };
+
+  return (
+    <Container className="scanner-container">
+      <div className="scanner-wrapper">
+        <div className="scanner-header">
+          <h2 className="page-title">Quét Vé Sự Kiện</h2>
+        </div>
+
+        {/* Notification area */}
+        {error && (
+          <Alert variant="danger" onClose={() => setError(null)} dismissible>
+            {error}
+          </Alert>
+        )}
+        {success && (
+          <Alert variant="success" onClose={() => setSuccess("")} dismissible>
+            {success}
+          </Alert>
+        )}
+
+        {/* Tab navigation */}
+        <div className="scanner-tabs">
+          <Button
+            variant={activeTab === "scan" ? "primary" : "outline-primary"}
+            className="tab-btn"
+            onClick={() => setActiveTab("scan")}
+          >
+            <i className="fas fa-qrcode me-2"></i>
+            Quét mã QR
+          </Button>
+          <Button
+            variant={activeTab === "manual" ? "primary" : "outline-primary"}
+            className="tab-btn"
+            onClick={() => setActiveTab("manual")}
+          >
+            <i className="fas fa-keyboard me-2"></i>
+            Nhập mã thủ công
+          </Button>
+          {ticketData && (
+            <Button
+              variant={activeTab === "result" ? "primary" : "outline-primary"}
+              className="tab-btn"
+              onClick={() => setActiveTab("result")}
+            >
+              <i className="fas fa-ticket-alt me-2"></i>
+              Kết quả
+            </Button>
+          )}
+        </div>
+
+        {/* Scanner view */}
+        {activeTab === "scan" && (
+          <div className="scanner-view">
+            <div className="scanner-card">
+              <div className="scanner-video-container">
+                <QrReader
+                  constraints={{
+                    facingMode,
+                    aspectRatio: 1,
+                    width: { min: 640, ideal: 1280, max: 1920 },
+                    height: { min: 480, ideal: 720, max: 1080 },
+                  }}
+                  onResult={handleScan}
+                  className="scanner-video"
+                  videoStyle={{
+                    width: "100%",
+                    height: "100%",
+                    objectFit: "cover",
+                  }}
+                  videoId="qr-video-element"
+                  scanDelay={500}
+                />
+                <div className="scanner-overlay">
+                  <div className="scanner-target">
+                    <div className="scanner-corner top-left"></div>
+                    <div className="scanner-corner top-right"></div>
+                    <div className="scanner-corner bottom-left"></div>
+                    <div className="scanner-corner bottom-right"></div>
+                    <div className="scanner-line"></div>
+                  </div>
+                  <div className="scanner-instructions">
+                    <p>Đặt mã QR vào trong khung</p>
+                  </div>
+                </div>
+              </div>
+              <div className="scanner-actions">
+                <Button
+                  variant="primary"
+                  className="universe-btn"
+                  onClick={toggleCamera}
+                >
+                  <i className="fas fa-sync-alt me-2"></i>
+                  Đổi camera
+                </Button>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* Manual input */}
+        {activeTab === "manual" && (
+          <div className="manual-input">
+            <div className="input-card">
+              <div className="input-content">
+                <h4>Nhập mã đặt vé</h4>
+                <div className="input-field">
+                  <input
+                    type="text"
+                    placeholder="Nhập mã đặt vé (VD: TIX1234567)"
+                    value={ticketCode}
+                    onChange={handleInputChange}
+                    className="ticket-input"
+                  />
+                </div>
+                <div className="input-actions">
+                  <Button
+                    variant="primary"
+                    className="universe-btn"
+                    onClick={() => handleSearch()}
+                    disabled={loading || !ticketCode.trim()}
+                  >
+                    {loading ? (
+                      <>
+                        <Spinner
+                          animation="border"
+                          size="sm"
+                          className="me-2"
+                        />
+                        Đang tìm kiếm...
+                      </>
+                    ) : (
+                      <>
+                        <i className="fas fa-search me-2"></i>
+                        Tìm kiếm
+                      </>
+                    )}
+                  </Button>
+                </div>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {activeTab === "result" && ticketData && (
+          <div className="result-view">
+            <Card className="result-card">
+              <Card.Body>
+                <div className="ticket-result">
+                  <div className="result-header">
+                    <div className="result-status">
+                      {getBookingStatusBadge(ticketData)}
+                    </div>
+                    <div className="result-code">
+                      <h3>Mã đặt vé: {ticketData.datVe.maDatVe}</h3>
+                    </div>
+                  </div>
+
+                  <Row>
+                    <Col md={6}>
+                      <div className="detail-section">
+                        <h4 className="detail-section-title">
+                          Thông tin đặt vé
+                        </h4>
+                        <div className="detail-item">
+                          <span className="detail-label">Tổng tiền:</span>
+                          <span className="detail-value">
+                            {formatCurrency(ticketData.datVe.tongTien)}
+                          </span>
+                        </div>
+                      </div>
+                    </Col>
+                    <Col md={6}>
+                      <div className="detail-section">
+                        <h4 className="detail-section-title">
+                          Thông tin khách hàng
+                        </h4>
+                        <div className="detail-item">
+                          <span className="detail-label">Mã:</span>
+                          <span className="detail-value">
+                            {ticketData?.khachHang?.maNguoiDung ||
+                              "Không có thông tin"}
+                          </span>
+                        </div>
+                        <div className="detail-item">
+                          <span className="detail-label">Tên:</span>
+                          <span className="detail-value">
+                            {ticketData?.khachHang?.tenHienThi ||
+                              "Không có thông tin"}
+                          </span>
+                        </div>
+                        <div className="detail-item">
+                          <span className="detail-label">Email:</span>
+                          <span className="detail-value">
+                            {ticketData?.khachHang?.email ||
+                              "Không có thông tin"}
+                          </span>
+                        </div>
+                      </div>
+                    </Col>
+                  </Row>
+
+                  <div className="detail-section mt-4">
+                    <h4 className="detail-section-title">Thông tin sự kiện</h4>
+                    <div className="event-detail">
+                      <div className="event-image">
+                        <img
+                          src={getImageUrl(ticketData?.suKien?.anhBia)}
+                          alt={ticketData?.suKien?.tieuDe}
+                        />
+                      </div>
+                      <div className="event-info">
+                        <h5>{ticketData?.suKien?.tieuDe}</h5>
+                        <div className="detail-item">
+                          <span className="detail-label">Thời gian:</span>
+                          <span className="detail-value">
+                            {formatDate(
+                              ticketData?.suKien?.thoiGianBatDau
+                            )}{" "}
+                            -{" "}
+                            {formatDate(
+                              ticketData?.suKien?.thoiGianKetThuc
+                            )}
+                          </span>
+                        </div>
+                        <div className="detail-item">
+                          <span className="detail-label">Địa điểm:</span>
+                          <span className="detail-value">
+                            {formatFullAddress(
+                              ticketData?.suKien?.diaDiem
+                            )}
+                          </span>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+
+                  <div className="detail-section mt-4">
+                    <h4 className="detail-section-title">Chi tiết vé</h4>
+                    <div className="tickets-list">
+                      <Card
+                        className={`ticket-item ${
+                          isTicketUsed(ticketData) ? "used" : ""
+                        }`}
+                      >
+                        <Card.Body>
+                          <div className="ticket-item-content">
+                            <div className="ticket-item-info">
+                              <div className="ticket-item-header">
+                                <h5>Thông tin vé</h5>
+                                <div className="ticket-item-status">
+                                  {getTicketStatusBadge(ticketData)}
+                                </div>
+                              </div>
+                              <div className="ticket-item-details">
+                                <div className="detail-item">
+                                  <span className="detail-label">Mã vé:</span>
+                                  <span className="detail-value">
+                                    {ticketData.maVe}
+                                  </span>
+                                </div>
+                                <div className="detail-item">
+                                  <span className="detail-label">Loại vé:</span>
+                                  <span className="detail-value">
+                                    {ticketData.loaiVe.tenLoaiVe}
+                                  </span>
+                                </div>
+                                <div className="detail-item">
+                                  <span className="detail-label">Giá:</span>
+                                  <span className="detail-value">
+                                    {formatCurrency(ticketData.loaiVe.giaTien)}
+                                  </span>
+                                </div>
+                                {isTicketUsed(ticketData) && (
+                                  <div className="detail-item">
+                                    <span className="detail-label">
+                                      Thời gian kiểm vé:
+                                    </span>
+                                    <span className="detail-value">
+                                      {formatDate(ticketData?.thoiGianKiemVe ?? '')}
+                                    </span>
+                                  </div>
+                                )}
+                              </div>
+                            </div>
+                            <div className="ticket-item-actions">
+                              {!isTicketUsed(ticketData) ? (
+                                <Button
+                                  variant="success"
+                                  className="verify-btn"
+                                  onClick={() => openVerifyModal(ticketData)}
+                                >
+                                  <i className="fas fa-check-circle me-2"></i>
+                                  Xác nhận sử dụng
+                                </Button>
+                              ) : (
+                                <div className="used-ticket-marker">
+                                  <i className="fas fa-check-circle"></i>
+                                  <span>Đã sử dụng</span>
+                                </div>
+                              )}
+                            </div>
+                          </div>
+                        </Card.Body>
+                      </Card>
+                    </div>
+                  </div>
+
+                  <div className="result-actions mt-4">
+                    <Button variant="secondary" onClick={handleReset}>
+                      <i className="fas fa-redo me-2"></i>
+                      Quét vé khác
+                    </Button>
+                  </div>
+                </div>
+              </Card.Body>
+            </Card>
+          </div>
+        )}
+      </div>
+
+      <Modal
+        show={showVerifyModal}
+        onHide={() => setShowVerifyModal(false)}
+        centered
+        className="universe-modal"
+      >
+        <Modal.Header closeButton>
+          <Modal.Title>Xác nhận sử dụng vé</Modal.Title>
+        </Modal.Header>
+        <Modal.Body>
+          {processingTicket && (
+            <div className="verify-ticket-info">
+              <p>
+                Bạn có chắc chắn muốn xác nhận sử dụng vé này không? Hành động
+                này không thể hoàn tác.
+              </p>
+              <div className="ticket-details">
+                <div className="detail-item">
+                  <span className="detail-label">Mã vé:</span>
+                  <span className="detail-value">{processingTicket.maVe}</span>
+                </div>
+                <div className="detail-item">
+                  <span className="detail-label">Loại vé:</span>
+                  <span className="detail-value">
+                    {processingTicket.loaiVe.tenLoaiVe}
+                  </span>
+                </div>
+                <div className="detail-item">
+                  <span className="detail-label">Tên khách hàng:</span>
+                  <span className="detail-value">
+                    {ticketData?.khachHang?.tenHienThi || "Không có thông tin"}
+                  </span>
+                </div>
+              </div>
+            </div>
+          )}
+        </Modal.Body>
+        <Modal.Footer>
+          <Button variant="secondary" onClick={() => setShowVerifyModal(false)}>
+            <i className="fas fa-times me-2"></i>
+            Hủy
+          </Button>
+          <Button
+            variant="success"
+            onClick={handleVerifyTicket}
+            disabled={verifyLoading}
+          >
+            {verifyLoading ? (
+              <>
+                <Spinner animation="border" size="sm" className="me-2" />
+                Đang xử lý...
+              </>
+            ) : (
+              <>
+                <i className="fas fa-check me-2"></i>
+                Xác nhận
+              </>
+            )}
+          </Button>
+        </Modal.Footer>
+      </Modal>
+    </Container>
+  );
+};
+
+export default EventTicketScanner;

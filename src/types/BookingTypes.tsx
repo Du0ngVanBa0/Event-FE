@@ -31,3 +31,22 @@ export interface BookingTicketSearchParams {
     fromDate?: string;
     toDate?: string;
 }
+
+export interface TicketResponse {
+    maVe: string;
+    trangThai: string;
+    thoiGianKiemVe: Date | null;
+    loaiVe: TicketType;
+    datVe: DatVeInfo;
+    khachHang?: SecurityUser;
+    suKien: SuKien;
+}
+
+export interface DatVeInfo {
+    maDatVe: string;
+    tongTien: number;
+    trangThai: string;
+    thoiGianHetHan: Date;
+    hoatDong: boolean;
+    url?: string;
+}

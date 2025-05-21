@@ -1,4 +1,4 @@
-import { BookingTicket, BookingTicketSearchParams } from '../types/BookingTypes';
+import { BookingTicket, BookingTicketSearchParams, TicketResponse } from '../types/BookingTypes';
 import { BookTicketRequest } from '../types/RequestTypes';
 import { ApiResponse, PaginatedData } from '../types/ResponseTypes';
 import axiosInstance from './axios';
@@ -41,6 +41,20 @@ class BookTicketService {
             `/ticket-holder/${id}`
         );
 
+        return response.data;
+    }
+
+    async checkInTicket(id: string): Promise<ApiResponse<TicketResponse>> {
+        const response = await axiosInstance.get<ApiResponse<TicketResponse>>(
+            `/ticket-holder/check-in/${id}`
+        );
+        return response.data;
+    }
+
+    async verifyTicket(id: string): Promise<ApiResponse<TicketResponse>> {
+        const response = await axiosInstance.get<ApiResponse<TicketResponse>>(
+            `/ticket-holder/use/${id}`
+        );
         return response.data;
     }
 
