@@ -106,17 +106,6 @@
     box-shadow: var(--glow-effect);
 }
 
-.action-buttons .btn-outline-danger {
-    border-color: #dc3545;
-    color: #dc3545;
-}
-
-.action-buttons .btn-outline-danger:hover {
-    background: #dc3545;
-    color: white;
-    box-shadow: 0 0 15px rgba(220, 53, 69, 0.4);
-}
-
 .universe-modal .modal-content {
     background: linear-gradient(to bottom, #1a1a1a, #000000);
     border: 2px solid transparent;
@@ -160,17 +149,6 @@
     background: var(--color-secondary);
     color: var(--color-text-dark);
     box-shadow: 0 0 15px rgba(0, 247, 255, 0.4);
-}
-
-.universe-modal .universe-btn.btn-danger {
-    border-color: #dc3545;
-    color: #dc3545;
-}
-
-.universe-modal .universe-btn.btn-danger:hover {
-    background: #dc3545;
-    color: white;
-    box-shadow: 0 0 15px rgba(220, 53, 69, 0.4);
 }
 
 .universe-modal .modal-header {

@@ -24,6 +24,7 @@ import BookingDetail from "./components/pages/booking-detail/BookingDetail";
 import ZoneDesigner from "./components/common/zone-design/EventZoneDesigner";
 import DefaultView from "./components/common/zone-design/DefaultView";
 import AdminBookingTickets from "./components/pages/manage-ticket/AdminBookingTickets";
+import TicketScanner from "./components/pages/ticket-scanner/TicketScanner";
 
 function App() {
   return (
@@ -73,6 +74,14 @@ function App() {
               element={
                 <ProtectedRoute>
                   <EditEvent />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/organizer/scan-event/:id"
+              element={
+                <ProtectedRoute>
+                  <TicketScanner />
                 </ProtectedRoute>
               }
             />
