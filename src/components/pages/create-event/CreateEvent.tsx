@@ -83,8 +83,17 @@ const CreateEvent = () => {
 
     const validateEventForm = () => {
         const errors: ValidationErrors = {};
-        const now = new Date();
-        
+
+        if (!eventForm.tieuDe) errors.tieuDe = 'Vui lòng nhập tiêu đề sự kiện';
+        if (!eventForm.moTa) errors.moTa = 'Vui lòng nhập mô tả sự kiện';
+        if (!eventForm.anhBiaFile) errors.anhBiaFile = 'Vui lòng chọn ảnh bìa';
+        if (!eventForm.tenDiaDiem || !eventForm.phuongXa) {
+            errors.diaDiem = 'Vui lòng chọn địa điểm đầy đủ';
+        }
+        if (eventForm.danhMucSuKiens.length === 0) {
+            errors.danhMucSuKiens = 'Vui lòng chọn ít nhất một danh mục';
+        }
+
         if (!eventForm.ngayBatDau || !eventForm.gioBatDau) {
             errors.thoiGian = 'Vui lòng chọn thời gian bắt đầu';
             return { isValid: false, errors };
@@ -102,31 +111,21 @@ const CreateEvent = () => {
             return { isValid: false, errors };
         }
 
-        const startDate = new Date(`${eventForm.ngayBatDau}T${eventForm.gioBatDau}:00`);
-        const endDate = new Date(`${eventForm.ngayKetThuc}T${eventForm.gioKetThuc}:00`);
         const ticketSaleStart = new Date(`${eventForm.ngayMoBanVe}T${eventForm.gioMoBanVe}:00`);
         const ticketSaleEnd = new Date(`${eventForm.ngayDongBanVe}T${eventForm.gioDongBanVe}:00`);
 
-        if (!eventForm.tieuDe) errors.tieuDe = 'Vui lòng nhập tiêu đề sự kiện';
-        if (!eventForm.moTa) errors.moTa = 'Vui lòng nhập mô tả sự kiện';
-        if (!eventForm.anhBiaFile) errors.anhBiaFile = 'Vui lòng chọn ảnh bìa';
-        if (!eventForm.tenDiaDiem || !eventForm.phuongXa) {
-            errors.diaDiem = 'Vui lòng chọn địa điểm đầy đủ';
-        }
-        if (eventForm.danhMucSuKiens.length === 0) {
-            errors.danhMucSuKiens = 'Vui lòng chọn ít nhất một danh mục';
+        if (eventForm.ngayBatDau && eventForm.gioBatDau &&
+            eventForm.ngayKetThuc && eventForm.gioKetThuc) {
+            const startDate = new Date(`${eventForm.ngayBatDau}T${eventForm.gioBatDau}:00`);
+            const endDate = new Date(`${eventForm.ngayKetThuc}T${eventForm.gioKetThuc}:00`);
+
+            if (endDate <= startDate) {
+                errors.thoiGian = 'Thời gian kết thúc phải sau thời gian bắt đầu';
+            }
         }
 
-        if (ticketSaleStart < now) {
-            errors.thoiGian = 'Thời gian mở bán vé phải sau thời gian hiện tại';
-        } else if (ticketSaleEnd <= ticketSaleStart) {
-            errors.thoiGian = 'Thời gian đóng bán vé phải sau thời gian mở bán';
-        } else if (startDate <= ticketSaleStart) {
-            errors.thoiGian = 'Thời gian bắt đầu sự kiện phải sau thời gian mở bán vé';
-        } else if (endDate <= startDate) {
-            errors.thoiGian = 'Thời gian kết thúc phải sau thời gian bắt đầu';
-        } else if (ticketSaleEnd > startDate) {
-            errors.thoiGian = 'Thời gian đóng bán vé phải trước khi sự kiện bắt đầu';
+        if (ticketSaleEnd <= ticketSaleStart) {
+            errors.thoiGian = 'Thời gian đóng bán vé phải sau thời gian mở bán vé';
         }
 
         return { isValid: Object.keys(errors).length === 0, errors };
@@ -162,16 +161,18 @@ const CreateEvent = () => {
                 ngayDongBanVe: `${eventForm.ngayDongBanVe}T${eventForm.gioDongBanVe}:00`,
             };
 
+
+            // eslint-disable-next-line @typescript-eslint/no-unused-vars
+            const cleanedTickets = ticketTypes.map(({ id, ...rest }) => rest);
             const eventData: CreateSuKienDTO = {
                 tieuDe: eventForm.tieuDe,
                 moTa: eventForm.moTa,
                 tenDiaDiem: eventForm.tenDiaDiem,
                 maPhuongXa: eventForm.phuongXa,
                 maDanhMucs: eventForm.danhMucSuKiens,
-                // eslint-disable-next-line @typescript-eslint/no-unused-vars
-                loaiVes: ticketTypes.map(({ maLoaiVe: _id, ...rest }) => rest),
+                loaiVes: cleanedTickets,
                 ...combinedDateTime,
-                anhBia: eventForm.anhBiaFile
+                anhBia: eventForm.anhBiaFile,
             };
 
             await eventService.create(eventData);

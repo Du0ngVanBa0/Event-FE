@@ -21,7 +21,6 @@ import eventService from "../../../api/eventService";
 import { CreateSuKienDTO } from "../../../types/EventTypes";
 import { useParams } from "react-router-dom";
 import { getImageUrl } from "../../../utils/helper";
-import { DanhMucSuKien } from "../../../types/EventTypeTypes";
 
 interface EventForm {
   maSuKien: string;
@@ -126,19 +125,6 @@ const EditEvent = () => {
       return { isValid: false, errors };
     }
 
-    const startDate = new Date(
-      `${eventForm.ngayBatDau}T${eventForm.gioBatDau}:00`
-    );
-    const endDate = new Date(
-      `${eventForm.ngayKetThuc}T${eventForm.gioKetThuc}:00`
-    );
-    const ticketSaleStart = new Date(
-      `${eventForm.ngayMoBanVe}T${eventForm.gioMoBanVe}:00`
-    );
-    const ticketSaleEnd = new Date(
-      `${eventForm.ngayDongBanVe}T${eventForm.gioDongBanVe}:00`
-    );
-
     if (!eventForm.tieuDe) errors.tieuDe = "Vui lòng nhập tiêu đề sự kiện";
     if (!eventForm.moTa) errors.moTa = "Vui lòng nhập mô tả sự kiện";
     if (!eventForm.anhBiaFile && !selectedImage) errors.anhBiaFile = "Vui lòng chọn ảnh bìa";
@@ -149,15 +135,21 @@ const EditEvent = () => {
       errors.danhMucSuKiens = "Vui lòng chọn ít nhất một danh mục";
     }
 
+    const ticketSaleStart = new Date(`${eventForm.ngayMoBanVe}T${eventForm.gioMoBanVe}:00`);
+    const ticketSaleEnd = new Date(`${eventForm.ngayDongBanVe}T${eventForm.gioDongBanVe}:00`);
+
+    if (eventForm.ngayBatDau && eventForm.gioBatDau &&
+      eventForm.ngayKetThuc && eventForm.gioKetThuc) {
+      const startDate = new Date(`${eventForm.ngayBatDau}T${eventForm.gioBatDau}:00`);
+      const endDate = new Date(`${eventForm.ngayKetThuc}T${eventForm.gioKetThuc}:00`);
+
+      if (endDate <= startDate) {
+        errors.thoiGian = 'Thời gian kết thúc phải sau thời gian bắt đầu';
+      }
+    }
+
     if (ticketSaleEnd <= ticketSaleStart) {
-      errors.thoiGian = "Thời gian đóng bán vé phải sau thời gian mở bán";
-    } else if (startDate <= ticketSaleStart) {
-      errors.thoiGian =
-        "Thời gian bắt đầu sự kiện phải sau thời gian mở bán vé";
-    } else if (endDate <= startDate) {
-      errors.thoiGian = "Thời gian kết thúc phải sau thời gian bắt đầu";
-    } else if (ticketSaleEnd > startDate) {
-      errors.thoiGian = "Thời gian đóng bán vé phải trước khi sự kiện bắt đầu";
+      errors.thoiGian = 'Thời gian đóng bán vé phải sau thời gian mở bán vé';
     }
 
     return { isValid: Object.keys(errors).length === 0, errors };
@@ -291,7 +283,7 @@ const EditEvent = () => {
             gioBatDau: eventData.thoiGianBatDau.split('T')[1].substring(0, 5),
             ngayKetThuc: eventData.thoiGianKetThuc.split('T')[0],
             gioKetThuc: eventData.thoiGianKetThuc.split('T')[1].substring(0, 5),
-            danhMucSuKiens: eventData.danhMucs.map((dm: DanhMucSuKien) => dm.maDanhMuc)
+            danhMucSuKiens: eventData.danhMucs.map((dm) => dm.maDanhMuc)
           });
 
           setTicketTypes(eventData.loaiVes.map((ve: TicketType) => ({
