@@ -1,6 +1,6 @@
 export interface TicketType {
     maLoaiVe?: string;
-    id: string;
+    id?: string;
     tenLoaiVe: string;
     moTa: string;
     soLuong: number;
