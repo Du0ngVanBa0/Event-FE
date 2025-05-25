@@ -25,6 +25,7 @@ import ZoneDesigner from "./components/common/zone-design/EventZoneDesigner";
 import DefaultView from "./components/common/zone-design/DefaultView";
 import AdminBookingTickets from "./components/pages/manage-ticket/AdminBookingTickets";
 import TicketScanner from "./components/pages/ticket-scanner/TicketScanner";
+import AdminUserManagement from "./components/pages/admin/users/AdminUserManagement";
 
 function App() {
   return (
@@ -43,6 +44,7 @@ function App() {
               <Route path="approve-events" element={<ApproveEvent />} />
               <Route path="event-types" element={<EventType />} />
               <Route path="booking-tickets" element={<AdminBookingTickets />} />
+              <Route path="users" element={<AdminUserManagement />} />
             </Route>
 
             <Route

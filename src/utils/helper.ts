@@ -23,7 +23,7 @@ export const getImageUrl = (path: string | null, fallback = '/placeholder-event.
 };
 
 export const getDefaulImagetUrl = () => {
-    return './src/assets/default-avatar.png'
+    return 'https://www.shutterstock.com/image-vector/blank-avatar-photo-place-holder-600nw-1095249842.jpg'
 }
 
 export const formatCurrency = (amount: number): string => {

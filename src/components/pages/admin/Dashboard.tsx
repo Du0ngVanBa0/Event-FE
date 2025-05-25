@@ -205,6 +205,14 @@ const Dashboard = () => {
                             <i className="fas fa-ticket"></i>
                             Quản lý vé
                         </Nav.Link>
+                        <Nav.Link
+                            as={Link}
+                            to="/admin/users"
+                            className={currentPath.includes('users') ? 'active' : ''}
+                        >
+                            <i className="fas fa-users"></i>
+                            Quản lý người dùng
+                        </Nav.Link>
                     </Nav>
                 </Col>
 
@@ -217,4 +225,4 @@ const Dashboard = () => {
     );
 };
 
-export default Dashboard; 
+export default Dashboard;
