@@ -6,7 +6,8 @@ export interface ApiResponse<T> {
 }
 
 export interface LoginResponseData {
-    token: string;
+    token?: string;
+    maOtp?: string;
 }
 
 interface PageInfo {

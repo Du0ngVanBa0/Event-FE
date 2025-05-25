@@ -29,3 +29,8 @@ export interface CreatePaymentRequest {
   maDatVe: string;
   bankCode?: string;
 }
+
+export interface VerifyOtpRequest {
+    maOtp: string;
+    maXacThuc: string;
+}
