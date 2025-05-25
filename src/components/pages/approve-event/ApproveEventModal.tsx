@@ -109,7 +109,7 @@ const ApproveEventModal = ({ show, onHide, event, onApprove }: ApproveEventModal
             </Modal.Body>
             <Modal.Footer>
                 <div className="d-flex justify-content-end gap-2">
-                    <Button variant="secondary" onClick={onHide} className="universe-btn">
+                    <Button variant="secondary" onClick={onHide} className="approve-universe-btn">
                         Đóng
                     </Button>
                     <Button
@@ -118,7 +118,7 @@ const ApproveEventModal = ({ show, onHide, event, onApprove }: ApproveEventModal
                             onApprove(event.maSuKien);
                             onHide();
                         }}
-                        className="universe-btn"
+                        className="approve-universe-btn"
                     >
                         Phê duyệt
                     </Button>

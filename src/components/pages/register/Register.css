@@ -63,3 +63,16 @@ a {
 a:hover {
     color: var(--color-secondary) !important;
 }
+
+.email-highlight {
+    color: var(--color-primary);
+    font-weight: bold;
+    font-size: 1.1rem;
+    word-break: break-all;
+}
+
+.otp-input {
+    font-size: 1.5rem !important;
+    letter-spacing: 0.5rem !important;
+    text-align: center !important;
+}

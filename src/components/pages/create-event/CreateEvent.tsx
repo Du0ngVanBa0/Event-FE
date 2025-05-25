@@ -448,7 +448,6 @@ const CreateEvent = () => {
                                                         type="date"
                                                         value={eventForm.ngayBatDau}
                                                         onChange={(e) => setEventForm({ ...eventForm, ngayBatDau: e.target.value })}
-                                                        min={new Date().toISOString().split('T')[0]}
                                                     />
                                                 </Col>
                                                 <Col>
@@ -495,7 +494,6 @@ const CreateEvent = () => {
                                                         type="date"
                                                         value={eventForm.ngayMoBanVe}
                                                         onChange={(e) => setEventForm({ ...eventForm, ngayMoBanVe: e.target.value })}
-                                                        min={new Date().toISOString().split('T')[0]}
                                                     />
                                                 </Col>
                                                 <Col>
@@ -518,7 +516,6 @@ const CreateEvent = () => {
                                                         value={eventForm.ngayDongBanVe}
                                                         onChange={(e) => setEventForm({ ...eventForm, ngayDongBanVe: e.target.value })}
                                                         min={eventForm.ngayMoBanVe || new Date().toISOString().split('T')[0]}
-                                                        max={eventForm.ngayBatDau || undefined}
                                                     />
                                                 </Col>
                                                 <Col>
