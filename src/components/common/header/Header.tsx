@@ -4,8 +4,7 @@ import 'bootstrap/dist/css/bootstrap.min.css';
 import './Header.css';
 import logo from '../../../assets/react.svg';
 import { useAuth } from '../../../hooks/useAuth';
-
-const defaultAvatar = "https://www.shutterstock.com/image-vector/blank-avatar-photo-place-holder-600nw-1095249842.jpg";
+import { getDefaulImagetUrl } from '../../../utils/helper';
 
 const Header = () => {
   const { user, isAuthenticated, isLoading, logout } = useAuth();
@@ -28,7 +27,7 @@ const Header = () => {
         <Dropdown align="end">
           <Dropdown.Toggle as="div" id="dropdown-user">
             <Image
-              src={user.avatar || defaultAvatar}
+              src={user.avatar || getDefaulImagetUrl()}
               alt="Avatar"
               className="avatar-circle"
             />

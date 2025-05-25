@@ -18,6 +18,19 @@ export interface User {
     avatar?: string;
 }
 
+export interface UserProfile {
+    maNguoiDung: string;
+    tenNguoiDung: string;
+    tenHienThi: string;
+    email: string;
+    vaiTro: 'ADMIN' | 'USER';
+    anhDaiDien?: string;
+    anhDaiDienFile?: File;
+    hoatDong?: boolean;
+    ngayTao?: string;
+    matKhau?: string;
+}
+
 export interface SecurityUser {
     maNguoiDung?: string;
     tenHienThi?: string;
