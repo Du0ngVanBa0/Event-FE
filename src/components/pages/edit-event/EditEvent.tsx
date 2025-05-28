@@ -194,7 +194,10 @@ const EditEvent = () => {
         maPhuongXa: eventForm.phuongXa,
         maDanhMucs: eventForm.danhMucSuKiens,
         // eslint-disable-next-line @typescript-eslint/no-unused-vars
-        loaiVes: ticketTypes.map(({ maLoaiVe: _id, ...rest }) => rest),
+        loaiVes: ticketTypes.map(({ maLoaiVe: _id, id, veConLai, tenKhuVuc, ...rest }) => ({
+          ...rest,
+          maKhuVuc: rest.maKhuVuc || ""
+        })),
         ...combinedDateTime,
         anhBia: eventForm.anhBiaFile,
       };
@@ -472,26 +475,26 @@ const EditEvent = () => {
 
                 <Form.Group className="mb-3">
                   <Form.Label>Ảnh bìa</Form.Label>
-                  <div className="image-upload-container">
+                  <div className="edit-event-image-upload-container">
                     <input
                       type="file"
                       accept="image/*"
                       onChange={handleImageChange}
                       style={{ display: "none" }}
-                      id="image-upload"
+                      id="edit-event-image-upload"
                     />
                     <label
-                      htmlFor="image-upload"
-                      className="image-upload-label"
+                      htmlFor="edit-event-image-upload"
+                      className="edit-event-image-upload-label"
                     >
                       {selectedImage ? (
                         <img
                           src={getImageUrl(selectedImage)}
                           alt="Preview"
-                          className="image-preview"
+                          className="edit-event-image-preview"
                         />
                       ) : (
-                        <div className="upload-placeholder">
+                        <div className="edit-event-upload-placeholder">
                           <i className="fas fa-cloud-upload-alt"></i>
                           <span>Click để tải ảnh lên</span>
                         </div>

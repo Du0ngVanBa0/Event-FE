@@ -1,15 +1,16 @@
-import { ComponentProps, useState, useEffect } from 'react';
+import { ComponentProps, useState, useEffect, useCallback } from 'react';
 import { Container, Form, Nav, Tab, Row, Col, Button, Alert } from 'react-bootstrap';
 import { CKEditor } from '@ckeditor/ckeditor5-react';
 import ClassicEditor from '@ckeditor/ckeditor5-build-classic';
 import './CreateEvent.css';
-import { TicketType } from '../../../types/EventTypes';
+import { KhuVucDTO, TicketType } from '../../../types/EventTypes';
 import TicketTypeModal from './TicketTypeModal';
+import ZoneDesignerTab from './ZoneDesignerTab';
 import placeService from '../../../api/placeService';
 import { TinhThanh, QuanHuyen } from '../../../types/PlaceTypes';
 import CategorySelector from './CategorySelector';
 import eventService from '../../../api/eventService';
-import { CreateSuKienDTO } from '../../../types/EventTypes';
+import { CreateSuKienDTO, CreateLoaiVeDTO } from '../../../types/EventTypes';
 
 interface EventForm {
     tieuDe: string;
@@ -56,6 +57,7 @@ const CreateEvent = () => {
     });
 
     const [ticketTypes, setTicketTypes] = useState<TicketType[]>([]);
+    const [zones, setZones] = useState<KhuVucDTO[]>([]); // Add zones state
     const [selectedImage, setSelectedImage] = useState<string>('');
     const [showTicketModal, setShowTicketModal] = useState(false);
     const [editingTicket, setEditingTicket] = useState<TicketType | undefined>(undefined);
@@ -79,6 +81,7 @@ const CreateEvent = () => {
         danhMucSuKiens?: string;
         thoiGian?: string;
         loaiVe?: string;
+        khuVuc?: string;
     }
 
     const validateEventForm = () => {
@@ -131,8 +134,30 @@ const CreateEvent = () => {
         return { isValid: Object.keys(errors).length === 0, errors };
     };
 
+    const validateZones = () => {
+        return zones.length > 0;
+    };
+
+    // Get used zones from current ticket types
+    const getUsedZones = useCallback(() => {
+        return ticketTypes
+            .filter(ticket => ticket.maKhuVuc)
+            .map(ticket => ticket.maKhuVuc!);
+    }, [ticketTypes]);
+
     const validateTicketTypes = () => {
-        return ticketTypes.length > 0;
+        if (ticketTypes.length === 0) return false;
+        
+        // Validate that all tickets have zones assigned
+        const ticketsWithoutZones = ticketTypes.filter(ticket => !ticket.maKhuVuc);
+        if (ticketsWithoutZones.length > 0) {
+            setValidationErrors({ 
+                loaiVe: `${ticketsWithoutZones.length} loại vé chưa được gán khu vực` 
+            });
+            return false;
+        }
+        
+        return true;
     };
 
     const handleAddTicket = (ticket: Omit<TicketType, 'id'>) => {
@@ -152,6 +177,10 @@ const CreateEvent = () => {
         }
     };
 
+    const handleDeleteTicket = (ticketId: string) => {
+        setTicketTypes(prev => prev.filter(t => t.id !== ticketId));
+    };
+
     const handleSubmit = async () => {
         try {
             const combinedDateTime = {
@@ -161,9 +190,19 @@ const CreateEvent = () => {
                 ngayDongBanVe: `${eventForm.ngayDongBanVe}T${eventForm.gioDongBanVe}:00`,
             };
 
-
-            // eslint-disable-next-line @typescript-eslint/no-unused-vars
-            const cleanedTickets = ticketTypes.map(({ id, ...rest }) => rest);
+            // Map tickets to include zone references using tempId
+            const cleanedTickets: CreateLoaiVeDTO[] = ticketTypes.map(ticket => {
+                return {
+                    tenLoaiVe: ticket.tenLoaiVe,
+                    moTa: ticket.moTa,
+                    soLuong: ticket.soLuong,
+                    giaTien: ticket.giaTien,
+                    soLuongToiThieu: ticket.soLuongToiThieu,
+                    soLuongToiDa: ticket.soLuongToiDa,
+                    maKhuVuc: ticket.maKhuVuc! // Use tempId from zones
+                };
+            });
+            
             const eventData: CreateSuKienDTO = {
                 tieuDe: eventForm.tieuDe,
                 moTa: eventForm.moTa,
@@ -171,17 +210,20 @@ const CreateEvent = () => {
                 maPhuongXa: eventForm.phuongXa,
                 maDanhMucs: eventForm.danhMucSuKiens,
                 loaiVes: cleanedTickets,
+                khuVucs: zones,
                 ...combinedDateTime,
                 anhBia: eventForm.anhBiaFile,
             };
+
+            console.log('Submitting event data:', eventData);
 
             await eventService.create(eventData);
             setNotification({
                 message: 'Tạo sự kiện thành công',
                 type: 'success'
             });
-            // eslint-disable-next-line @typescript-eslint/no-unused-vars
         } catch (error) {
+            console.error('Error creating event:', error);
             setNotification({
                 message: 'Không thể tạo sự kiện',
                 type: 'danger'
@@ -245,7 +287,7 @@ const CreateEvent = () => {
     const [validationErrors, setValidationErrors] = useState<ValidationErrors>({});
 
     const handleTabChange = (tab: string | null) => {
-        if (tab === 'ticket-types') {
+        if (tab === 'zones') {
             const { isValid, errors } = validateEventForm();
             if (!isValid) {
                 setValidationErrors(errors);
@@ -255,6 +297,26 @@ const CreateEvent = () => {
                 return;
             }
         }
+        
+        if (tab === 'ticket-types') {
+            const { isValid, errors } = validateEventForm();
+            if (!isValid) {
+                setValidationErrors(errors);
+                setTimeout(() => {
+                    setValidationErrors({});
+                }, 3000);
+                return;
+            }
+            
+            if (!validateZones()) {
+                setValidationErrors({ khuVuc: 'Vui lòng tạo ít nhất một khu vực' });
+                setTimeout(() => {
+                    setValidationErrors({});
+                }, 3000);
+                return;
+            }
+        }
+        
         setActiveTab(tab || 'event-info');
     };
 
@@ -268,17 +330,24 @@ const CreateEvent = () => {
                 </div>
             )}
             <div className="create-event-wrapper">
-
                 <Tab.Container activeKey={activeTab} onSelect={handleTabChange}>
                     <Nav variant="tabs" className="mb-4 universe-tabs">
                         <Nav.Item>
                             <Nav.Link eventKey="event-info" className={Object.keys(validationErrors).length > 0 ? 'has-error' : ''}>
+                                <i className="fas fa-info-circle me-2"></i>
                                 Thông tin sự kiện
                             </Nav.Link>
                         </Nav.Item>
                         <Nav.Item>
+                            <Nav.Link eventKey="zones">
+                                <i className="fas fa-map me-2"></i>
+                                Khu vực ({zones.length})
+                            </Nav.Link>
+                        </Nav.Item>
+                        <Nav.Item>
                             <Nav.Link eventKey="ticket-types">
-                                Loại vé
+                                <i className="fas fa-ticket-alt me-2"></i>
+                                Loại vé ({ticketTypes.length})
                             </Nav.Link>
                         </Nav.Item>
                     </Nav>
@@ -303,6 +372,9 @@ const CreateEvent = () => {
                             )}
                             {validationErrors.thoiGian && (
                                 <div className="validation-error">{validationErrors.thoiGian}</div>
+                            )}
+                            {validationErrors.khuVuc && (
+                                <div className="validation-error">{validationErrors.khuVuc}</div>
                             )}
                         </Alert>
                     )}
@@ -355,19 +427,19 @@ const CreateEvent = () => {
 
                                 <Form.Group className="mb-3">
                                     <Form.Label>Ảnh bìa</Form.Label>
-                                    <div className="image-upload-container">
+                                    <div className="create-event-image-upload-container">
                                         <input
                                             type="file"
                                             accept="image/*"
                                             onChange={handleImageChange}
                                             style={{ display: 'none' }}
-                                            id="image-upload"
+                                            id="create-event-image-upload"
                                         />
-                                        <label htmlFor="image-upload" className="image-upload-label">
+                                        <label htmlFor="create-event-image-upload" className="create-event-image-upload-label">
                                             {selectedImage ? (
-                                                <img src={selectedImage} alt="Preview" className="image-preview" />
+                                                <img src={selectedImage} alt="Preview" className="create-event-image-preview" />
                                             ) : (
-                                                <div className="upload-placeholder">
+                                                <div className="create-event-upload-placeholder">
                                                     <i className="fas fa-cloud-upload-alt"></i>
                                                     <span>Click để tải ảnh lên</span>
                                                 </div>
@@ -533,8 +605,39 @@ const CreateEvent = () => {
                             </Form>
                         </Tab.Pane>
 
+                        <Tab.Pane eventKey="zones">
+                            <ZoneDesignerTab
+                                zones={zones}
+                                onZonesChange={setZones}
+                            />
+                            
+                            <div className="d-flex justify-content-between mt-4">
+                                <Button
+                                    variant="secondary"
+                                    onClick={() => setActiveTab('event-info')}
+                                >
+                                    <i className="fas fa-arrow-left me-2"></i>
+                                    Quay lại
+                                </Button>
+                                <Button
+                                    variant="primary"
+                                    onClick={() => setActiveTab('ticket-types')}
+                                    disabled={zones.length === 0}
+                                >
+                                    Tiếp tục
+                                    <i className="fas fa-arrow-right ms-2"></i>
+                                </Button>
+                            </div>
+                        </Tab.Pane>
+
                         <Tab.Pane eventKey="ticket-types">
-                            <div className="mb-3"></div>
+                            <div className="mb-3">
+                                <Alert variant="info">
+                                    <i className="fas fa-info-circle me-2"></i>
+                                    Mỗi loại vé phải được gán cho một khu vực cụ thể. Mỗi khu vực chỉ có thể có một loại vé.
+                                </Alert>
+                            </div>
+
                             <div className="d-flex justify-content-between align-items-center mb-4">
                                 <h3>Danh sách loại vé</h3>
                                 <Button
@@ -543,22 +646,91 @@ const CreateEvent = () => {
                                         setEditingTicket(undefined);
                                         setShowTicketModal(true);
                                     }}
+                                    disabled={zones.length === 0}
+                                    className="universe-btn"
                                 >
+                                    <i className="fas fa-plus me-2"></i>
                                     Thêm loại vé
                                 </Button>
                             </div>
 
+                            {zones.length === 0 && (
+                                <Alert variant="warning">
+                                    <i className="fas fa-exclamation-triangle me-2"></i>
+                                    Vui lòng tạo ít nhất một khu vực trước khi thêm loại vé.
+                                </Alert>
+                            )}
+
                             <div className="ticket-types-grid">
                                 {ticketTypes.map(ticket => (
-                                    <div
-                                        key={ticket.id}
-                                        className="ticket-type-card"
-                                        onClick={() => {
-                                            setEditingTicket(ticket);
-                                            setShowTicketModal(true);
-                                        }}
-                                    >
-                                        <div className="ticket-type-name">{ticket.tenLoaiVe}</div>
+                                    <div key={ticket.id} className="ticket-type-card">
+                                        <div className="ticket-type-header">
+                                            <div className="ticket-type-name">{ticket.tenLoaiVe}</div>
+                                            <div className="ticket-type-actions">
+                                                <Button
+                                                    variant="outline-primary"
+                                                    size="sm"
+                                                    onClick={() => {
+                                                        setEditingTicket(ticket);
+                                                        setShowTicketModal(true);
+                                                    }}
+                                                    className="me-2"
+                                                >
+                                                    <i className="fas fa-edit"></i>
+                                                </Button>
+                                                <Button
+                                                    variant="outline-danger"
+                                                    size="sm"
+                                                    onClick={() => handleDeleteTicket(ticket.id!)}
+                                                >
+                                                    <i className="fas fa-trash"></i>
+                                                </Button>
+                                            </div>
+                                        </div>
+                                        
+                                        <div className="ticket-type-details">
+                                            <div className="detail-row">
+                                                <span className="label">Khu vực:</span>
+                                                <span className="value">
+                                                    {ticket.tenKhuVuc ? (
+                                                        <span className="zone-badge">
+                                                            <i className="fas fa-map-marker-alt me-1"></i>
+                                                            {ticket.tenKhuVuc}
+                                                        </span>
+                                                    ) : (
+                                                        <span className="text-warning">
+                                                            <i className="fas fa-exclamation-triangle me-1"></i>
+                                                            Chưa chọn khu vực
+                                                        </span>
+                                                    )}
+                                                </span>
+                                            </div>
+                                            
+                                            <div className="detail-row">
+                                                <span className="label">Số lượng:</span>
+                                                <span className="value">{ticket.soLuong.toLocaleString()} vé</span>
+                                            </div>
+                                            
+                                            <div className="detail-row">
+                                                <span className="label">Giá:</span>
+                                                <span className="value price">
+                                                    {new Intl.NumberFormat('vi-VN', {
+                                                        style: 'currency',
+                                                        currency: 'VND'
+                                                    }).format(ticket.giaTien)}
+                                                </span>
+                                            </div>
+                                            
+                                            <div className="detail-row">
+                                                <span className="label">Mua tối thiểu:</span>
+                                                <span className="value">{ticket.soLuongToiThieu}</span>
+                                            </div>
+                                            
+                                            <div className="detail-row">
+                                                <span className="label">Mua tối đa:</span>
+                                                <span className="value">{ticket.soLuongToiDa}</span>
+                                            </div>
+                                        </div>
                                     </div>
                                 ))}
                             </div>
@@ -571,20 +743,26 @@ const CreateEvent = () => {
                                 }}
                                 onSave={editingTicket ? handleEditTicket : handleAddTicket}
                                 editTicket={editingTicket}
+                                availableZones={zones}
+                                usedZones={getUsedZones()}
                             />
 
                             <div className="d-flex justify-content-between mt-4">
                                 <Button
                                     variant="secondary"
-                                    onClick={() => setActiveTab('event-info')}
+                                    onClick={() => setActiveTab('zones')}
+                                    className="universe-btn"
                                 >
+                                    <i className="fas fa-arrow-left me-2"></i>
                                     Quay lại
                                 </Button>
                                 <Button
-                                    variant="primary"
+                                    variant="success"
                                     onClick={handleSubmit}
-                                    disabled={!validateTicketTypes()}
+                                    disabled={!validateTicketTypes() || !validateZones()}
+                                    className="universe-btn"
                                 >
+                                    <i className="fas fa-save me-2"></i>
                                     Tạo sự kiện
                                 </Button>
                             </div>
