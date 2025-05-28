@@ -1,0 +1,226 @@
+.interactive-zone-designer {
+  min-height: calc(100vh - var(--header-height));
+  background: var(--color-background);
+  color: var(--color-text);
+  padding: 1rem;
+}
+
+/* Sidebar Styling */
+.zone-designer-sidebar {
+  height: calc(100vh - var(--header-height) - 2rem);
+  overflow-y: auto;
+}
+
+.universe-card {
+  background: var(--color-background-gradient);
+  border: 1px solid rgba(167, 135, 255, 0.3);
+  border-radius: 12px;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
+}
+
+.universe-card-header {
+  background: rgba(167, 135, 255, 0.1);
+  border-bottom: 1px solid rgba(167, 135, 255, 0.3);
+  color: var(--color-primary);
+  font-weight: 600;
+}
+
+.tool-section, .zone-properties, .zone-actions, .zone-list {
+  margin-bottom: 1.5rem;
+}
+
+.section-title {
+  color: var(--color-secondary);
+  font-size: 0.9rem;
+  font-weight: 600;
+  margin-bottom: 0.75rem;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+/* Button Styling */
+.universe-btn {
+  background: rgba(167, 135, 255, 0.1);
+  border: 1px solid var(--color-primary);
+  color: var(--color-primary);
+  transition: var(--transition-default);
+  font-weight: 500;
+}
+
+.universe-btn:hover, .universe-btn:focus {
+  background: rgba(167, 135, 255, 0.2);
+  border-color: var(--color-primary);
+  color: var(--color-primary);
+  box-shadow: var(--glow-effect);
+  transform: translateY(-2px);
+}
+
+.universe-btn.btn-primary {
+  background: var(--color-primary);
+  border-color: var(--color-primary);
+  color: var(--color-text-dark);
+}
+
+.universe-btn.btn-primary:hover {
+  background: var(--color-secondary);
+  border-color: var(--color-secondary);
+}
+
+/* Input Styling */
+.universe-input {
+  background: rgba(0, 0, 0, 0.3);
+  border: 1px solid rgba(0, 247, 255, 0.3);
+  color: var(--color-text);
+  border-radius: 6px;
+  transition: var(--transition-default);
+}
+
+.universe-input:focus {
+  background: rgba(0, 0, 0, 0.4);
+  border-color: var(--color-secondary);
+  color: var(--color-text);
+  box-shadow: 0 0 0 2px rgba(0, 247, 255, 0.2);
+}
+
+.universe-range {
+  background: transparent;
+}
+
+.universe-range::-webkit-slider-track {
+  background: rgba(167, 135, 255, 0.3);
+  border-radius: 5px;
+  height: 4px;
+}
+
+.universe-range::-webkit-slider-thumb {
+  background: var(--color-primary);
+  border-radius: 50%;
+  width: 16px;
+  height: 16px;
+  cursor: pointer;
+}
+
+.universe-checkbox input[type="checkbox"] {
+  accent-color: var(--color-primary);
+}
+
+/* Zone List */
+.zone-list-container {
+  max-height: 300px;
+  overflow-y: auto;
+}
+
+.zone-list-item {
+  display: flex;
+  align-items: center;
+  padding: 0.75rem;
+  margin-bottom: 0.5rem;
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid transparent;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: var(--transition-default);
+}
+
+.zone-list-item:hover {
+  background: rgba(255, 255, 255, 0.08);
+  transform: translateY(-1px);
+}
+
+.zone-list-item.selected {
+  background: rgba(167, 135, 255, 0.2);
+  border-color: var(--color-primary);
+  box-shadow: var(--glow-effect);
+}
+
+.zone-icon {
+  width: 32px;
+  height: 32px;
+  border-radius: 6px;
+  background: rgba(167, 135, 255, 0.2);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-right: 0.75rem;
+  color: var(--color-primary);
+}
+
+.zone-info {
+  flex: 1;
+}
+
+.zone-name {
+  font-weight: 600;
+  color: var(--color-text);
+  margin-bottom: 2px;
+}
+
+.zone-type {
+  font-size: 0.8rem;
+  color: rgba(255, 255, 255, 0.7);
+  text-transform: capitalize;
+}
+
+.zone-color {
+  width: 20px;
+  height: 20px;
+  border-radius: 4px;
+  border: 1px solid rgba(255, 255, 255, 0.3);
+}
+
+.no-zones {
+  text-align: center;
+  padding: 2rem 1rem;
+  color: rgba(255, 255, 255, 0.5);
+}
+
+/* Canvas Styling */
+.zone-canvas-container {
+  height: calc(100vh - var(--header-height) - 2rem);
+}
+
+.canvas-controls {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+}
+
+.selected-tool {
+  font-size: 0.9rem;
+  color: var(--color-secondary);
+}
+
+.stage-container {
+  background: rgba(0, 0, 0, 0.5);
+  border-radius: 8px;
+  padding: 1rem;
+  height: calc(100% - 4rem);
+  overflow: auto;
+}
+
+.zone-stage {
+  background: rgba(0, 0, 0, 0.8);
+  border: 1px solid rgba(167, 135, 255, 0.3);
+  border-radius: 6px;
+  cursor: crosshair;
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+  .interactive-zone-designer {
+    padding: 0.5rem;
+  }
+  
+  .zone-designer-sidebar {
+    height: auto;
+    margin-bottom: 1rem;
+  }
+  
+  .zone-canvas-container {
+    height: 600px;
+  }
+  
+  .stage-container {
+    height: 500px;
+  }
+}

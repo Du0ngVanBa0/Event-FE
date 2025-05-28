@@ -135,7 +135,7 @@ const TicketTypeModal = ({ show, onHide, onSave, onDelete, editTicket }: TicketT
                             <Button
                                 variant="danger"
                                 onClick={() => {
-                                    onDelete?.(editTicket.id);
+                                    onDelete?.(editTicket.id!);
                                     onHide();
                                 }}
                                 className="universe-btn"

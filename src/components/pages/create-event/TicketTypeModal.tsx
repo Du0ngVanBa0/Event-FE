@@ -1,167 +1,332 @@
-import { Modal, Form, Button, Alert } from 'react-bootstrap';
-import { useState, useEffect } from 'react';
+import React, { useState, useEffect } from 'react';
+import { Modal, Button, Form, Row, Col, Alert } from 'react-bootstrap';
 import { TicketType } from '../../../types/EventTypes';
+import { KhuVucDTO } from '../../../types/EventTypes';
 
 interface TicketTypeModalProps {
     show: boolean;
     onHide: () => void;
     onSave: (ticket: Omit<TicketType, 'id'>) => void;
-    onDelete?: (id: string) => void; 
     editTicket?: TicketType;
+    availableZones: KhuVucDTO[]; // Add available zones prop
+    usedZones: string[]; // Add used zones to prevent duplicate assignment
 }
 
-const initialForm = {
-    tenLoaiVe: '',
-    moTa: '',
-    soLuong: 0,
-    giaTien: 0,
-    soLuongToiThieu: 0,
-    soLuongToiDa: 0
-};
+const TicketTypeModal: React.FC<TicketTypeModalProps> = ({
+    show,
+    onHide,
+    onSave,
+    editTicket,
+    availableZones,
+    usedZones
+}) => {
+    const [formData, setFormData] = useState<Omit<TicketType, 'id'>>({
+        tenLoaiVe: '',
+        moTa: '',
+        soLuong: 0,
+        giaTien: 0,
+        soLuongToiThieu: 1,
+        soLuongToiDa: 10,
+        maKhuVuc: '',
+        tenKhuVuc: ''
+    });
 
-const TicketTypeModal = ({ show, onHide, onSave, onDelete, editTicket }: TicketTypeModalProps) => {
-    const [notification, setNotification] = useState<{ message: string; type: string } | null>(null);
-    const [ticketForm, setTicketForm] = useState(initialForm);
+    const [errors, setErrors] = useState<Record<string, string>>({});
 
     useEffect(() => {
         if (editTicket) {
-            setTicketForm({
+            setFormData({
                 tenLoaiVe: editTicket.tenLoaiVe,
                 moTa: editTicket.moTa,
                 soLuong: editTicket.soLuong,
                 giaTien: editTicket.giaTien,
                 soLuongToiThieu: editTicket.soLuongToiThieu,
-                soLuongToiDa: editTicket.soLuongToiDa
+                soLuongToiDa: editTicket.soLuongToiDa,
+                maKhuVuc: editTicket.maKhuVuc || '',
+                tenKhuVuc: editTicket.tenKhuVuc || ''
             });
         } else {
-            setTicketForm(initialForm);
+            setFormData({
+                tenLoaiVe: '',
+                moTa: '',
+                soLuong: 0,
+                giaTien: 0,
+                soLuongToiThieu: 1,
+                soLuongToiDa: 10,
+                maKhuVuc: '',
+                tenKhuVuc: ''
+            });
         }
-        setNotification(null);
+        setErrors({});
     }, [editTicket, show]);
 
-    useEffect(() => {
-        let timeoutId: NodeJS.Timeout;
-        if (notification) {
-            timeoutId = setTimeout(() => {
-                setNotification(null);
-            }, 3000);
+    const validateForm = () => {
+        const newErrors: Record<string, string> = {};
+
+        if (!formData.tenLoaiVe.trim()) {
+            newErrors.tenLoaiVe = 'Tên loại vé không được để trống';
         }
-        return () => {
-            if (timeoutId) {
-                clearTimeout(timeoutId);
-            }
-        };
-    }, [notification]);
+
+        if (!formData.maKhuVuc) {
+            newErrors.maKhuVuc = 'Vui lòng chọn khu vực';
+        }
+
+        if (formData.soLuong <= 0) {
+            newErrors.soLuong = 'Số lượng phải lớn hơn 0';
+        }
+
+        if (formData.giaTien < 0) {
+            newErrors.giaTien = 'Giá tiền không được âm';
+        }
+
+        if (formData.soLuongToiThieu < 1) {
+            newErrors.soLuongToiThieu = 'Số lượng tối thiểu phải từ 1';
+        }
+
+        if (formData.soLuongToiDa > formData.soLuong) {
+            newErrors.soLuongToiDa = 'Số lượng tối đa không được vượt quá tổng số lượng';
+        }
+
+        if (formData.soLuongToiThieu > formData.soLuongToiDa) {
+            newErrors.soLuongToiThieu = 'Số lượng tối thiểu không được lớn hơn tối đa';
+        }
+
+        // Check if zone is already used (except for current editing ticket)
+        if (formData.maKhuVuc && usedZones.includes(formData.maKhuVuc) && 
+            (!editTicket || editTicket.maKhuVuc !== formData.maKhuVuc)) {
+            newErrors.maKhuVuc = 'Khu vực này đã được sử dụng cho loại vé khác';
+        }
+
+        setErrors(newErrors);
+        return Object.keys(newErrors).length === 0;
+    };
 
     const handleSubmit = (e: React.FormEvent) => {
         e.preventDefault();
-        if (ticketForm.soLuongToiDa > ticketForm.soLuong) {
-            setNotification({ message: 'Số lượng tối đa không được lớn hơn tổng số lượng!', type: 'danger' });
-            return;
+        if (validateForm()) {
+            onSave(formData);
+            onHide();
         }
-        onSave(ticketForm);
-        onHide();
-        setTicketForm(initialForm);
-        setNotification(null);
+    };
+
+    const handleZoneChange = (zoneId: string) => {
+        const selectedZone = availableZones.find(zone => 
+            zone.tempId === zoneId || zone.tenKhuVuc === zoneId
+        );
+        
+        setFormData(prev => ({
+            ...prev,
+            maKhuVuc: zoneId,
+            tenKhuVuc: selectedZone?.tenKhuVuc || ''
+        }));
+    };
+
+    const formatCurrency = (value: number) => {
+        return new Intl.NumberFormat('vi-VN', {
+            style: 'currency',
+            currency: 'VND'
+        }).format(value);
     };
 
     return (
-        <Modal show={show} onHide={onHide} centered className="universe-modal">
-            <Modal.Header closeButton>
-                <Modal.Title>{editTicket ? 'Chỉnh sửa loại vé' : 'Thêm loại vé'}</Modal.Title>
+        <Modal 
+            show={show} 
+            onHide={onHide} 
+            size="lg"
+            className="universe-modal"
+            backdrop="static"
+        >
+            <Modal.Header closeButton className="universe-modal-header">
+                <Modal.Title>
+                    <i className="fas fa-ticket-alt me-2"></i>
+                    {editTicket ? 'Chỉnh sửa loại vé' : 'Thêm loại vé mới'}
+                </Modal.Title>
             </Modal.Header>
-            <Modal.Body>
+
+            <Modal.Body className="universe-modal-body">
+                {availableZones.length === 0 && (
+                    <Alert variant="warning">
+                        <i className="fas fa-exclamation-triangle me-2"></i>
+                        Vui lòng tạo ít nhất một khu vực trước khi thêm loại vé.
+                    </Alert>
+                )}
+
                 <Form onSubmit={handleSubmit}>
-                    <Form.Group className="mb-3">
-                        <Form.Label>Tên loại vé</Form.Label>
-                        <Form.Control
-                            type="text"
-                            value={ticketForm.tenLoaiVe}
-                            onChange={(e) => setTicketForm({ ...ticketForm, tenLoaiVe: e.target.value })}
-                            required
-                        />
-                    </Form.Group>
+                    <Row>
+                        <Col md={8}>
+                            <Form.Group className="mb-3">
+                                <Form.Label>
+                                    Tên loại vé <span className="text-danger">*</span>
+                                </Form.Label>
+                                <Form.Control
+                                    type="text"
+                                    value={formData.tenLoaiVe}
+                                    onChange={(e) => setFormData(prev => ({ ...prev, tenLoaiVe: e.target.value }))}
+                                    className={`universe-input ${errors.tenLoaiVe ? 'is-invalid' : ''}`}
+                                    placeholder="VD: Vé VIP, Vé thường..."
+                                />
+                                {errors.tenLoaiVe && (
+                                    <div className="invalid-feedback">{errors.tenLoaiVe}</div>
+                                )}
+                            </Form.Group>
+                        </Col>
+
+                        <Col md={4}>
+                            <Form.Group className="mb-3">
+                                <Form.Label>
+                                    Khu vực <span className="text-danger">*</span>
+                                </Form.Label>
+                                <Form.Select
+                                    value={formData.maKhuVuc}
+                                    onChange={(e) => handleZoneChange(e.target.value)}
+                                    className={`universe-input ${errors.maKhuVuc ? 'is-invalid' : ''}`}
+                                    disabled={availableZones.length === 0}
+                                >
+                                    <option value="">Chọn khu vực</option>
+                                    {availableZones.map((zone) => {
+                                        const isUsed = usedZones.includes(zone.tempId || '') && 
+                                                      (!editTicket || editTicket.maKhuVuc !== (zone.tempId || ''));
+                                        return (
+                                            <option 
+                                                key={zone.tempId || zone.tenKhuVuc} 
+                                                value={zone.tempId || zone.tenKhuVuc}
+                                                disabled={isUsed}
+                                            >
+                                                {zone.tenKhuVuc} {isUsed ? '(Đã sử dụng)' : ''}
+                                            </option>
+                                        );
+                                    })}
+                                </Form.Select>
+                                {errors.maKhuVuc && (
+                                    <div className="invalid-feedback">{errors.maKhuVuc}</div>
+                                )}
+                            </Form.Group>
+                        </Col>
+                    </Row>
+
                     <Form.Group className="mb-3">
                         <Form.Label>Mô tả</Form.Label>
                         <Form.Control
                             as="textarea"
                             rows={3}
-                            value={ticketForm.moTa}
-                            onChange={(e) => setTicketForm({ ...ticketForm, moTa: e.target.value })}
-                        />
-                    </Form.Group>
-                    <Form.Group className="mb-3">
-                        <Form.Label>Số lượng</Form.Label>
-                        <Form.Control
-                            type="number"
-                            min="0"
-                            value={ticketForm.soLuong}
-                            onChange={(e) => setTicketForm({ ...ticketForm, soLuong: parseInt(e.target.value) })}
-                            required
-                        />
-                    </Form.Group>
-                    <Form.Group className="mb-3">
-                        <Form.Label>Giá tiền (VNĐ)</Form.Label>
-                        <Form.Control
-                            type="number"
-                            min="0"
-                            step="1000"
-                            value={ticketForm.giaTien}
-                            onChange={(e) => setTicketForm({ ...ticketForm, giaTien: parseInt(e.target.value) })}
-                            required
-                        />
-                    </Form.Group>
-                    <Form.Group className="mb-3">
-                        <Form.Label>Số lượng tối thiểu</Form.Label>
-                        <Form.Control
-                            type="number"
-                            min="1"
-                            value={ticketForm.soLuongToiThieu}
-                            onChange={(e) => setTicketForm({ ...ticketForm, soLuongToiThieu: parseInt(e.target.value) })}
-                            required
-                        />
-                    </Form.Group>
-                    <Form.Group className="mb-3">
-                        <Form.Label>Số lượng tối đa</Form.Label>
-                        <Form.Control
-                            type="number"
-                            min="1"
-                            value={ticketForm.soLuongToiDa}
-                            onChange={(e) => setTicketForm({ ...ticketForm, soLuongToiDa: parseInt(e.target.value) })}
-                            required
+                            value={formData.moTa}
+                            onChange={(e) => setFormData(prev => ({ ...prev, moTa: e.target.value }))}
+                            className="universe-input"
+                            placeholder="Mô tả chi tiết về loại vé này..."
                         />
                     </Form.Group>
 
-                    <div className="d-flex justify-content-end gap-2">
-                        {editTicket && editTicket.id && (
-                            <Button
-                                variant="danger"
-                                onClick={() => {
-                                    if (onDelete && editTicket.id) {
-                                        onDelete(editTicket.id);
-                                    }
-                                    onHide();
-                                }}
-                                className="universe-btn"
-                            >
-                                Xóa
-                            </Button>
-                        )}
-                        <Button variant="secondary" onClick={onHide} className="universe-btn">
-                            Hủy
-                        </Button>
-                        <Button variant="primary" type="submit" className="universe-btn">
-                            {editTicket ? 'Cập nhật' : 'Thêm'}
-                        </Button>
-                    </div>
+                    <Row>
+                        <Col md={4}>
+                            <Form.Group className="mb-3">
+                                <Form.Label>
+                                    Số lượng <span className="text-danger">*</span>
+                                </Form.Label>
+                                <Form.Control
+                                    type="number"
+                                    min="1"
+                                    value={formData.soLuong}
+                                    onChange={(e) => setFormData(prev => ({ ...prev, soLuong: parseInt(e.target.value) || 0 }))}
+                                    className={`universe-input ${errors.soLuong ? 'is-invalid' : ''}`}
+                                />
+                                {errors.soLuong && (
+                                    <div className="invalid-feedback">{errors.soLuong}</div>
+                                )}
+                            </Form.Group>
+                        </Col>
+
+                        <Col md={4}>
+                            <Form.Group className="mb-3">
+                                <Form.Label>
+                                    Giá tiền (VNĐ) <span className="text-danger">*</span>
+                                </Form.Label>
+                                <Form.Control
+                                    type="number"
+                                    min="0"
+                                    step="1000"
+                                    value={formData.giaTien}
+                                    onChange={(e) => setFormData(prev => ({ ...prev, giaTien: parseInt(e.target.value) || 0 }))}
+                                    className={`universe-input ${errors.giaTien ? 'is-invalid' : ''}`}
+                                />
+                                {formData.giaTien > 0 && (
+                                    <Form.Text className="text-muted">
+                                        {formatCurrency(formData.giaTien)}
+                                    </Form.Text>
+                                )}
+                                {errors.giaTien && (
+                                    <div className="invalid-feedback">{errors.giaTien}</div>
+                                )}
+                            </Form.Group>
+                        </Col>
+
+                        <Col md={4}>
+                            <div className="zone-preview">
+                                {formData.tenKhuVuc && (
+                                    <div className="selected-zone-info">
+                                        <small className="text-muted">Khu vực đã chọn:</small>
+                                        <div className="zone-badge">
+                                            <i className="fas fa-map-marker-alt me-1"></i>
+                                            {formData.tenKhuVuc}
+                                        </div>
+                                    </div>
+                                )}
+                            </div>
+                        </Col>
+                    </Row>
+
+                    <Row>
+                        <Col md={6}>
+                            <Form.Group className="mb-3">
+                                <Form.Label>Số lượng tối thiểu mỗi lần mua</Form.Label>
+                                <Form.Control
+                                    type="number"
+                                    min="1"
+                                    max={formData.soLuongToiDa || 999}
+                                    value={formData.soLuongToiThieu}
+                                    onChange={(e) => setFormData(prev => ({ ...prev, soLuongToiThieu: parseInt(e.target.value) || 1 }))}
+                                    className={`universe-input ${errors.soLuongToiThieu ? 'is-invalid' : ''}`}
+                                />
+                                {errors.soLuongToiThieu && (
+                                    <div className="invalid-feedback">{errors.soLuongToiThieu}</div>
+                                )}
+                            </Form.Group>
+                        </Col>
+
+                        <Col md={6}>
+                            <Form.Group className="mb-3">
+                                <Form.Label>Số lượng tối đa mỗi lần mua</Form.Label>
+                                <Form.Control
+                                    type="number"
+                                    min={formData.soLuongToiThieu || 1}
+                                    max={formData.soLuong || 999}
+                                    value={formData.soLuongToiDa}
+                                    onChange={(e) => setFormData(prev => ({ ...prev, soLuongToiDa: parseInt(e.target.value) || 1 }))}
+                                    className={`universe-input ${errors.soLuongToiDa ? 'is-invalid' : ''}`}
+                                />
+                                {errors.soLuongToiDa && (
+                                    <div className="invalid-feedback">{errors.soLuongToiDa}</div>
+                                )}
+                            </Form.Group>
+                        </Col>
+                    </Row>
                 </Form>
-
-                {notification && (
-                    <Alert variant={notification.type} className="mt-3">
-                        <div className="validation-error">{notification.message}</div>
-                    </Alert>
-                )}
             </Modal.Body>
+
+            <Modal.Footer className="universe-modal-footer">
+                <Button variant="secondary" onClick={onHide} className="universe-btn">
+                    <i className="fas fa-times me-2"></i>
+                    Hủy
+                </Button>
+                <Button 
+                    variant="primary" 
+                    onClick={handleSubmit}
+                    className="universe-btn"
+                    disabled={availableZones.length === 0}
+                >
+                    <i className="fas fa-save me-2"></i>
+                    {editTicket ? 'Cập nhật' : 'Thêm mới'}
+                </Button>
+            </Modal.Footer>
         </Modal>
     );
 };
