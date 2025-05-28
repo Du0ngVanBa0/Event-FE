@@ -1,4 +1,4 @@
-name: Discord Notification Enhanced
+name: Discord Action
 
 on:
   push:
@@ -11,60 +11,16 @@ jobs:
     - name: Checkout code
       uses: actions/checkout@v3
       
-    - name: Get commit info
-      id: commit
-      run: |
-        echo "message=$(git log -1 --pretty=%B | head -1)" >> $GITHUB_OUTPUT
-        echo "author=$(git log -1 --pretty=%an)" >> $GITHUB_OUTPUT
-        echo "date=$(git log -1 --pretty=%ci)" >> $GITHUB_OUTPUT
-        echo "sha=$(git rev-parse HEAD)" >> $GITHUB_OUTPUT
-      
-    - name: Send Discord notification
-      env:
-        DISCORD_WEBHOOK: ${{ secrets.DISCORD_WEBHOOK }}
-      run: |
-        curl -H "Content-Type: application/json" \
-        -X POST \
-        -d '{
-          "embeds": [{
-            "title": "🚀 New Push to Main Branch",
-            "color": 3066993,
-            "fields": [
-              {
-                "name": "Repository",
-                "value": "${{ github.repository }}",
-                "inline": true
-              },
-              {
-                "name": "Author",
-                "value": "${{ steps.commit.outputs.author }}",
-                "inline": true
-              },
-              {
-                "name": "Branch",
-                "value": "${{ github.ref_name }}",
-                "inline": true
-              },
-              {
-                "name": "Commit Message",
-                "value": "${{ steps.commit.outputs.message }}",
-                "inline": false
-              },
-              {
-                "name": "Commit SHA",
-                "value": "`${{ steps.commit.outputs.sha }}`",
-                "inline": false
-              },
-              {
-                "name": "View Changes",
-                "value": "[Click here](https://github.com/${{ github.repository }}/commit/${{ steps.commit.outputs.sha }})",
-                "inline": false
-              }
-            ],
-            "timestamp": "${{ steps.commit.outputs.date }}",
-            "footer": {
-              "text": "GitHub Actions"
-            }
-          }]
-        }' \
-        ${{ secrets.DISCORD_WEBHOOK }}
+    - name: Discord Webhook Action
+      uses: tsickert/discord-webhook@v5.3.0
+      with:
+        webhook-url: ${{ secrets.DISCORD_WEBHOOK }}
+        content: |
+          🚀 **New push to main branch!**
+          
+          **Repository:** ${{ github.repository }}
+          **Author:** ${{ github.actor }}
+          **Commit:** $(git log -1 --pretty=format:"%s")
+          **SHA:** ${{ github.sha }}
+          **Link:** https://github.com/${{ github.repository }}/commit/${{ github.sha }}
+          **Time:** $(date)
