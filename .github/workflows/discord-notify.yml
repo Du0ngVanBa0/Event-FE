@@ -1,4 +1,4 @@
-name: Discord Action
+name: Discord Notification
 
 on:
   push:
@@ -11,16 +11,20 @@ jobs:
     - name: Checkout code
       uses: actions/checkout@v3
       
-    - name: Discord Webhook Action
-      uses: tsickert/discord-webhook@v5.3.0
-      with:
-        webhook-url: ${{ secrets.DISCORD_WEBHOOK }}
-        content: |
-          🚀 **New push to main branch!**
-          
-          **Repository:** ${{ github.repository }}
-          **Author:** ${{ github.actor }}
-          **Commit:** $(git log -1 --pretty=format:"%s")
-          **SHA:** ${{ github.sha }}
-          **Link:** https://github.com/${{ github.repository }}/commit/${{ github.sha }}
-          **Time:** $(date)
+    - name: Send Discord notification
+      env:
+        DISCORD_WEBHOOK: ${{ secrets.DISCORD_WEBHOOK }}
+      run: |
+        # Get commit info
+        COMMIT_MSG="$(git log -1 --pretty=format:'%s')"
+        COMMIT_AUTHOR="$(git log -1 --pretty=format:'%an')"
+        COMMIT_SHA="$(git rev-parse HEAD)"
+        CURRENT_TIME="$(date -u)"
+        
+        # Send to Discord
+        curl -H "Content-Type: application/json" \
+        -X POST \
+        -d "{
+          \"content\": \"🚀 **New push to main branch!**\n\n📁 **Repository:** ${{ github.repository }}\n👤 **Author:** ${COMMIT_AUTHOR}\n💬 **Commit:** ${COMMIT_MSG}\n🔑 **SHA:** \`${COMMIT_SHA}\`\n🔗 **Link:** https://github.com/${{ github.repository }}/commit/${COMMIT_SHA}\n⏰ **Time:** ${CURRENT_TIME}\"
+        }" \
+        ${{ secrets.DISCORD_WEBHOOK }}
