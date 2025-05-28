@@ -1,0 +1,29 @@
+name: Discord Notification
+
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
+
+jobs:
+  notify:
+    runs-on: ubuntu-latest
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v3
+      
+    - name: Send Discord notification
+      uses: Ilshidur/action-discord@master
+      env:
+        DISCORD_WEBHOOK: ${{ secrets.DISCORD_WEBHOOK }}
+      with:
+        args: |
+          🚀 **New push to main branch!**
+          
+          **Repository:** ${{ github.repository }}
+          **Author:** ${{ github.actor }}
+          **Commit:** ${{ github.event.head_commit.message }}
+          **Changes:** ${{ github.event.head_commit.url }}
+          
+          Time: ${{ github.event.head_commit.timestamp }}
