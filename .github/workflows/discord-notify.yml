@@ -25,6 +25,6 @@ jobs:
         curl -H "Content-Type: application/json" \
         -X POST \
         -d "{
-          \"content\": \"🚀 **New push to main branch!**\n\n📁 **Repository:** ${{ github.repository }}\n👤 **Author:** ${COMMIT_AUTHOR}\n💬 **Commit:** ${COMMIT_MSG}\n🔑 **SHA:** \`${COMMIT_SHA}\`\n🔗 **Link:** https://github.com/${{ github.repository }}/commit/${COMMIT_SHA}\n⏰ **Time:** ${CURRENT_TIME}\"
+          \"content\": \"▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬\n\n🚀 **New push to main branch!**\n\n📁 **Repository:** ${{ github.repository }}\n👤 **Author:** ${COMMIT_AUTHOR}\n💬 **Commit:** ${COMMIT_MSG}\n🔑 **SHA:** \`${COMMIT_SHA}\`\n🔗 **Link:** https://github.com/${{ github.repository }}/commit/${COMMIT_SHA}\n⏰ **Time:** ${CURRENT_TIME}\"
         }" \
         ${{ secrets.DISCORD_WEBHOOK }}
