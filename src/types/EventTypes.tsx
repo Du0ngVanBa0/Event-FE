@@ -56,11 +56,23 @@ export interface KhuVuc extends KhuVucDTO {
 
 export interface KhuVucResponse {
     maKhuVuc: string;
-    tempId?: string;
-    tenKhuVuc: string;
+    tenHienThi: string; 
+    tenGoc: string;
     moTa?: string;
     viTri: string;
-    layoutData: string;
+    mauSacHienThi: string; 
+    toaDoX: number;
+    toaDoY: number;
+    chieuRong: number;
+    chieuCao: number;
+    hoatDong: boolean;
+    template?: {
+        maKhuVucMau: string;
+        tenKhuVuc: string;
+        mauSac: string;
+        hinhDang: string; 
+        thuTuHienThi: number;
+    };
 }
 
 export interface CreateLoaiVeDTO {
