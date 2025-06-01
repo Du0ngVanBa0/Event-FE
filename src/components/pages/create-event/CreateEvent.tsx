@@ -3,7 +3,7 @@ import { Container, Form, Nav, Tab, Row, Col, Button, Alert } from 'react-bootst
 import { CKEditor } from '@ckeditor/ckeditor5-react';
 import ClassicEditor from '@ckeditor/ckeditor5-build-classic';
 import './CreateEvent.css';
-import { KhuVucDTO, TicketType } from '../../../types/EventTypes';
+import { KhuVucEventRequest, KhuVucTemplate, TicketType } from '../../../types/EventTypes';
 import TicketTypeModal from './TicketTypeModal';
 import ZoneDesignerTab from './ZoneDesignerTab';
 import placeService from '../../../api/placeService';
@@ -57,13 +57,14 @@ const CreateEvent = () => {
     });
 
     const [ticketTypes, setTicketTypes] = useState<TicketType[]>([]);
-    const [zones, setZones] = useState<KhuVucDTO[]>([]); // Add zones state
+    const [zones, setZones] = useState<KhuVucEventRequest[]>([]);
     const [selectedImage, setSelectedImage] = useState<string>('');
     const [showTicketModal, setShowTicketModal] = useState(false);
     const [editingTicket, setEditingTicket] = useState<TicketType | undefined>(undefined);
     const [places, setPlaces] = useState<TinhThanh[]>([]);
     const [selectedTinhThanh, setSelectedTinhThanh] = useState<TinhThanh | null>(null);
     const [selectedQuanHuyen, setSelectedQuanHuyen] = useState<QuanHuyen | null>(null);
+    const [mockTemplates, setMockTemplates] = useState<KhuVucTemplate[]>([]);
 
     const handleImageChange = (event: React.ChangeEvent<HTMLInputElement>) => {
         const file = event.target.files?.[0];
@@ -147,16 +148,16 @@ const CreateEvent = () => {
 
     const validateTicketTypes = () => {
         if (ticketTypes.length === 0) return false;
-        
+
         // Validate that all tickets have zones assigned
         const ticketsWithoutZones = ticketTypes.filter(ticket => !ticket.maKhuVuc);
         if (ticketsWithoutZones.length > 0) {
-            setValidationErrors({ 
-                loaiVe: `${ticketsWithoutZones.length} loại vé chưa được gán khu vực` 
+            setValidationErrors({
+                loaiVe: `${ticketsWithoutZones.length} loại vé chưa được gán khu vực`
             });
             return false;
         }
-        
+
         return true;
     };
 
@@ -190,7 +191,6 @@ const CreateEvent = () => {
                 ngayDongBanVe: `${eventForm.ngayDongBanVe}T${eventForm.gioDongBanVe}:00`,
             };
 
-            // Map tickets to include zone references using tempId
             const cleanedTickets: CreateLoaiVeDTO[] = ticketTypes.map(ticket => {
                 return {
                     tenLoaiVe: ticket.tenLoaiVe,
@@ -199,10 +199,10 @@ const CreateEvent = () => {
                     giaTien: ticket.giaTien,
                     soLuongToiThieu: ticket.soLuongToiThieu,
                     soLuongToiDa: ticket.soLuongToiDa,
-                    maKhuVuc: ticket.maKhuVuc! // Use tempId from zones
+                    maKhuVuc: ticket.maKhuVuc!
                 };
             });
-            
+
             const eventData: CreateSuKienDTO = {
                 tieuDe: eventForm.tieuDe,
                 moTa: eventForm.moTa,
@@ -214,6 +214,7 @@ const CreateEvent = () => {
                 ...combinedDateTime,
                 anhBia: eventForm.anhBiaFile,
             };
+
 
             console.log('Submitting event data:', eventData);
 
@@ -297,7 +298,7 @@ const CreateEvent = () => {
                 return;
             }
         }
-        
+
         if (tab === 'ticket-types') {
             const { isValid, errors } = validateEventForm();
             if (!isValid) {
@@ -307,7 +308,7 @@ const CreateEvent = () => {
                 }, 3000);
                 return;
             }
-            
+
             if (!validateZones()) {
                 setValidationErrors({ khuVuc: 'Vui lòng tạo ít nhất một khu vực' });
                 setTimeout(() => {
@@ -316,8 +317,12 @@ const CreateEvent = () => {
                 return;
             }
         }
-        
+
         setActiveTab(tab || 'event-info');
+    };
+
+    const handleTemplatesLoad = (templates: KhuVucTemplate[]) => {
+        setMockTemplates(templates);
     };
 
     return (
@@ -609,8 +614,9 @@ const CreateEvent = () => {
                             <ZoneDesignerTab
                                 zones={zones}
                                 onZonesChange={setZones}
+                                onTemplatesLoad={handleTemplatesLoad}
                             />
-                            
+
                             <div className="d-flex justify-content-between mt-4">
                                 <Button
                                     variant="secondary"
@@ -687,7 +693,7 @@ const CreateEvent = () => {
                                                 </Button>
                                             </div>
                                         </div>
-                                        
+
                                         <div className="ticket-type-details">
                                             <div className="detail-row">
                                                 <span className="label">Khu vực:</span>
@@ -705,12 +711,12 @@ const CreateEvent = () => {
                                                     )}
                                                 </span>
                                             </div>
-                                            
+
                                             <div className="detail-row">
                                                 <span className="label">Số lượng:</span>
                                                 <span className="value">{ticket.soLuong.toLocaleString()} vé</span>
                                             </div>
-                                            
+
                                             <div className="detail-row">
                                                 <span className="label">Giá:</span>
                                                 <span className="value price">
@@ -720,12 +726,12 @@ const CreateEvent = () => {
                                                     }).format(ticket.giaTien)}
                                                 </span>
                                             </div>
-                                            
+
                                             <div className="detail-row">
                                                 <span className="label">Mua tối thiểu:</span>
                                                 <span className="value">{ticket.soLuongToiThieu}</span>
                                             </div>
-                                            
+
                                             <div className="detail-row">
                                                 <span className="label">Mua tối đa:</span>
                                                 <span className="value">{ticket.soLuongToiDa}</span>
@@ -745,6 +751,7 @@ const CreateEvent = () => {
                                 editTicket={editingTicket}
                                 availableZones={zones}
                                 usedZones={getUsedZones()}
+                                mockTemplates={mockTemplates}
                             />
 
                             <div className="d-flex justify-content-between mt-4">

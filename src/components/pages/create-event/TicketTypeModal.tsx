@@ -1,15 +1,15 @@
 import React, { useState, useEffect } from 'react';
 import { Modal, Button, Form, Row, Col, Alert } from 'react-bootstrap';
-import { TicketType } from '../../../types/EventTypes';
-import { KhuVucDTO } from '../../../types/EventTypes';
+import { TicketType, KhuVucEventRequest, KhuVucTemplate } from '../../../types/EventTypes';
 
 interface TicketTypeModalProps {
     show: boolean;
     onHide: () => void;
     onSave: (ticket: Omit<TicketType, 'id'>) => void;
     editTicket?: TicketType;
-    availableZones: KhuVucDTO[]; // Add available zones prop
-    usedZones: string[]; // Add used zones to prevent duplicate assignment
+    availableZones: KhuVucEventRequest[];
+    usedZones: string[];
+    mockTemplates?: KhuVucTemplate[];
 }
 
 const TicketTypeModal: React.FC<TicketTypeModalProps> = ({
@@ -18,7 +18,8 @@ const TicketTypeModal: React.FC<TicketTypeModalProps> = ({
     onSave,
     editTicket,
     availableZones,
-    usedZones
+    usedZones,
+    mockTemplates
 }) => {
     const [formData, setFormData] = useState<Omit<TicketType, 'id'>>({
         tenLoaiVe: '',
@@ -32,6 +33,19 @@ const TicketTypeModal: React.FC<TicketTypeModalProps> = ({
     });
 
     const [errors, setErrors] = useState<Record<string, string>>({});
+
+    const getZoneDisplayName = (zone: KhuVucEventRequest) => {
+        if (zone.tenTuyChon && zone.tenTuyChon.trim()!== '') {
+            return zone.tenTuyChon;
+        }
+        
+        const template = mockTemplates?.find(t => t.maKhuVucMau === zone.maKhuVucMau);
+        return template?.tenKhuVuc || 'Unknown Zone';
+    };
+
+    const getZoneKey = (zone: KhuVucEventRequest) => {
+        return zone.maKhuVucMau;
+    };
 
     useEffect(() => {
         if (editTicket) {
@@ -91,7 +105,6 @@ const TicketTypeModal: React.FC<TicketTypeModalProps> = ({
             newErrors.soLuongToiThieu = 'Số lượng tối thiểu không được lớn hơn tối đa';
         }
 
-        // Check if zone is already used (except for current editing ticket)
         if (formData.maKhuVuc && usedZones.includes(formData.maKhuVuc) && 
             (!editTicket || editTicket.maKhuVuc !== formData.maKhuVuc)) {
             newErrors.maKhuVuc = 'Khu vực này đã được sử dụng cho loại vé khác';
@@ -109,15 +122,13 @@ const TicketTypeModal: React.FC<TicketTypeModalProps> = ({
         }
     };
 
-    const handleZoneChange = (zoneId: string) => {
-        const selectedZone = availableZones.find(zone => 
-            zone.tempId === zoneId || zone.tenKhuVuc === zoneId
-        );
+    const handleZoneChange = (maTemplate: string) => {
+        const selectedZone = availableZones.find(zone => zone.maKhuVucMau === maTemplate);
         
         setFormData(prev => ({
             ...prev,
-            maKhuVuc: zoneId,
-            tenKhuVuc: selectedZone?.tenKhuVuc || ''
+            maKhuVuc: maTemplate,
+            tenKhuVuc: selectedZone ? getZoneDisplayName(selectedZone) : ''
         }));
     };
 
@@ -147,7 +158,7 @@ const TicketTypeModal: React.FC<TicketTypeModalProps> = ({
                 {availableZones.length === 0 && (
                     <Alert variant="warning">
                         <i className="fas fa-exclamation-triangle me-2"></i>
-                        Vui lòng tạo ít nhất một khu vực trước khi thêm loại vé.
+                        Vui lòng chọn ít nhất một khu vực từ mẫu trước khi thêm loại vé.
                     </Alert>
                 )}
 
@@ -184,15 +195,23 @@ const TicketTypeModal: React.FC<TicketTypeModalProps> = ({
                                 >
                                     <option value="">Chọn khu vực</option>
                                     {availableZones.map((zone) => {
-                                        const isUsed = usedZones.includes(zone.tempId || '') && 
-                                                      (!editTicket || editTicket.maKhuVuc !== (zone.tempId || ''));
+                                        const zoneKey = getZoneKey(zone);
+                                        const isUsed = usedZones.includes(zoneKey) && 
+                                                      (!editTicket || editTicket.maKhuVuc !== zoneKey);
+                                        const displayName = getZoneDisplayName(zone);
+                                        const templateInfo = mockTemplates?.find(t => t.maKhuVucMau === zone.maKhuVucMau);
+                                        
                                         return (
                                             <option 
-                                                key={zone.tempId || zone.tenKhuVuc} 
-                                                value={zone.tempId || zone.tenKhuVuc}
+                                                key={zoneKey} 
+                                                value={zoneKey}
                                                 disabled={isUsed}
                                             >
-                                                {zone.tenKhuVuc} {isUsed ? '(Đã sử dụng)' : ''}
+                                                {displayName}
+                                                {zone.tenTuyChon && zone.tenTuyChon !== templateInfo?.tenKhuVuc && 
+                                                    ` (${templateInfo?.tenKhuVuc})`
+                                                }
+                                                {isUsed ? ' (Đã sử dụng)' : ''}
                                             </option>
                                         );
                                     })}
@@ -200,6 +219,9 @@ const TicketTypeModal: React.FC<TicketTypeModalProps> = ({
                                 {errors.maKhuVuc && (
                                     <div className="invalid-feedback">{errors.maKhuVuc}</div>
                                 )}
+                                <Form.Text className="text-muted">
+                                    Mỗi khu vực chỉ có thể có một loại vé
+                                </Form.Text>
                             </Form.Group>
                         </Col>
                     </Row>
@@ -268,6 +290,18 @@ const TicketTypeModal: React.FC<TicketTypeModalProps> = ({
                                             <i className="fas fa-map-marker-alt me-1"></i>
                                             {formData.tenKhuVuc}
                                         </div>
+                                        {(() => {
+                                            const selectedZone = availableZones.find(z => z.maKhuVucMau === formData.maKhuVuc);
+                                            const template = mockTemplates?.find(t => t.maKhuVucMau === formData.maKhuVuc);
+                                            if (selectedZone?.tenTuyChon && selectedZone.tenTuyChon !== template?.tenKhuVuc) {
+                                                return (
+                                                    <small className="text-muted d-block">
+                                                        Mẫu gốc: {template?.tenKhuVuc}
+                                                    </small>
+                                                );
+                                            }
+                                            return null;
+                                        })()}
                                     </div>
                                 )}
                             </div>
@@ -309,6 +343,37 @@ const TicketTypeModal: React.FC<TicketTypeModalProps> = ({
                             </Form.Group>
                         </Col>
                     </Row>
+
+                    {availableZones.length > 0 && (
+                        <Row>
+                            <Col>
+                                <div className="available-zones-summary">
+                                    <small className="text-muted">
+                                        <strong>Khu vực có sẵn ({availableZones.length}):</strong>
+                                    </small>
+                                    <div className="zones-list mt-2">
+                                        {availableZones.map((zone) => {
+                                            const zoneKey = getZoneKey(zone);
+                                            const isUsed = usedZones.includes(zoneKey) && 
+                                                          (!editTicket || editTicket.maKhuVuc !== zoneKey);
+                                            const isSelected = formData.maKhuVuc === zoneKey;
+                                            
+                                            return (
+                                                <p 
+                                                    key={zoneKey}
+                                                    className={`zone-tag ${isUsed ? 'used' : ''} ${isSelected ? 'selected' : ''}`}
+                                                >
+                                                    {getZoneDisplayName(zone)}
+                                                    {isUsed && ' (Đã dùng)'}
+                                                    {isSelected && ' ✓'}
+                                                </p>
+                                            );
+                                        })}
+                                    </div>
+                                </div>
+                            </Col>
+                        </Row>
+                    )}
                 </Form>
             </Modal.Body>
 

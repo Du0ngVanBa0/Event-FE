@@ -14,10 +14,11 @@ export interface ZoneShape {
   zIndex: number;
   labelVisible: boolean;
   labelPosition: 'center' | 'top' | 'bottom' | 'left' | 'right';
+  templateId?: string; // Reference to template
   properties?: {
-    radius?: number; // for circle
-    points?: number[]; // for triangle/polygon
-    cornerRadius?: number; // for rounded rectangle
+    radius?: number;
+    points?: number[];
+    cornerRadius?: number;
   };
 }
 
@@ -38,4 +39,21 @@ export interface ZoneDesignData {
   zones: ZoneShape[];
   version: number;
   lastModified: Date;
+}
+
+export interface KhuVucTemplate {
+  maKhuVucMau: string;
+  tenKhuVuc: string;
+  moTa: string;
+  mauSac: string;
+  hinhDang: string;
+  thuTuHienThi: number;
+  hoatDong: boolean;
+  toaDoXMacDinh?: number;
+  toaDoYMacDinh?: number;
+  chieuRongMacDinh?: number;
+  chieuCaoMacDinh?: number;
+  tenTuyChon?: string;
+  moTaTuyChon?: string;
+  mauSacTuyChon?: string;
 }
