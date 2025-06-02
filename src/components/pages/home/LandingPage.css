@@ -3,7 +3,7 @@
     min-height: 100vh;
     width: 100%;
     overflow-x: hidden;
-    background: linear-gradient(to bottom, #000000, #1a1a1a);
+    background: linear-gradient(135deg, #f8fafc 0%, #e2e8f0 100%);
     color: var(--color-text);
 }
 
@@ -21,7 +21,7 @@
     position: absolute;
     width: 2px;
     height: 2px;
-    background: white;
+    background: var(--color-primary);
     border-radius: 50%;
     animation: starAnimation linear forwards;
 }
@@ -32,7 +32,7 @@
         transform: scale(0);
     }
     50% {
-        opacity: 1;
+        opacity: 0.8;
         transform: scale(1);
     }
     100% {
@@ -64,14 +64,18 @@
     animation: glowPulse 1.5s infinite;
     padding: 1rem;
     margin-bottom: 1rem;
+    background: linear-gradient(45deg, var(--color-primary), var(--color-secondary));
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
 }
 
 @keyframes glowPulse {
     0%, 100% {
-        filter: drop-shadow(0 0 10px var(--color-primary));
+        filter: drop-shadow(0 0 10px rgba(99, 102, 241, 0.3));
     }
     50% {
-        filter: drop-shadow(0 0 20px var(--color-secondary));
+        filter: drop-shadow(0 0 20px rgba(14, 165, 233, 0.3));
     }
 }
 
@@ -80,6 +84,7 @@
     margin: 1.5rem 0;
     opacity: 0;
     animation: fadeInUp 1s forwards 0.5s;
+    color: var(--color-text-light);
 }
 
 .hero-buttons {
@@ -95,7 +100,7 @@
     position: relative;
     padding: 6rem 0;
     z-index: 2;
-    background: rgba(0, 0, 0, 0.5);
+    background: rgba(255, 255, 255, 0.8);
 }
 
 .section-title {
@@ -113,14 +118,16 @@
 }
 
 .feature-card {
-    background: rgba(255, 255, 255, 0.05);
+    background: rgba(255, 255, 255, 0.9);
+    backdrop-filter: blur(10px);
     border-radius: 12px;
     padding: 2rem;
     text-align: center;
-    border: 2px solid transparent;
+    border: 1px solid var(--color-border);
     transition: var(--transition-default);
     position: relative;
     overflow: hidden;
+    box-shadow: var(--shadow-sm);
 }
 
 .feature-card::before {
@@ -145,7 +152,7 @@
 
 .feature-card:hover {
     transform: translateY(-10px);
-    box-shadow: var(--glow-effect);
+    box-shadow: var(--shadow-lg);
 }
 
 .feature-icon {
@@ -155,8 +162,13 @@
 }
 
 .feature-card h3 {
-    color: var(--color-secondary);
+    color: var(--color-text);
     margin-bottom: 1rem;
+    font-weight: 600;
+}
+
+.feature-card p {
+    color: var(--color-text-light);
 }
 
 /* CTA Section */
@@ -165,6 +177,7 @@
     padding: 6rem 0;
     text-align: center;
     z-index: 2;
+    background: rgba(255, 255, 255, 0.9);
 }
 
 .cta-content {
@@ -178,14 +191,20 @@
     color: var(--color-primary);
 }
 
+.cta-content p {
+    color: var(--color-text-light);
+    margin-bottom: 2rem;
+}
+
 /* Universe Button */
 .universe-button {
-    background: transparent;
+    background: white;
     border: 2px solid var(--color-primary);
-    color: var(--color-text);
+    color: var(--color-primary);
     padding: 0.75rem 2rem;
     border-radius: 30px;
     font-size: 1.1rem;
+    font-weight: 600;
     transition: var(--transition-default);
     position: relative;
     overflow: hidden;
@@ -217,7 +236,9 @@
 }
 
 .universe-button.outline {
+    background: transparent;
     border-color: var(--color-secondary);
+    color: var(--color-secondary);
 }
 
 .universe-button.outline::before {
@@ -229,6 +250,18 @@
     font-size: 1.2rem;
 }
 
+.see-more-btn {
+    background: var(--color-primary) !important;
+    color: white !important;
+    border: none !important;
+}
+
+.see-more-btn:hover {
+    background: var(--color-secondary) !important;
+    color: white !important;
+    transform: translateY(-2px);
+}
+
 /* Orbit Animation */
 .orbit-animation {
     position: fixed;
@@ -237,7 +270,7 @@
     width: 300px;
     height: 300px;
     z-index: 1;
-    opacity: 0.5;
+    opacity: 0.3;
 }
 
 .planet {
@@ -246,10 +279,10 @@
     left: 50%;
     width: 100px;
     height: 100px;
-    background: radial-gradient(circle at 30% 30%, var(--color-primary), #000);
+    background: radial-gradient(circle at 30% 30%, var(--color-primary), var(--color-secondary));
     border-radius: 50%;
     transform: translate(-50%, -50%);
-    box-shadow: 0 0 30px rgba(167, 135, 255, 0.3);
+    box-shadow: 0 0 30px rgba(99, 102, 241, 0.3);
 }
 
 .orbit {
@@ -258,7 +291,7 @@
     left: 0;
     width: 100%;
     height: 100%;
-    border: 2px solid rgba(167, 135, 255, 0.1);
+    border: 2px solid rgba(99, 102, 241, 0.2);
     border-radius: 50%;
     animation: orbit 20s linear infinite;
 }
@@ -272,7 +305,7 @@
     background: var(--color-secondary);
     border-radius: 50%;
     transform: translateX(-50%);
-    box-shadow: 0 0 20px var(--color-secondary);
+    box-shadow: 0 0 20px rgba(14, 165, 233, 0.5);
 }
 
 @keyframes orbit {
@@ -306,6 +339,7 @@
 
     .hero-buttons {
         flex-direction: column;
+        align-items: center;
     }
 
     .features-grid {

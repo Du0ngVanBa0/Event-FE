@@ -13,24 +13,78 @@ const UniverseButton = ({
     to,
     fullWidth,
     className = '',
+    style,
     ...props
 }: UniverseButtonProps) => {
-    const baseStyles = `
-    px-6 py-2 rounded-lg transition-all duration-300
-    hover:transform hover:scale-105
-    focus:outline-none focus:ring-2 focus:ring-purple-400 focus:ring-opacity-50
-    ${fullWidth ? 'w-full' : ''}
-    ${className}
-  `;
+    const baseStyles: React.CSSProperties = {
+        display: 'inline-flex',
+        alignItems: 'center',
+        justifyContent: 'center',
+        gap: '0.5rem',
+        padding: '0.75rem 1.5rem',
+        borderRadius: '8px',
+        border: '2px solid',
+        fontWeight: '500',
+        fontSize: '1rem',
+        textDecoration: 'none',
+        cursor: 'pointer',
+        transition: 'all 0.3s ease',
+        fontFamily: 'inherit',
+        outline: 'none',
+        position: 'relative',
+        overflow: 'hidden',
+        ...(fullWidth && { width: '100%' }),
+        ...style
+    };
 
-    const variants = {
-        solid: 'bg-primary text-white hover:shadow-glow',
-        outline: 'border-2 border-primary text-primary hover:bg-primary hover:text-black hover:shadow-glow'
+    const variantStyles = {
+        solid: {
+            backgroundColor: '#6366f1',
+            borderColor: '#6366f1',
+            color: 'white'
+        },
+        outline: {
+            backgroundColor: 'white',
+            borderColor: '#6366f1',
+            color: '#6366f1'
+        }
+    };
+
+    const buttonStyle: React.CSSProperties = {
+        ...baseStyles,
+        ...variantStyles[variant]
+    };
+
+    const handleMouseEnter = (e: React.MouseEvent<HTMLButtonElement>) => {
+        const target = e.currentTarget;
+        if (variant === 'outline') {
+            target.style.backgroundColor = '#6366f1';
+            target.style.color = 'white';
+        } else {
+            target.style.backgroundColor = '#4f46e5';
+        }
+        target.style.transform = 'translateY(-2px)';
+        target.style.boxShadow = '0 4px 20px rgba(99, 102, 241, 0.3)';
+    };
+
+    const handleMouseLeave = (e: React.MouseEvent<HTMLButtonElement>) => {
+        const target = e.currentTarget;
+        if (variant === 'outline') {
+            target.style.backgroundColor = 'white';
+            target.style.color = '#6366f1';
+        } else {
+            target.style.backgroundColor = '#6366f1';
+        }
+        target.style.transform = 'translateY(0)';
+        target.style.boxShadow = 'none';
     };
 
     const buttonContent = (
         <button
-            className={`${baseStyles} ${variants[variant]}`}
+            className={className}
+            style={buttonStyle}
+            onMouseEnter={handleMouseEnter}
+            onMouseLeave={handleMouseLeave}
             {...props}
         >
             {children}
@@ -38,7 +92,7 @@ const UniverseButton = ({
     );
 
     return to ? (
-        <Link to={to}>
+        <Link to={to} style={{ textDecoration: 'none' }}>
             {buttonContent}
         </Link>
     ) : buttonContent;

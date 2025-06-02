@@ -2,48 +2,179 @@
     max-width: 800px;
     margin: 2rem auto;
     padding: 1rem;
+    background: var(--color-background);
+    min-height: calc(100vh - var(--header-height));
 }
 
 .payment-card {
-    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
-    border: none;
-    border-radius: 8px;
+    background: white;
+    border: 1px solid var(--color-border);
+    border-radius: 12px;
+    box-shadow: var(--shadow-lg);
+    position: relative;
+}
+
+.payment-card::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    border-radius: 10px;
+    padding: 2px;
+    background: linear-gradient(90deg, var(--color-primary), var(--color-secondary));
+    -webkit-mask: 
+        linear-gradient(#fff 0 0) content-box, 
+        linear-gradient(#fff 0 0);
+    mask: 
+        linear-gradient(#fff 0 0) content-box, 
+        linear-gradient(#fff 0 0);
+    -webkit-mask-composite: xor;
+    mask-composite: exclude;
+    pointer-events: none;
 }
 
 .payment-card .card-header {
-    background-color: #f8f9fa;
-    border-bottom: 1px solid #eee;
-    padding: 1rem 1.5rem;
+    background: var(--color-background);
+    border-bottom: 1px solid var(--color-border);
+    padding: 1.5rem;
+    color: var(--color-primary);
+    font-weight: 600;
+    font-size: 1.25rem;
 }
 
-.loading-container {
+.payment-card .card-body {
+    background: white;
+    color: var(--color-text);
+    padding: 2rem;
+}
+
+.payment-loading-container {
     display: flex;
     flex-direction: column;
     align-items: center;
     justify-content: center;
     min-height: 300px;
     text-align: center;
+    background: white;
+    border-radius: 12px;
+    padding: 2rem;
+    border: 1px solid var(--color-border);
+    box-shadow: var(--shadow-sm);
+}
+
+.payment-spinner-border {
+    width: 3rem;
+    height: 3rem;
+    border: 0.25em solid var(--color-border-light);
+    border-right-color: var(--color-primary);
+    border-radius: 50%;
+    animation: spinner-border 0.75s linear infinite;
+}
+
+@keyframes spinner-border {
+    to {
+        transform: rotate(360deg);
+    }
 }
 
 .payment-loading-text {
     color: var(--color-text) !important;
     text-align: center;
-}
-
-.payment-loading-container .payment-spinner-border {
-    width: 3rem;
-    height: 3rem;
+    font-weight: 500;
+    margin-top: 1rem;
 }
 
 .payment-action-buttons {
     margin-top: 2rem;
     display: flex;
     justify-content: center;
+    gap: 1rem;
+}
+
+.btn {
+    transition: var(--transition-default);
+    font-weight: 500;
+    padding: 0.75rem 1.5rem;
+    border-radius: 8px;
+}
+
+.btn-primary {
+    background: var(--color-primary);
+    border-color: var(--color-primary);
+    color: white;
+}
+
+.btn-primary:hover:not(:disabled) {
+    background: var(--color-secondary);
+    border-color: var(--color-secondary);
+    box-shadow: var(--glow-effect);
+    transform: translateY(-2px);
+}
+
+.btn-primary:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+}
+
+.btn-secondary {
+    background: white;
+    border-color: var(--color-text-light);
+    color: var(--color-text-light);
+}
+
+.btn-secondary:hover {
+    background: var(--color-text-light);
+    color: white;
+    transform: translateY(-2px);
+    box-shadow: var(--shadow-sm);
+}
+
+.alert {
+    border-radius: 8px;
+    margin-bottom: 1.5rem;
+}
+
+.alert-danger {
+    background: rgba(239, 68, 68, 0.1);
+    border-color: #ef4444;
+    color: #dc2626;
+}
+
+/* Print styles */
+@media print {
+    .payment-container {
+        background: white !important;
+        color: black !important;
+    }
+    
+    .payment-card {
+        background: white !important;
+        border: 1px solid #000 !important;
+        box-shadow: none !important;
+    }
+    
+    .btn,
+    .payment-action-buttons {
+        display: none !important;
+    }
+    
+    * {
+        background: white !important;
+        color: black !important;
+    }
 }
 
 @media (max-width: 576px) {
     .payment-container {
         padding: 0.5rem;
+        margin: 1rem auto;
+    }
+    
+    .payment-card .card-header,
+    .payment-card .card-body {
+        padding: 1rem;
     }
     
     .payment-action-buttons {

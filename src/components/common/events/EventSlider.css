@@ -1,15 +1,17 @@
 .events-container {
     padding: 2rem;
     color: var(--color-text);
+    background: var(--color-background);
 }
 
 .events-wrapper {
-    background: linear-gradient(to bottom, #1a1a1a, #000000);
+    background: white;
     padding: 2rem;
     border-radius: 12px;
-    box-shadow: 0 2px 10px rgba(255, 255, 255, 0.1);
+    box-shadow: var(--shadow-lg);
     margin: 0 auto;
     position: relative;
+    border: 1px solid var(--color-border);
 }
 
 .page-title {
@@ -17,7 +19,7 @@
     margin-bottom: 2rem;
     text-align: center;
     font-size: 2rem;
-    text-shadow: 0 0 10px rgba(167, 135, 255, 0.5);
+    font-weight: 700;
 }
 
 .events-slider-container {
@@ -48,17 +50,19 @@
     cursor: pointer;
     transition: var(--transition-default);
     flex-shrink: 0;
+    box-shadow: var(--shadow-md);
+    border: 1px solid var(--color-border);
 }
 
 .event-slide:hover {
     transform: translateY(-5px);
-    box-shadow: var(--glow-effect);
+    box-shadow: var(--shadow-lg);
 }
 
 .event-slide img {
     width: 100%;
     height: 100%;
-    object-fit: contain;
+    object-fit: cover;
     transition: transform 0.3s ease;
 }
 
@@ -74,8 +78,8 @@
     bottom: 0;
     background: linear-gradient(
         to bottom,
-        rgba(0, 0, 0, 0.2),
-        rgba(0, 0, 0, 0.9)
+        rgba(0, 0, 0, 0.1),
+        rgba(0, 0, 0, 0.8)
     );
     opacity: 0;
     transition: opacity 0.3s ease;
@@ -90,7 +94,7 @@
 }
 
 .event-info {
-    color: var(--color-text);
+    color: var(--color-text-dark);
     text-align: center;
     transform: translateY(20px);
     transition: transform 0.3s ease;
@@ -101,10 +105,10 @@
 }
 
 .event-info h3 {
-    color: var(--color-secondary);
+    color: var(--color-text-dark);
     font-size: 1.5rem;
     margin-bottom: 1rem;
-    text-shadow: 0 0 10px rgba(167, 135, 255, 0.5);
+    font-weight: 600;
 }
 
 .event-details {
@@ -119,6 +123,7 @@
     align-items: center;
     gap: 0.5rem;
     font-size: 0.9rem;
+    color: rgba(255, 255, 255, 0.9);
 }
 
 .detail-item i {
@@ -127,12 +132,13 @@
 }
 
 .view-details-btn {
-    background: transparent;
+    background: white;
     border: 2px solid var(--color-primary);
     color: var(--color-primary);
     padding: 0.5rem 1.5rem;
     border-radius: 25px;
     font-size: 1rem;
+    font-weight: 500;
     cursor: pointer;
     transition: var(--transition-default);
 }
@@ -141,16 +147,17 @@
     background: var(--color-primary);
     color: var(--color-text-dark);
     box-shadow: var(--glow-effect);
+    transform: translateY(-2px);
 }
 
 .slider-nav-btn {
     position: absolute;
     top: 50%;
     transform: translateY(-50%);
-    width: 40px;
-    height: 40px;
+    width: 50px;
+    height: 50px;
     border-radius: 50%;
-    background: rgba(167, 135, 255, 0.1);
+    background: white;
     border: 2px solid var(--color-primary);
     color: var(--color-primary);
     display: flex;
@@ -159,12 +166,14 @@
     cursor: pointer;
     transition: var(--transition-default);
     z-index: 10;
+    box-shadow: var(--shadow-md);
 }
 
 .slider-nav-btn:hover {
     background: var(--color-primary);
     color: var(--color-text-dark);
     box-shadow: var(--glow-effect);
+    transform: translateY(-50%) scale(1.1);
 }
 
 .slider-nav-btn.prev {
@@ -176,17 +185,26 @@
 }
 
 .slider-nav-btn:disabled {
-    opacity: 0.5;
+    opacity: 0.4;
     cursor: not-allowed;
-    background: transparent;
-    border-color: rgba(167, 135, 255, 0.2);
+    background: white;
+    border-color: var(--color-border);
+    color: var(--color-text-light);
+}
+
+.slider-nav-btn:disabled:hover {
+    transform: translateY(-50%);
+    box-shadow: var(--shadow-md);
 }
 
 .error-message {
-    color: #ff4444;
+    color: #ef4444;
     text-align: center;
     padding: 2rem;
     font-size: 1.2rem;
+    background: white;
+    border-radius: 8px;
+    border: 1px solid #fecaca;
 }
 
 .loading-container {
@@ -194,6 +212,7 @@
     display: flex;
     align-items: center;
     justify-content: center;
+    background: var(--color-background);
 }
 
 .loading-container .spinner-border {
@@ -208,8 +227,8 @@
     }
 
     .event-slide {
-        min-width: 250px;
-        width: 250px;
+        min-width: 280px;
+        width: 280px;
     }
 
     .event-info h3 {
@@ -219,4 +238,9 @@
     .detail-item {
         font-size: 0.8rem;
     }
-} 
+
+    .slider-nav-btn {
+        width: 40px;
+        height: 40px;
+    }
+}

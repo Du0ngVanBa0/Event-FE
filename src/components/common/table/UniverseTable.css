@@ -1,58 +1,113 @@
 .universe-table-container {
     position: relative;
+    background: white;
+    border-radius: 12px;
+    box-shadow: var(--shadow-md);
+    overflow: hidden;
+    border: 1px solid var(--color-border);
+}
+
+.universe-table {
+    background: white !important;
+    color: var(--color-text) !important;
+    margin-bottom: 0;
+}
+
+.universe-table thead th {
+    background: linear-gradient(135deg, var(--color-primary), var(--color-secondary)) !important;
+    color: var(--color-text-dark) !important;
+    border: none !important;
+    font-weight: 600;
+    padding: 1rem;
+    text-transform: uppercase;
+    font-size: 0.875rem;
+    letter-spacing: 0.5px;
+}
+
+.universe-table tbody td {
+    padding: 1rem;
+    border-bottom: 1px solid var(--color-border-light) !important;
+    color: var(--color-text) !important;
+    vertical-align: middle;
+}
+
+.universe-table tbody tr {
+    transition: var(--transition-default);
+    background: white !important;
+}
+
+.universe-table tbody tr:hover {
+    background: var(--color-background) !important;
+    transform: translateY(-1px);
+    box-shadow: var(--shadow-sm);
+}
+
+.universe-table tbody tr:last-child td {
+    border-bottom: none !important;
 }
 
 .pagination {
     gap: 0.5rem;
+    padding: 1rem;
+    background: white;
+    margin: 0;
 }
 
 .pagination .page-item .page-link {
-    background: transparent;
-    border: 2px solid var(--color-primary);
+    background: white;
+    border: 2px solid var(--color-border);
     color: var(--color-text);
     padding: 0.5rem 1rem;
     transition: var(--transition-default);
     border-radius: 8px;
+    font-weight: 500;
 }
 
 .pagination .page-item .page-link:hover:not(:disabled) {
     background: var(--color-primary);
     color: var(--color-text-dark);
+    border-color: var(--color-primary);
     box-shadow: var(--glow-effect);
+    transform: translateY(-1px);
 }
 
 .pagination .page-item.active .page-link {
     background: var(--color-primary);
     color: var(--color-text-dark);
     border-color: var(--color-primary);
+    box-shadow: var(--glow-effect);
 }
 
 .pagination .page-item.disabled .page-link {
-    background: transparent;
-    border-color: rgba(167, 135, 255, 0.2);
-    color: rgba(255, 255, 255, 0.5);
+    background: var(--color-border-light);
+    border-color: var(--color-border);
+    color: var(--color-text-light);
     cursor: not-allowed;
 }
 
 .universe-table tr.loading-row td {
     padding: 2rem;
+    text-align: center;
+    background: white !important;
 }
 
 .page-size-select {
-    background: transparent;
-    border: 2px solid var(--color-primary);
+    background: white;
+    border: 2px solid var(--color-border);
     color: var(--color-text);
     padding: 0.25rem 2rem 0.25rem 0.5rem;
     border-radius: 8px;
     transition: var(--transition-default);
+    font-weight: 500;
 }
 
 .page-size-select:focus {
     box-shadow: var(--glow-effect);
     border-color: var(--color-primary);
+    outline: none;
 }
 
 .page-size-select option {
-    background: #1a1a1a;
+    background: white;
     color: var(--color-text);
 }

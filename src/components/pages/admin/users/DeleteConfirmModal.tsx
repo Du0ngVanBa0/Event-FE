@@ -10,7 +10,7 @@ interface DeleteConfirmModalProps {
 const DeleteConfirmModal = ({ show, onHide, onConfirm, itemName }: DeleteConfirmModalProps) => {
     return (
         <Modal show={show} onHide={onHide} centered className="universe-modal">
-            <Modal.Header>
+            <Modal.Header closeButton>
                 <Modal.Title>Xác nhận xóa</Modal.Title>
             </Modal.Header>
             <Modal.Body>
