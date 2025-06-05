@@ -1,331 +1,775 @@
-.my-tickets-container {
-    min-height: calc(100vh - var(--header-height));
-    padding: 2rem;
-    color: var(--color-text);
-    background: var(--color-background);
+.my-tickets-page-container {
+    min-height: 100vh;
+    background: linear-gradient(135deg, #ffffff 0%, #f8fafc 100%);
+    padding-bottom: 3rem;
+    position: relative;
 }
 
-.my-tickets-wrapper {
-    background: white;
-    padding: 2rem;
-    border-radius: 12px;
-    box-shadow: var(--shadow-lg);
+.my-tickets-page-wrapper {
+    max-width: 1400px;
     margin: 0 auto;
-    max-width: 1200px;
-    border: 1px solid var(--color-border);
+    padding: 0 2rem;
 }
 
-.my-tickets-list {
+.my-tickets-page-header {
+    text-align: center;
+    margin-bottom: 3rem;
+    padding: 2rem 0;
+    background: linear-gradient(135deg, rgba(99, 102, 241, 0.05), rgba(14, 165, 233, 0.05));
+    border-radius: 20px;
+    border: 1px solid var(--color-border-light);
+}
+
+.my-tickets-page-title-section {
+    max-width: 600px;
+    margin: 0 auto;
+}
+
+.my-tickets-page-title {
+    font-size: 3rem;
+    font-weight: 700;
+    color: var(--color-text);
+    margin-bottom: 1rem;
     display: flex;
-    flex-direction: column;
+    align-items: center;
+    justify-content: center;
     gap: 1rem;
 }
 
-.my-tickets-card {
-    background: white;
-    border: 1px solid var(--color-border);
-    border-radius: 8px;
-    overflow: hidden;
-    transition: var(--transition-default);
-    position: relative;
-    box-shadow: var(--shadow-sm);
+.my-tickets-page-title i {
+    color: var(--color-primary);
+    font-size: 2.5rem;
 }
 
-.my-tickets-card::before {
+.my-tickets-page-subtitle {
+    font-size: 1.2rem;
+    color: var(--color-text-light);
+    margin: 0;
+    line-height: 1.6;
+}
+
+.my-tickets-page-nav-wrapper {
+    margin-bottom: 2.5rem;
+    display: flex;
+    justify-content: center;
+}
+
+.my-tickets-page-tabs {
+    background: white;
+    border-radius: 15px;
+    padding: 0.5rem;
+    box-shadow: 0 8px 25px rgba(0, 0, 0, 0.08);
+    border: 1px solid var(--color-border);
+    display: flex;
+    gap: 0.5rem;
+}
+
+.my-tickets-page-tab {
+    position: relative;
+    background: transparent;
+    border: none;
+    border-radius: 10px;
+    padding: 1rem 2rem;
+    color: var(--color-text-light);
+    text-decoration: none;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    cursor: pointer;
+    overflow: hidden;
+}
+
+.my-tickets-page-tab:hover {
+    background: rgba(99, 102, 241, 0.05);
+    color: var(--color-primary);
+    transform: translateY(-2px);
+    text-decoration: none !important;
+}
+
+.my-tickets-page-tab-active {
+    color: white;
+    box-shadow: 0 8px 25px rgba(99, 102, 241, 0.3);
+}
+
+.my-tickets-page-tab-active:hover {
+    color: white;
+    transform: translateY(-2px);
+}
+
+.my-tickets-page-tab-content {
+    display: flex;
+    align-items: center;
+    gap: 0.8rem;
+    font-weight: 600;
+    font-size: 0.95rem;
+    position: relative;
+    z-index: 2;
+}
+
+.my-tickets-page-tab-content i {
+    font-size: 1rem;
+}
+
+.my-tickets-page-tab-indicator {
+    position: absolute;
+    bottom: 0;
+    left: 50%;
+    width: 0;
+    height: 3px;
+    background: var(--color-primary);
+    border-radius: 3px;
+    transition: all 0.3s ease;
+    transform: translateX(-50%);
+}
+
+.my-tickets-page-tab-active .my-tickets-page-tab-indicator {
+    width: 80%;
+    background: rgba(255, 255, 255, 0.8);
+}
+
+.my-tickets-page-alert {
+    background: rgba(239, 68, 68, 0.05);
+    border: 1px solid rgba(239, 68, 68, 0.2);
+    border-radius: 12px;
+    padding: 1.2rem 1.5rem;
+    margin-bottom: 2rem;
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    color: #dc2626;
+    font-weight: 500;
+}
+
+.my-tickets-page-alert i {
+    font-size: 1.2rem;
+}
+
+.my-tickets-page-content {
+    position: relative;
+}
+
+.my-tickets-page-loading {
+    text-align: center;
+    padding: 4rem 2rem;
+    background: white;
+    border-radius: 20px;
+    box-shadow: 0 8px 25px rgba(0, 0, 0, 0.08);
+    border: 1px solid var(--color-border);
+}
+
+.my-tickets-page-spinner {
+    margin-bottom: 1.5rem;
+}
+
+.my-tickets-page-spinner .spinner-border {
+    width: 3rem;
+    height: 3rem;
+    color: var(--color-primary);
+}
+
+.my-tickets-page-loading p {
+    color: var(--color-text-light);
+    font-size: 1.1rem;
+    margin: 0;
+}
+
+.my-tickets-page-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(400px, 1fr));
+    gap: 2rem;
+    margin-bottom: 3rem;
+}
+
+.my-tickets-page-ticket-card {
+    background: white;
+    border: 1px solid var(--color-border);
+    border-radius: 20px;
+    overflow: hidden;
+    transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+    cursor: pointer;
+    position: relative;
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.08);
+}
+
+.my-tickets-page-ticket-card::before {
     content: '';
     position: absolute;
     top: 0;
     left: 0;
     right: 0;
     bottom: 0;
-    border-radius: 6px;
-    padding: 2px;
-    background: linear-gradient(90deg, var(--color-primary), var(--color-secondary));
-    -webkit-mask: 
-        linear-gradient(#fff 0 0) content-box, 
-        linear-gradient(#fff 0 0);
-    mask: 
-        linear-gradient(#fff 0 0) content-box, 
-        linear-gradient(#fff 0 0);
-    -webkit-mask-composite: xor;
-    mask-composite: exclude;
-    pointer-events: none;
+    background: linear-gradient(45deg, var(--color-primary), var(--color-secondary));
+    opacity: 0;
+    transition: opacity 0.3s ease;
+    z-index: 1;
+    border-radius: 20px;
 }
 
-.my-tickets-card:hover {
-    transform: translateY(-2px);
-    box-shadow: var(--shadow-lg);
+.my-tickets-page-ticket-card:hover::before {
+    opacity: 0.05;
 }
 
-.my-tickets-content {
-    padding: 1.5rem;
+.my-tickets-page-ticket-card:hover {
+    transform: translateY(-8px);
+    box-shadow: 0 20px 40px rgba(0, 0, 0, 0.15);
+    border-color: var(--color-primary);
 }
 
-.my-tickets-header {
+.my-tickets-page-card-header {
+    position: relative;
+    height: 200px;
+    overflow: hidden;
     display: flex;
+}
+
+.my-tickets-page-event-image {
+    flex: 1;
+    position: relative;
+    overflow: hidden;
+}
+
+.my-tickets-page-event-image img {
     width: 100%;
+    height: 100%;
+    object-fit: cover;
+    transition: transform 0.4s ease;
+}
+
+.my-tickets-page-ticket-card:hover .my-tickets-page-event-image img {
+    transform: scale(1.1);
+}
+
+.my-tickets-page-image-overlay {
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: rgba(0, 0, 0, 0.7);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    opacity: 0;
+    transition: opacity 0.3s ease;
+}
+
+.my-tickets-page-ticket-card:hover .my-tickets-page-image-overlay {
+    opacity: 1;
+}
+
+.my-tickets-page-image-overlay i {
+    font-size: 2rem;
+    color: white;
+}
+
+.my-tickets-page-event-date {
+    background: var(--color-primary);
+    color: white;
+    padding: 1rem;
+    text-align: center;
+    min-width: 80px;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    gap: 0.2rem;
+    box-shadow: inset 2px 0 10px rgba(0, 0, 0, 0.1);
+}
+
+.my-tickets-page-date-day {
+    font-size: 1.8rem;
+    font-weight: 700;
+    line-height: 1;
+}
+
+.my-tickets-page-date-month {
+    font-size: 0.8rem;
+    font-weight: 500;
+    text-transform: uppercase;
+    opacity: 0.9;
+}
+
+.my-tickets-page-date-year {
+    font-size: 0.7rem;
+    opacity: 0.8;
+}
+
+.my-tickets-page-card-body {
+    padding: 1.5rem;
+    position: relative;
+    z-index: 2;
+}
+
+.my-tickets-page-event-info {
+    margin-bottom: 1.5rem;
+}
+
+.my-tickets-page-event-title {
+    font-size: 1.3rem;
+    font-weight: 600;
+    color: var(--color-text);
+    margin-bottom: 1rem;
+    line-height: 1.4;
+    display: -webkit-box;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+}
+
+.my-tickets-page-event-details {
+    display: flex;
+    flex-direction: column;
+    gap: 0.8rem;
+}
+
+.my-tickets-page-detail-item {
+    display: flex;
+    align-items: center;
+    gap: 0.8rem;
+    color: var(--color-text-light);
+    font-size: 0.9rem;
+}
+
+.my-tickets-page-detail-item i {
+    color: var(--color-secondary);
+    width: 16px;
+    font-size: 0.9rem;
+}
+
+.my-tickets-page-total-price {
+    color: var(--color-primary);
+    font-weight: 600;
+    font-size: 1.1rem;
+}
+
+
+.my-tickets-page-ticket-info {
+    background: rgba(99, 102, 241, 0.03);
+    border-radius: 12px;
+    padding: 1rem;
+    border: 1px solid var(--color-border-light);
+}
+
+.my-tickets-page-ticket-header {
+    display: flex;
+    justify-content: space-between;
     align-items: center;
     margin-bottom: 1rem;
 }
 
-.my-tickets-header h3 {
-    color: var(--color-primary);
-    font-size: 1.2rem;
-    margin: 0;
+.my-tickets-page-ticket-header h4 {
+    font-size: 1rem;
     font-weight: 600;
+    color: var(--color-text);
+    margin: 0;
 }
 
-.my-tickets-status {
-    padding: 0.5rem 1rem;
-    border-radius: 20px;
-    font-size: 0.9rem;
+.my-tickets-page-ticket-id {
+    display: flex;
+    align-items: center;
+    gap: 0.3rem;
+    font-size: 0.8rem;
+    color: var(--color-text-light);
+    font-family: monospace;
+    background: white;
+    padding: 0.3rem 0.6rem;
+    border-radius: 6px;
+    border: 1px solid var(--color-border);
+}
+
+.my-tickets-page-ticket-types {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+}
+
+.my-tickets-page-ticket-type {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    background: white;
+    padding: 0.8rem;
+    border-radius: 8px;
+    border: 1px solid var(--color-border-light);
+}
+
+.my-tickets-page-type-info {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+}
+
+.my-tickets-page-type-name {
+    color: var(--color-text);
     font-weight: 500;
 }
 
-.my-tickets-status.paid {
+.my-tickets-page-type-quantity {
+    background: rgba(14, 165, 233, 0.1);
+    color: var(--color-secondary);
+    padding: 0.2rem 0.6rem;
+    border-radius: 12px;
+    font-size: 0.8rem;
+    font-weight: 600;
+    border: 1px solid var(--color-secondary);
+}
+
+.my-tickets-page-type-price {
+    color: var(--color-primary);
+    font-weight: 600;
+}
+
+.my-tickets-page-card-footer {
+    padding: 1.5rem;
+    border-top: 1px solid var(--color-border-light);
+    background: rgba(99, 102, 241, 0.02);
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 1rem;
+    position: relative;
+    z-index: 2;
+}
+
+
+.my-tickets-page-status-wrapper {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+}
+
+.my-tickets-page-status-badge {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.5rem 1rem;
+    border-radius: 20px;
+    font-size: 0.85rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+.my-tickets-page-status-confirmed {
     background: rgba(16, 185, 129, 0.1);
     color: var(--color-success);
     border: 1px solid var(--color-success);
 }
 
-.my-tickets-status.pending {
+.my-tickets-page-status-pending {
     background: rgba(245, 158, 11, 0.1);
     color: #f59e0b;
     border: 1px solid #f59e0b;
 }
 
-.my-tickets-status.expired {
+.my-tickets-page-status-expired {
     background: rgba(239, 68, 68, 0.1);
     color: #ef4444;
     border: 1px solid #ef4444;
 }
 
-.my-tickets-details {
-    background: var(--color-background);
-    border-radius: 8px;
-    padding: 1rem;
-    border: 1px solid var(--color-border-light);
-}
-
-.my-tickets-info {
-    display: flex;
-    gap: 2rem;
-    margin-bottom: 1rem;
-}
-
-.my-tickets-info span {
-    display: flex;
-    align-items: center;
-    gap: 0.5rem;
-    color: var(--color-text);
-}
-
-.my-tickets-info i {
-    color: var(--color-secondary);
-}
-
-.my-tickets-items {
-    border-top: 1px solid var(--color-border-light);
-    padding-top: 1rem;
-}
-
-.my-tickets-items h4 {
-    color: var(--color-secondary);
-    font-size: 1rem;
-    margin-bottom: 0.5rem;
-    font-weight: 600;
-}
-
-.my-tickets-item {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    padding: 0.75rem;
-    background: white;
-    border-radius: 4px;
-    margin-bottom: 0.5rem;
-    border: 1px solid var(--color-border-light);
-}
-
-.my-tickets-type {
-    color: var(--color-text);
-}
-
-.my-tickets-info-group {
-    display: flex;
-    align-items: center;
-    gap: 1rem;
-}
-
-.my-tickets-price-group {
-    display: flex;
-    flex-direction: column;
-    align-items: flex-end;
-    gap: 0.25rem;
-}
-
-.my-tickets-unit-price {
-    color: var(--color-text);
-    font-size: 0.9rem;
-    opacity: 0.8;
-}
-
-.my-tickets-total-price {
-    color: var(--color-primary);
-    font-weight: 500;
-}
-
-.my-tickets-quantity {
-    color: var(--color-secondary);
-    font-weight: 500;
-    font-size: 0.9rem;
-    background: rgba(14, 165, 233, 0.1);
-    padding: 0.2rem 0.5rem;
-    border-radius: 4px;
-    border: 1px solid var(--color-secondary);
-}
-
-.my-tickets-img-container {
-    display: flex;
-    align-items: center;
-    flex: 1;
-    gap: 20px;
-    justify-content: start;
-}
-
-.my-tickets-img-container img {
-    height: 100px;
-    aspect-ratio: 16/9;
-    object-fit: contain;
-    border-radius: 4px;
-    border: 1px solid var(--color-border);
-}
-
-.no-tickets-message {
-    text-align: center;
-    padding: 3rem;
-    color: var(--color-text);
-}
-
-.no-tickets-message i {
-    font-size: 3rem;
-    color: var(--color-secondary);
-    margin-bottom: 1rem;
-}
-
-.my-tickets-summary {
-    display: flex;
-    flex-direction: column;
-    gap: 0.5rem;
-}
-
-.my-tickets-status-group {
-    display: flex;
-    align-items: center;
-    gap: 1rem;
-}
-
-.my-tickets-pay-button {
+.my-tickets-page-pay-button {
+    background: linear-gradient(45deg, var(--color-primary), var(--color-secondary));
+    border: none;
+    color: white;
     padding: 0.4rem 1rem;
-    font-size: 0.9rem;
+    border-radius: 20px;
+    font-weight: 600;
+    font-size: 0.8rem;
     display: flex;
     align-items: center;
     gap: 0.5rem;
     transition: all 0.3s ease;
-    background: var(--color-primary);
-    border-color: var(--color-primary);
-    color: white;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
 }
 
-.my-tickets-pay-button:hover {
+.my-tickets-page-pay-button:hover {
+    background: linear-gradient(45deg, var(--color-secondary), var(--color-primary));
     transform: translateY(-2px);
-    box-shadow: var(--shadow-md);
-    background: var(--color-secondary);
-    border-color: var(--color-secondary);
+    box-shadow: 0 8px 25px rgba(99, 102, 241, 0.4);
     color: white;
 }
 
-.my-tickets-pay-button i {
-    font-size: 1rem;
-}
-
-.universe-tabs {
-    border-bottom: 2px solid var(--color-primary);
-}
-
-.universe-tabs .nav-link {
+.my-tickets-page-view-button {
     background: transparent;
-    border: none;
-    color: var(--color-text);
-    padding: 0.75rem 1.5rem;
-    transition: var(--transition-default);
-}
-
-.universe-tabs .nav-link:hover {
+    border: 2px solid var(--color-primary);
     color: var(--color-primary);
+    padding: 0.5rem 1.2rem;
+    border-radius: 20px;
+    font-weight: 600;
+    font-size: 0.85rem;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    transition: all 0.3s ease;
 }
 
-.universe-tabs .nav-link.active {
-    background: rgba(99, 102, 241, 0.1);
-    border: none;
-    color: var(--color-primary);
-    border-bottom: 2px solid var(--color-primary);
+.my-tickets-page-view-button:hover {
+    background: var(--color-primary);
+    color: white;
+    transform: translateY(-2px);
+    box-shadow: 0 8px 25px rgba(99, 102, 241, 0.3);
 }
 
-.page-size-select {
+.my-tickets-page-empty-state {
+    text-align: center;
+    padding: 4rem 2rem;
     background: white;
-    border: 2px solid var(--color-border);
+    border-radius: 20px;
+    box-shadow: 0 8px 25px rgba(0, 0, 0, 0.08);
+    border: 1px solid var(--color-border);
+    max-width: 500px;
+    margin: 0 auto;
+}
+
+.my-tickets-page-empty-icon {
+    font-size: 4rem;
+    color: var(--color-text-light);
+    margin-bottom: 1.5rem;
+    opacity: 0.6;
+}
+
+.my-tickets-page-empty-state h3 {
     color: var(--color-text);
-    padding: 0.25rem 2rem 0.25rem 0.5rem;
-    border-radius: 8px;
-    transition: var(--transition-default);
+    margin-bottom: 1rem;
+    font-weight: 600;
+}
+
+.my-tickets-page-empty-state p {
+    color: var(--color-text-light);
+    margin-bottom: 2rem;
+    line-height: 1.6;
+}
+
+.my-tickets-page-browse-button {
+    background: linear-gradient(45deg, var(--color-primary), var(--color-secondary));
+    border: none;
+    color: white;
+    padding: 0.8rem 2rem;
+    border-radius: 25px;
+    font-weight: 600;
+    display: flex;
+    align-items: center;
+    gap: 0.8rem;
+    margin: 0 auto;
+    transition: all 0.3s ease;
+}
+
+.my-tickets-page-browse-button:hover {
+    background: linear-gradient(45deg, var(--color-secondary), var(--color-primary));
+    transform: translateY(-2px);
+    box-shadow: 0 8px 25px rgba(99, 102, 241, 0.4);
+    color: white;
+}
+
+.my-tickets-page-pagination-wrapper {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 2rem;
+    background: white;
+    border-radius: 15px;
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.08);
+    border: 1px solid var(--color-border);
+    margin-top: 2rem;
+}
+
+.my-tickets-page-page-size-control {
+    display: flex;
+    align-items: center;
+    gap: 0.8rem;
+    color: var(--color-text);
     font-weight: 500;
 }
 
-.page-size-select:focus {
-    box-shadow: 0 0 0 0.2rem rgba(99, 102, 241, 0.25);
+.my-tickets-page-page-size-select {
+    background: white;
+    border: 2px solid var(--color-border);
+    color: var(--color-text);
+    padding: 0.4rem 2.5rem 0.4rem 0.8rem;
+    border-radius: 8px;
+    transition: all 0.3s ease;
+    font-weight: 500;
+    min-width: 80px;
+}
+
+.my-tickets-page-page-size-select:focus {
+    box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.1);
     border-color: var(--color-primary);
     outline: none;
 }
 
-.page-size-select option {
-    background: white;
-    color: var(--color-text);
+
+@media (max-width: 1200px) {
+    .my-tickets-page-grid {
+        grid-template-columns: repeat(auto-fill, minmax(350px, 1fr));
+        gap: 1.5rem;
+    }
 }
 
-.text-light {
-    color: var(--color-text) !important;
+@media (max-width: 768px) {
+    .my-tickets-page-container {
+        padding-top: calc(var(--header-height) + 1rem);
+    }
+
+    .my-tickets-page-wrapper {
+        padding: 0 1rem;
+    }
+
+    .my-tickets-page-title {
+        font-size: 2.2rem;
+        flex-direction: column;
+        gap: 0.5rem;
+    }
+
+    .my-tickets-page-subtitle {
+        font-size: 1rem;
+    }
+
+    .my-tickets-page-tabs {
+        flex-direction: column;
+        gap: 0.3rem;
+    }
+
+    .my-tickets-page-tab {
+        padding: 0.8rem 1.5rem;
+        text-align: center;
+    }
+
+    .my-tickets-page-grid {
+        grid-template-columns: 1fr;
+        gap: 1.5rem;
+    }
+
+    .my-tickets-page-card-footer {
+        flex-direction: column;
+        align-items: stretch;
+        gap: 1rem;
+    }
+
+    .my-tickets-page-status-wrapper {
+        align-items: center;
+    }
+
+    .my-tickets-page-pagination-wrapper {
+        flex-direction: column;
+        gap: 1.5rem;
+        text-align: center;
+    }
+
+    .my-tickets-page-event-details {
+        gap: 0.6rem;
+    }
+
+    .my-tickets-page-detail-item {
+        font-size: 0.85rem;
+    }
 }
 
-.page-title {
-    color: var(--color-primary);
-    margin-bottom: 2rem;
-    font-weight: 600;
-    font-size: 2rem;
+@media (max-width: 480px) {
+    .my-tickets-page-header {
+        padding: 1.5rem 1rem;
+        margin-bottom: 2rem;
+    }
+
+    .my-tickets-page-title {
+        font-size: 1.8rem;
+    }
+
+    .my-tickets-page-card-header {
+        height: 150px;
+    }
+
+    .my-tickets-page-event-date {
+        min-width: 60px;
+        padding: 0.8rem;
+    }
+
+    .my-tickets-page-date-day {
+        font-size: 1.4rem;
+    }
+
+    .my-tickets-page-card-body {
+        padding: 1rem;
+    }
+
+    .my-tickets-page-card-footer {
+        padding: 1rem;
+    }
+
+    .my-tickets-page-event-title {
+        font-size: 1.1rem;
+    }
 }
 
-/* Print styles */
 @media print {
-    .my-tickets-container,
-    .my-tickets-wrapper {
+    .my-tickets-page-container,
+    .my-tickets-page-wrapper,
+    .my-tickets-page-header,
+    .my-tickets-page-ticket-card,
+    .my-tickets-page-card-body,
+    .my-tickets-page-ticket-info {
         background: white !important;
         color: black !important;
         box-shadow: none !important;
-        border: 1px solid #000 !important;
     }
-    
-    .my-tickets-card {
-        border: 1px solid #000 !important;
-        box-shadow: none !important;
+
+    .my-tickets-page-ticket-card {
+        border: 2px solid black !important;
+        break-inside: avoid;
+        margin-bottom: 1rem;
     }
-    
-    .my-tickets-pay-button,
-    .universe-tabs {
+
+    .my-tickets-page-nav-wrapper,
+    .my-tickets-page-pay-button,
+    .my-tickets-page-view-button,
+    .my-tickets-page-pagination-wrapper,
+    .my-tickets-page-image-overlay,
+    .my-tickets-page-browse-button {
         display: none !important;
     }
-    
-    * {
-        background: white !important;
+
+    .my-tickets-page-grid {
+        grid-template-columns: 1fr !important;
+        gap: 1rem !important;
+    }
+
+    .my-tickets-page-title,
+    .my-tickets-page-event-title,
+    .my-tickets-page-ticket-header h4 {
         color: black !important;
+    }
+
+    .my-tickets-page-event-date {
+        background: #f0f0f0 !important;
+        color: black !important;
+    }
+
+    .my-tickets-page-status-badge {
+        border: 1px solid black !important;
+        background: #f0f0f0 !important;
+        color: black !important;
+    }
+
+    .my-tickets-page-card-footer {
+        border-top: 1px solid black !important;
+    }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .my-tickets-page-ticket-card,
+    .my-tickets-page-tab,
+    .my-tickets-page-pay-button,
+    .my-tickets-page-view-button,
+    .my-tickets-page-browse-button,
+    .my-tickets-page-event-image img,
+    .my-tickets-page-image-overlay {
+        transition: none !important;
+        animation: none !important;
+    }
+
+    .my-tickets-page-ticket-card:hover,
+    .my-tickets-page-tab:hover,
+    .my-tickets-page-pay-button:hover,
+    .my-tickets-page-view-button:hover,
+    .my-tickets-page-browse-button:hover {
+        transform: none !important;
     }
 }

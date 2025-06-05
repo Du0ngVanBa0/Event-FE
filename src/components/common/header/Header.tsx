@@ -1,22 +1,43 @@
 import { Navbar, Container, Nav, Button, Dropdown, Image, Spinner } from 'react-bootstrap';
-import { Link } from 'react-router-dom';
+import { Link, useLocation } from 'react-router-dom';
+import { useState, useEffect } from 'react';
 import 'bootstrap/dist/css/bootstrap.min.css';
 import './Header.css';
-import logo from '../../../assets/react.svg';
 import { useAuth } from '../../../hooks/useAuth';
 import { getDefaulImagetUrl, getImageUrl } from '../../../utils/helper';
 
 const Header = () => {
   const { user, isAuthenticated, isLoading, logout } = useAuth();
+  const location = useLocation();
+  const [isScrolled, setIsScrolled] = useState(false);
+  const [showMobileMenu, setShowMobileMenu] = useState(false);
+
+  useEffect(() => {
+    const handleScroll = () => {
+      setIsScrolled(window.scrollY > 10);
+    };
+
+    window.addEventListener('scroll', handleScroll);
+    return () => window.removeEventListener('scroll', handleScroll);
+  }, []);
 
   const handleLogout = () => {
     logout();
+    setShowMobileMenu(false);
+  };
+
+  const isActiveRoute = (path: string) => {
+    return location.pathname === path;
+  };
+
+  const handleNavClick = () => {
+    setShowMobileMenu(false);
   };
 
   const renderAuthSection = () => {
     if (isLoading) {
       return (
-        <div className="auth-loading">
+        <div className="header-auth-loading">
           <Spinner animation="border" variant="primary" size="sm" />
         </div>
       );
@@ -24,67 +45,166 @@ const Header = () => {
 
     if (isAuthenticated && user) {
       return (
-        <Dropdown align="end">
-          <Dropdown.Toggle as="div" id="dropdown-user">
-            <Image
-              src={user.avatar ? getImageUrl(user.avatar) : getDefaulImagetUrl()}
-              alt="Avatar"
-              className="avatar-circle"
-            />
+        <Dropdown align="end" className="header-user-dropdown">
+          <Dropdown.Toggle as="div" className="header-user-toggle" id="dropdown-user">
+            <div className="header-user-info">
+              <Image
+                src={user.avatar ? getImageUrl(user.avatar) : getDefaulImagetUrl()}
+                alt="Avatar"
+                className="header-avatar-circle"
+              />
+              <div className="header-user-details">
+                <span className="header-user-name">{user.email}</span>
+                <span className="header-user-role">{user.role}</span>
+              </div>
+              <i className="fas fa-chevron-down header-dropdown-arrow"></i>
+            </div>
+            <div className="header-user-glow"></div>
           </Dropdown.Toggle>
 
-          <Dropdown.Menu className="dropdown-menu-dark">
-            <Dropdown.Item as={Link} to="/profile/settings">Thông tin cá nhân</Dropdown.Item>
-            <Dropdown.Item as={Link} to="/my-tickets">Vé của tôi</Dropdown.Item>
-            <Dropdown.Item as={Link} to="/my-events">Sự kiện của tôi</Dropdown.Item>
-            <Dropdown.Item as={Link} to="/settings">Cài đặt</Dropdown.Item>
+          <Dropdown.Menu className="header-dropdown-menu">
+            <div className="header-dropdown-header">
+              <div className="header-dropdown-user-info">
+                <Image
+                  src={user.avatar ? getImageUrl(user.avatar) : getDefaulImagetUrl()}
+                  alt="Avatar"
+                  className="header-dropdown-avatar"
+                />
+                <div>
+                  <div className="header-dropdown-name">{user.email}</div>
+                  <div className="header-dropdown-role">{user.role}</div>
+                </div>
+              </div>
+            </div>
             <Dropdown.Divider />
-            <Dropdown.Item onClick={handleLogout}>Đăng xuất</Dropdown.Item>
+            <Dropdown.Item as={Link} to="/profile/settings" className="header-dropdown-item">
+              <i className="fas fa-user"></i>
+              <span>Thông tin cá nhân</span>
+            </Dropdown.Item>
+            <Dropdown.Item as={Link} to="/my-tickets" className="header-dropdown-item">
+              <i className="fas fa-ticket-alt"></i>
+              <span>Vé của tôi</span>
+            </Dropdown.Item>
+            <Dropdown.Item as={Link} to="/my-events" className="header-dropdown-item">
+              <i className="fas fa-calendar-alt"></i>
+              <span>Sự kiện của tôi</span>
+            </Dropdown.Item>
+            <Dropdown.Item as={Link} to="/settings" className="header-dropdown-item">
+              <i className="fas fa-cog"></i>
+              <span>Cài đặt</span>
+            </Dropdown.Item>
+            <Dropdown.Divider />
+            <Dropdown.Item onClick={handleLogout} className="header-dropdown-item header-logout-item">
+              <i className="fas fa-sign-out-alt"></i>
+              <span>Đăng xuất</span>
+            </Dropdown.Item>
           </Dropdown.Menu>
         </Dropdown>
       );
     }
 
     return (
-      <div className="auth-buttons">
-        <Link to="/login">
-          <Button variant="outline-primary" className="me-2">Đăng nhập</Button>
+      <div className="header-auth-buttons">
+        <Link to="/login" className="header-auth-link">
+          <Button className="header-button-login">
+            <i className="fas fa-sign-in-alt"></i>
+            <span>Đăng nhập</span>
+            <div className="header-button-ripple"></div>
+          </Button>
         </Link>
-        <Link to="/register">
-          <Button variant="primary">Đăng ký</Button>
+        <Link to="/register" className="header-auth-link">
+          <Button className="header-button-register">
+            <i className="fas fa-user-plus"></i>
+            <span>Đăng ký</span>
+            <div className="header-button-shine"></div>
+          </Button>
         </Link>
       </div>
     );
   };
 
   return (
-    <Navbar expand="lg" className="header-navbar" fixed="top">
-      <Container>
-        <Navbar.Brand as={Link} to="/">
-          <img
-            src={logo}
-            alt="Logo"
-            className="logo-image"
-            width="40"
-            height="40"
-          />
+    <Navbar 
+      expand="lg" 
+      className={`header-navbar ${isScrolled ? 'header-navbar-scrolled' : ''}`} 
+      fixed="top"
+      expanded={showMobileMenu}
+    >
+      <Container className="header-container">
+        <Navbar.Brand as={Link} to="/" className="header-brand" onClick={handleNavClick}>
+          <div className="header-logo-container">
+            <div className="header-logo-text">
+              <span className="header-logo-main">Universe</span>
+              <span className="header-logo-accent">Event</span>
+            </div>
+            <div className="header-logo-glow"></div>
+          </div>
         </Navbar.Brand>
-        <Navbar.Toggle aria-controls="basic-navbar-nav" />
-        <Navbar.Collapse id="basic-navbar-nav">
-          <Nav className="me-auto">
-            <Nav.Link as={Link} to="/">Trang chủ</Nav.Link>
-            <Nav.Link as={Link} to="/events">Sự kiện</Nav.Link>
+
+        <Navbar.Toggle 
+          aria-controls="header-navbar-nav" 
+          className="header-mobile-toggle"
+          onClick={() => setShowMobileMenu(!showMobileMenu)}
+        >
+          <span className="header-hamburger-line"></span>
+          <span className="header-hamburger-line"></span>
+          <span className="header-hamburger-line"></span>
+        </Navbar.Toggle>
+
+        <Navbar.Collapse id="header-navbar-nav" className="header-navbar-collapse">
+          <Nav className="header-nav-menu me-auto">
+            <Nav.Link 
+              as={Link} 
+              to="/" 
+              className={`header-nav-link ${isActiveRoute('/') ? 'header-nav-active' : ''}`}
+              onClick={handleNavClick}
+            >
+              <i className="fas fa-home"></i>
+              <span>Trang chủ</span>
+              <div className="header-nav-underline"></div>
+            </Nav.Link>
+            
+            <Nav.Link 
+              as={Link} 
+              to="/events" 
+              className={`header-nav-link ${isActiveRoute('/events') ? 'header-nav-active' : ''}`}
+              onClick={handleNavClick}
+            >
+              <i className="fas fa-calendar-alt"></i>
+              <span>Sự kiện</span>
+              <div className="header-nav-underline"></div>
+            </Nav.Link>
+
             {isAuthenticated && (
               <>
-                <Nav.Link as={Link} to="/organizer/create-event">Tạo Sự kiện</Nav.Link>
-                {user?.role === 'ADMIN' ? (
-                  <Nav.Link as={Link} to="/admin/dashboard">Quản trị</Nav.Link>
-                ) : null}
+                <Nav.Link 
+                  as={Link} 
+                  to="/organizer/create-event" 
+                  className={`header-nav-link ${isActiveRoute('/organizer/create-event') ? 'header-nav-active' : ''}`}
+                  onClick={handleNavClick}
+                >
+                  <i className="fas fa-plus-circle"></i>
+                  <span>Tạo Sự kiện</span>
+                  <div className="header-nav-underline"></div>
+                </Nav.Link>
+                
+                {user?.role === 'ADMIN' && (
+                  <Nav.Link 
+                    as={Link} 
+                    to="/admin/dashboard" 
+                    className={`header-nav-link ${isActiveRoute('/admin/dashboard') ? 'header-nav-active' : ''}`}
+                    onClick={handleNavClick}
+                  >
+                    <i className="fas fa-shield-alt"></i>
+                    <span>Quản trị</span>
+                    <div className="header-nav-underline"></div>
+                  </Nav.Link>
+                )}
               </>
             )}
           </Nav>
 
-          <div className="d-flex align-items-center">
+          <div className="header-auth-section">
             {renderAuthSection()}
           </div>
         </Navbar.Collapse>
