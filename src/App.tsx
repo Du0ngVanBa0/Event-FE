@@ -24,8 +24,6 @@ import BookingDetail from "./components/pages/booking-detail/BookingDetail";
 import AdminBookingTickets from "./components/pages/manage-ticket/AdminBookingTickets";
 import TicketScanner from "./components/pages/ticket-scanner/TicketScanner";
 import AdminUserManagement from "./components/pages/admin/users/AdminUserManagement";
-import InteractiveZoneDesigner from "./components/common/zone-design/InteractiveZoneDesigner";
-import ZoneListViewer from "./components/common/zone-design/ZoneListViewer";
 
 function App() {
   return (
@@ -34,8 +32,6 @@ function App() {
         <Routes>
           <Route path="/login" element={<Login />} />
           <Route path="/register" element={<Register />} />
-          <Route path="/designer" element={<InteractiveZoneDesigner/>} />
-          <Route path="/viewer" element={<ZoneListViewer eventId={""}/>} />
 
           <Route path="/" element={<MainLayout />}>
             <Route path="/admin" element={<AdminRoute><Dashboard /></AdminRoute>}>
@@ -80,7 +76,7 @@ function App() {
               }
             />
             <Route
-              path="/organizer/scan-event/:id"
+              path="/organizer/scan-event"
               element={
                 <ProtectedRoute>
                   <TicketScanner />

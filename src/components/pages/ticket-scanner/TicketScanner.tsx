@@ -100,7 +100,7 @@ const EventTicketScanner = () => {
   const handleSearch = async (overrideCode?: string) => {
     const code = overrideCode ?? ticketCode;
     if (!code.trim()) {
-      setError("Vui lòng nhập mã đặt vé");
+      setError("Vui lòng nhập mã vé");
       return;
     }
 
@@ -305,11 +305,11 @@ const EventTicketScanner = () => {
           <div className="manual-input">
             <div className="input-card">
               <div className="input-content">
-                <h4>Nhập mã đặt vé</h4>
+                <h4>Nhập mã vé</h4>
                 <div className="input-field">
                   <input
                     type="text"
-                    placeholder="Nhập mã đặt vé (VD: TIX1234567)"
+                    placeholder="Nhập mã vé (VD: 1234-12345-123443)"
                     value={ticketCode}
                     onChange={handleInputChange}
                     className="ticket-input"
