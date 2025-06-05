@@ -2,22 +2,24 @@
     min-height: calc(100vh - var(--header-height));
     padding: 2rem;
     color: var(--color-text);
+    background: var(--color-background);
 }
 
 .create-event-wrapper {
-    background: linear-gradient(to bottom, #1a1a1a, #000000);
+    background: white;
     padding: 2rem;
     border-radius: 12px;
-    box-shadow: 0 2px 10px rgba(255, 255, 255, 0.1);
+    box-shadow: var(--shadow-lg);
     margin: 0 auto;
     max-width: 1200px;
     position: relative;
+    border: 1px solid var(--color-border);
 }
 
 .universe-tabs-container {
     position: sticky;
     top: 0;
-    background: inherit;
+    background: white;
     z-index: 10;
     border-top-left-radius: 12px;
     border-top-right-radius: 12px;
@@ -36,7 +38,7 @@
 }
 
 .tab-content::-webkit-scrollbar-track {
-    background: rgba(255, 255, 255, 0.1);
+    background: var(--color-border-light);
     border-radius: 4px;
 }
 
@@ -50,13 +52,13 @@
 }
 
 .universe-tabs {
-    border-bottom: 1px solid var(--color-primary);
+    border-bottom: 1px solid var(--color-border);
 }
 
 .universe-tabs .nav-link {
-    color: rgba(255, 255, 255, 0.7);
+    color: var(--color-text-light);
     border: 1px solid transparent;
-    background: rgba(0, 0, 0, 0.2);
+    background: var(--color-background);
     margin-right: 2px;
     border-radius: 8px 8px 0 0;
     transition: var(--transition-default);
@@ -64,45 +66,61 @@
 
 .universe-tabs .nav-link:hover {
     color: var(--color-primary);
-    background: rgba(167, 135, 255, 0.1);
-    border-color: rgba(167, 135, 255, 0.3);
+    background: rgba(99, 102, 241, 0.1);
+    border-color: var(--color-border);
 }
 
 .universe-tabs .nav-link.active {
     color: var(--color-primary);
-    background: rgba(167, 135, 255, 0.2);
-    border-color: var(--color-primary);
-    box-shadow: var(--glow-effect);
+    background: white;
+    border-color: var(--color-border);
+    border-bottom-color: white;
+    box-shadow: var(--shadow-sm);
 }
 
 .universe-tabs .nav-link.has-error {
-    border-color: #ff5757;
-    color: #ff5757;
+    border-color: #ef4444;
+    color: #ef4444;
 }
 
 .validation-error {
     margin-top: 0.25rem;
     font-size: 0.875rem;
+    color: #dc2626;
 }
 
 .form-control,
 .form-select {
-    background-color: rgba(255, 255, 255, 0.1) !important;
-    border: 1px solid #333 !important;
-    color: white !important;
+    background-color: white !important;
+    border: 1px solid var(--color-border) !important;
+    color: var(--color-text) !important;
+    transition: var(--transition-default);
 }
 
 .form-control:focus,
 .form-select:focus {
-    background-color: rgba(255, 255, 255, 0.15) !important;
+    background-color: white !important;
     border-color: var(--color-primary) !important;
-    box-shadow: 0 0 0 0.2rem rgba(167, 135, 255, 0.25) !important;
+    box-shadow: 0 0 0 0.2rem rgba(99, 102, 241, 0.25) !important;
+    color: var(--color-text) !important;
+}
+
+.form-label {
+    color: var(--color-text) !important;
+    font-weight: 500;
 }
 
 .create-event-image-upload-container {
-    border: 2px dashed var(--color-primary);
+    border: 2px dashed var(--color-border);
     border-radius: 8px;
     overflow: hidden;
+    background: var(--color-background);
+    transition: var(--transition-default);
+}
+
+.create-event-image-upload-container:hover {
+    border-color: var(--color-primary);
+    background: rgba(99, 102, 241, 0.05);
 }
 
 .create-event-image-upload-label {
@@ -136,53 +154,56 @@
 }
 
 .ck-editor__editable {
-    background-color: rgba(255, 255, 255, 0.1) !important;
-    color: white !important;
+    background-color: white !important;
+    color: var(--color-text) !important;
     min-height: 200px;
+    border: 1px solid var(--color-border) !important;
 }
 
 .ck.ck-editor__main>.ck-editor__editable {
-    background: rgba(255, 255, 255, 0.1) !important;
-    border-color: #333 !important;
+    background: white !important;
+    border-color: var(--color-border) !important;
 }
 
 .ck.ck-toolbar {
-    background: rgba(255, 255, 255, 0.05) !important;
-    border-color: #333 !important;
+    background: var(--color-background) !important;
+    border-color: var(--color-border) !important;
 }
 
 .ck.ck-button,
 .ck.ck-button.ck-on {
-    color: white !important;
+    color: var(--color-text) !important;
     background: transparent !important;
 }
 
 .ck.ck-button:hover,
 .ck.ck-button.ck-on:hover {
     background: var(--color-primary) !important;
-    color: black !important;
+    color: white !important;
 }
 
 .ck.ck-toolbar .ck.ck-toolbar__separator {
-    background: rgba(255, 255, 255, 0.2);
+    background: var(--color-border);
 }
 
 .ck.ck-dropdown .ck-dropdown__panel {
-    background: #1a1a1a !important;
-    border-color: #333 !important;
+    background: white !important;
+    border-color: var(--color-border) !important;
 }
 
 .ck.ck-dropdown .ck-dropdown__panel * {
-    color: white !important;
-    background: #1a1a1a !important;
+    color: var(--color-text) !important;
+    background: white !important;
 }
 
 .ck.ck-dropdown .ck-dropdown__panel .ck-list__item:hover {
     background: var(--color-primary) !important;
+    color: white !important;
 }
 
 .ck.ck-dropdown .ck-dropdown__panel .ck-button.ck-on {
     background: var(--color-primary) !important;
+    color: white !important;
 }
 
 .universe-tabs .nav-link.disabled-tab {
@@ -192,14 +213,14 @@
 }
 
 .form-select {
-    background-color: rgba(255, 255, 255, 0.1) !important;
-    border: 1px solid #333 !important;
-    color: white !important;
+    background-color: white !important;
+    border: 1px solid var(--color-border) !important;
+    color: var(--color-text) !important;
 }
 
 .form-select option {
-    background-color: #1a1a1a !important;
-    color: white !important;
+    background-color: white !important;
+    color: var(--color-text) !important;
 }
 
 .ticket-types-grid {
@@ -210,17 +231,18 @@
 }
 
 .ticket-type-card {
-  background: rgba(255, 255, 255, 0.05);
-  border: 1px solid rgba(167, 135, 255, 0.3);
+  background: white;
+  border: 1px solid var(--color-border);
   border-radius: 12px;
   padding: 1rem;
   transition: var(--transition-default);
   cursor: pointer;
+  box-shadow: var(--shadow-sm);
 }
 
 .ticket-type-card:hover {
   transform: translateY(-2px);
-  box-shadow: 0 8px 25px rgba(167, 135, 255, 0.2);
+  box-shadow: var(--shadow-md);
   border-color: var(--color-primary);
 }
 
@@ -230,7 +252,7 @@
   align-items: center;
   margin-bottom: 1rem;
   padding-bottom: 0.5rem;
-  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+  border-bottom: 1px solid var(--color-border-light);
 }
 
 .ticket-type-name {
@@ -257,7 +279,7 @@
 }
 
 .detail-row .label {
-  color: rgba(255, 255, 255, 0.7);
+  color: var(--color-text-light);
   font-size: 0.9rem;
 }
 
@@ -272,20 +294,20 @@
 }
 
 .zone-badge {
-  background: rgba(0, 247, 255, 0.2);
-  color: var(--color-secondary);
+  background: rgba(99, 102, 241, 0.1);
+  color: var(--color-primary);
   padding: 0.25rem 0.5rem;
   border-radius: 4px;
   font-size: 0.8rem;
-  border: 1px solid var(--color-secondary);
+  border: 1px solid var(--color-primary);
 }
 
 .selected-zone-info {
   margin-top: 1rem;
   padding: 0.75rem;
-  background: rgba(0, 247, 255, 0.1);
+  background: rgba(99, 102, 241, 0.1);
   border-radius: 6px;
-  border: 1px solid rgba(0, 247, 255, 0.3);
+  border: 1px solid var(--color-primary);
 }
 
 .zone-preview {
@@ -293,30 +315,33 @@
 }
 
 .universe-modal .modal-content {
-  background: var(--color-background-gradient);
-  border: 1px solid rgba(167, 135, 255, 0.3);
+  background: white;
+  border: 1px solid var(--color-border);
   border-radius: 12px;
+  color: var(--color-text);
+  box-shadow: var(--shadow-lg);
 }
 
 .universe-modal-header {
-  background: rgba(167, 135, 255, 0.1);
-  border-bottom: 1px solid rgba(167, 135, 255, 0.3);
+  background: var(--color-background);
+  border-bottom: 1px solid var(--color-border);
   color: var(--color-primary);
 }
 
 .universe-modal-body {
-  background: var(--color-background);
+  background: white;
   color: var(--color-text);
 }
 
 .universe-modal-footer {
-  background: rgba(167, 135, 255, 0.1);
-  border-top: 1px solid rgba(167, 135, 255, 0.3);
+  background: var(--color-background);
+  border-top: 1px solid var(--color-border);
 }
 
 .validation-error {
     margin-top: 0.25rem;
     font-size: 0.875rem;
+    color: #dc2626;
 }
 
 .validation-error::before {
@@ -327,14 +352,17 @@
 }
 
 .universe-tabs .nav-link.has-error {
-    color: var(--bs-danger);
+    color: #dc2626;
 }
 
 .universe-tabs .nav-link.has-error::after {
-    background: var(--bs-danger);
+    background: #dc2626;
 }
 
 .alert-danger {
+    background: rgba(239, 68, 68, 0.1);
+    border-color: #ef4444;
+    color: #dc2626;
     animation: fadeOut 3s forwards;
 }
 
@@ -345,8 +373,8 @@
 }
 
 .zone-summary-item {
-  background: rgba(255, 255, 255, 0.05);
-  border: 1px solid rgba(167, 135, 255, 0.2);
+  background: var(--color-background);
+  border: 1px solid var(--color-border);
   border-radius: 6px;
   padding: 0.75rem;
   margin-bottom: 0.5rem;
@@ -364,6 +392,78 @@
 .stage-container {
   max-height: 500px;
   overflow: auto;
+}
+
+/* Button styling */
+.btn {
+    transition: var(--transition-default);
+    font-weight: 500;
+}
+
+.btn-primary {
+    background: var(--color-primary);
+    border-color: var(--color-primary);
+    color: white;
+}
+
+.btn-primary:hover {
+    background: var(--color-secondary);
+    border-color: var(--color-secondary);
+    box-shadow: var(--glow-effect);
+}
+
+.btn-secondary {
+    background: white;
+    border-color: var(--color-text-light);
+    color: var(--color-text-light);
+}
+
+.btn-secondary:hover {
+    background: var(--color-text-light);
+    color: white;
+}
+
+.btn-outline-primary {
+    background: white;
+    border-color: var(--color-primary);
+    color: var(--color-primary);
+}
+
+.btn-outline-primary:hover {
+    background: var(--color-primary);
+    color: white;
+}
+
+.btn-outline-danger {
+    background: white;
+    border-color: #ef4444;
+    color: #ef4444;
+}
+
+.btn-outline-danger:hover {
+    background: #ef4444;
+    color: white;
+}
+
+/* Print styles */
+@media print {
+    .create-event-container,
+    .create-event-wrapper {
+        background: white !important;
+        color: black !important;
+        box-shadow: none !important;
+        border: 1px solid #000 !important;
+    }
+    
+    .btn,
+    .universe-tabs {
+        display: none !important;
+    }
+    
+    * {
+        background: white !important;
+        color: black !important;
+    }
 }
 
 /* Responsive */

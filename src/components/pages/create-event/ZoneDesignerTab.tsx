@@ -1,26 +1,35 @@
-import React, { useState, useRef, useCallback } from 'react';
+import React, { useState, useRef, useCallback, useEffect } from 'react';
 import { Stage, Layer, Rect, Circle, RegularPolygon, Line, Text, Transformer } from 'react-konva';
 import Konva from 'konva';
-import { Container, Row, Col, Card, Form, Button, ButtonGroup, Alert } from 'react-bootstrap';
-import { ZoneCanvas, ZoneDesignData, ZoneShape } from '../../../types/ZoneTypes';
+import { Container, Row, Col, Card, Form, Button, ButtonGroup, Alert, Badge } from 'react-bootstrap';
+import { ZoneCanvas, ZoneShape } from '../../../types/ZoneTypes';
 import '../../../components/common/zone-design/styles/InteractiveZoneDesigner.css';
-import { KhuVucDTO } from '../../../types/EventTypes';
+import { KhuVucEventRequest, KhuVucTemplate } from '../../../types/EventTypes';
+import DefaultZoneService from '../../../api/DefaultZoneService';
 
 interface ZoneDesignerTabProps {
-  zones: KhuVucDTO[];
-  onZonesChange: (zones: KhuVucDTO[]) => void;
-  isEditMode?: boolean; // Add edit mode flag
+  zones: KhuVucEventRequest[];
+  onZonesChange: (zones: KhuVucEventRequest[]) => void;
+  onTemplatesLoad?: (templates: KhuVucTemplate[]) => void;
+  isEditMode?: boolean;
+}
+
+interface ZoneTemplate extends ZoneShape {
+  templateId: string;
+  isSelected: boolean;
+  tenGoc: string;
 }
 
 const ZoneDesignerTab: React.FC<ZoneDesignerTabProps> = ({
   zones,
   onZonesChange,
+  onTemplatesLoad,
   isEditMode = false
 }) => {
-  // States for canvas design
-  const [canvasZones, setCanvasZones] = useState<ZoneShape[]>([]);
+  const [zoneTemplates, setZoneTemplates] = useState<ZoneTemplate[]>([]);
   const [selectedId, setSelectedId] = useState<string | null>(null);
-  const [selectedTool, setSelectedTool] = useState<'select' | 'rectangle' | 'square' | 'circle' | 'triangle'>('select');
+  const [mockTemplates, setMockTemplates] = useState<KhuVucTemplate[]>([]);
+  const [notification, setNotification] = useState<{ message: string; type: string } | null>(null);
   const [canvas] = useState<ZoneCanvas>({
     width: 800,
     height: 600,
@@ -31,202 +40,191 @@ const ZoneDesignerTab: React.FC<ZoneDesignerTabProps> = ({
     snapToGrid: true,
     gridSize: 20
   });
-  const [isDrawing, setIsDrawing] = useState(false);
-  const [newZoneStart, setNewZoneStart] = useState<{ x: number; y: number } | null>(null);
+  const [isLoading, setIsLoading] = useState(true);
 
-  // Refs
   const stageRef = useRef<Konva.Stage>(null);
   const layerRef = useRef<Konva.Layer>(null);
   const transformerRef = useRef<Konva.Transformer>(null);
+  const fetchData = async () => {
+    try {
+      setIsLoading(true);
+      const data = await DefaultZoneService.getAll();
+      setMockTemplates(data);
+      console.log('Fetched templates:', data);
+      // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    } catch (error) {
+      setNotification({
+        message: 'Không thể tải danh sách mẫu khu vực. Vui lòng thử lại sau.',
+        type: 'danger'
+      });
+      console.error('Error fetching templates:', error);
+    } finally {
+      setIsLoading(false);
+    }
+  }
 
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-  const universeColors = [
-    { fill: "rgba(167, 135, 255, 0.3)", stroke: "#a787ff" },
-    { fill: "rgba(0, 247, 255, 0.3)", stroke: "#00f7ff" },
-    { fill: "rgba(22, 169, 34, 0.3)", stroke: "#16a922" },
-    { fill: "rgba(255, 87, 87, 0.3)", stroke: "#ff5757" },
-    { fill: "rgba(255, 193, 7, 0.3)", stroke: "#ffc107" },
-    { fill: "rgba(255, 105, 180, 0.3)", stroke: "#ff69b4" },
-    { fill: "rgba(138, 43, 226, 0.3)", stroke: "#8a2be2" },
-    { fill: "rgba(0, 255, 127, 0.3)", stroke: "#00ff7f" }
-  ];
+  useEffect(() => {
+    fetchData();
+  }, []);
 
-  // Generate unique ID for zones
-  const generateZoneId = () => `zone_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
 
-  // Convert canvas zones to KhuVuc DTOs
-  const convertToKhuVucDTOs = useCallback(() => {
-    const khuVucDTOs: KhuVucDTO[] = canvasZones.map((zone) => {
-      const layoutData: ZoneDesignData = {
-        eventId: 'temp',
-        canvasSettings: canvas,
-        zones: [zone],
-        version: 1,
-        lastModified: new Date()
-      };
+  useEffect(() => {
+    let timeoutId: NodeJS.Timeout;
+    if (notification) {
+      timeoutId = setTimeout(() => {
+        setNotification(null);
+      }, 3000);
+    }
+    return () => {
+      if (timeoutId) {
+        clearTimeout(timeoutId);
+      }
+    };
+  }, [notification]);
+
+  useEffect(() => {
+    setIsLoading(true);
+    console.log('Mock templates:', mockTemplates);
+    onTemplatesLoad?.(mockTemplates);
+
+    const convertedTemplates: ZoneTemplate[] = mockTemplates.map((template) => {
+      const existingZone = zones.find(z => z.maKhuVucMau === template.maKhuVucMau);
+      const isSelected = !!existingZone;
 
       return {
-        tempId: zone.id,
-        tenKhuVuc: zone.name,
-        moTa: `Khu vực ${zone.type} với diện tích ${Math.round(zone.size.width * zone.size.height)} pixel`,
-        viTri: `Vị trí (${Math.round(zone.position.x)}, ${Math.round(zone.position.y)})`,
-        layoutData: JSON.stringify(layoutData)
+        id: `template_${template.maKhuVucMau}`,
+        templateId: template.maKhuVucMau,
+        type: template.hinhDang.toLowerCase() as any,
+        name: existingZone?.tenTuyChon || template.tenKhuVuc,
+        tenGoc: template.tenKhuVuc,
+        position: {
+          x: existingZone?.toaDoX || template.toaDoXMacDinh || 100,
+          y: existingZone?.toaDoY || template.toaDoYMacDinh || 100
+        },
+        size: {
+          width: existingZone?.chieuRong || template.chieuRongMacDinh || 200,
+          height: existingZone?.chieuCao || template.chieuCaoMacDinh || 150
+        },
+        rotation: 0,
+        color: isSelected
+          ? `${existingZone?.mauSacTuyChon || template.mauSac}80`
+          : `${template.mauSac}40`,
+        borderColor: existingZone?.mauSacTuyChon || template.mauSac,
+        borderWidth: isSelected ? 3 : 2,
+        opacity: isSelected ? 0.8 : 0.6,
+        visible: true,
+        locked: false,
+        zIndex: template.thuTuHienThi,
+        labelVisible: true,
+        labelPosition: 'center',
+        properties: template.hinhDang === 'CIRCLE' ? {
+          radius: Math.max(template.chieuRongMacDinh || 200, template.chieuCaoMacDinh || 150) / 2
+        } : {},
+        isSelected
       };
     });
 
-    onZonesChange(khuVucDTOs);
-  }, [canvasZones, canvas, onZonesChange]);
+    setZoneTemplates(convertedTemplates);
+    setIsLoading(false);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [mockTemplates]);
 
-  // Update zones when canvas zones change
-  React.useEffect(() => {
-    convertToKhuVucDTOs();
-  }, [convertToKhuVucDTOs]);
 
-  // Update transformer when selection changes
-  React.useEffect(() => {
-    if (selectedId && transformerRef.current && layerRef.current) {
-      const selectedNode = layerRef.current.findOne(`#${selectedId}`);
-      if (selectedNode) {
-        transformerRef.current.nodes([selectedNode]);
-        transformerRef.current.getLayer()?.batchDraw();
-      }
-    } else if (transformerRef.current) {
-      transformerRef.current.nodes([]);
-    }
-  }, [selectedId]);
-
-  // Load existing zones when in edit mode
-  React.useEffect(() => {
-    if (isEditMode && zones.length > 0 && canvasZones.length === 0) {
-      const loadedZones: ZoneShape[] = zones.map((zone, index) => {
-        try {
-          const layoutData: ZoneDesignData = JSON.parse(zone.layoutData);
-          if (layoutData.zones && layoutData.zones.length > 0) {
-            return {
-              ...layoutData.zones[0],
-              id: zone.tempId || `zone_${index}_${Date.now()}`,
-              name: zone.tenKhuVuc
-            };
-          }
-        } catch (error) {
-          console.error('Error parsing zone layout data:', error);
-        }
-        
-        // Fallback: create a basic zone if layout data is invalid
-        const colorIndex = index % universeColors.length;
-        return {
-          id: zone.tempId || `zone_${index}_${Date.now()}`,
-          type: 'rectangle' as const,
-          name: zone.tenKhuVuc,
-          position: { x: 100 + (index * 120), y: 100 + (index * 100) },
-          size: { width: 100, height: 80 },
-          rotation: 0,
-          color: universeColors[colorIndex].fill,
-          borderColor: universeColors[colorIndex].stroke,
-          borderWidth: 2,
-          opacity: 0.8,
-          visible: true,
-          locked: false,
-          zIndex: index,
-          labelVisible: true,
-          labelPosition: 'center',
-          properties: {}
-        };
-      });
-      
-      setCanvasZones(loadedZones);
-    }
-  }, [isEditMode, zones, canvasZones.length, universeColors]);
-
-  // Update transformer when selection changes
-  React.useEffect(() => {
-    if (selectedId && transformerRef.current && layerRef.current) {
-      const selectedNode = layerRef.current.findOne(`#${selectedId}`);
-      if (selectedNode) {
-        transformerRef.current.nodes([selectedNode]);
-        transformerRef.current.getLayer()?.batchDraw();
-      }
-    } else if (transformerRef.current) {
-      transformerRef.current.nodes([]);
-    }
-  }, [selectedId]);
-
-  // Create new zone
-  const createZone = useCallback((type: ZoneShape['type'], x: number, y: number, width: number, height: number) => {
-    const colorIndex = canvasZones.length % universeColors.length;
-    const newZone: ZoneShape = {
-      id: generateZoneId(),
-      type,
-      name: `Khu vực ${canvasZones.length + 1}`,
-      position: { x, y },
-      size: { width: Math.max(width, 50), height: Math.max(height, 50) },
+  useEffect(() => {
+    setIsLoading(true);
+    const convertedTemplates: ZoneTemplate[] = mockTemplates.map((template) => ({
+      id: `template_${template.maKhuVucMau}`,
+      templateId: template.maKhuVucMau,
+      type: template.hinhDang.toLowerCase() as any,
+      name: template.tenKhuVuc,
+      tenGoc: template.tenKhuVuc,
+      position: {
+        x: template.toaDoXMacDinh || 100,
+        y: template.toaDoYMacDinh || 100
+      },
+      size: {
+        width: template.chieuRongMacDinh || 200,
+        height: template.chieuCaoMacDinh || 150
+      },
       rotation: 0,
-      color: universeColors[colorIndex].fill,
-      borderColor: universeColors[colorIndex].stroke,
+      color: `${template.mauSac}40`, // More transparent by default
+      borderColor: template.mauSac,
       borderWidth: 2,
-      opacity: 0.8,
+      opacity: 0.6, // Lower opacity for unselected
       visible: true,
       locked: false,
-      zIndex: canvasZones.length,
+      zIndex: template.thuTuHienThi,
       labelVisible: true,
       labelPosition: 'center',
-      properties: type === 'circle' ? { radius: Math.max(width, height) / 2 } : {}
-    };
+      properties: template.hinhDang === 'CIRCLE' ? {
+        radius: Math.max(template.chieuRongMacDinh || 200, template.chieuCaoMacDinh || 150) / 2
+      } : {},
+      isSelected: false // Default: not selected for use
+    }));
 
-    setCanvasZones(prev => [...prev, newZone]);
-    setSelectedId(newZone.id);
-    return newZone;
-  }, [canvasZones.length, universeColors]);
+    setZoneTemplates(convertedTemplates);
+    setIsLoading(false);
+  }, [mockTemplates]);
 
-  // Handle stage mouse events
-  const handleStageMouseDown = (e: Konva.KonvaEventObject<MouseEvent>) => {
-    const stage = e.target.getStage();
-    if (!stage) return;
+  // Convert zones to KhuVucEventRequest
+  const convertToKhuVucEventRequests = useCallback(() => {
+    const selectedZones = zoneTemplates.filter(zone => zone.isSelected);
 
-    const pos = stage.getPointerPosition();
-    if (!pos) return;
+    const khuVucRequests: KhuVucEventRequest[] = selectedZones.map((zone) => {
+      return {
+        maKhuVucMau: zone.templateId,
+        tenTuyChon: zone.name !== zone.tenGoc ? zone.name : undefined,
+        moTaTuyChon: undefined, // Can be extended later
+        mauSacTuyChon: zone.borderColor !== mockTemplates.find(t => t.maKhuVucMau === zone.templateId)?.mauSac
+          ? zone.borderColor : undefined,
+        toaDoX: Math.round(zone.position.x),
+        toaDoY: Math.round(zone.position.y),
+        chieuRong: Math.round(zone.size.width),
+        chieuCao: Math.round(zone.size.height),
+        viTri: `Vị trí (${Math.round(zone.position.x)}, ${Math.round(zone.position.y)})`
+      };
+    });
 
-    if (e.target === stage) {
-      if (selectedTool !== 'select') {
-        setIsDrawing(true);
-        setNewZoneStart(pos);
-      } else {
-        setSelectedId(null);
+    onZonesChange(khuVucRequests);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [zoneTemplates, onZonesChange]);
+
+  useEffect(() => {
+    convertToKhuVucEventRequests();
+  }, [convertToKhuVucEventRequests]);
+
+  useEffect(() => {
+    if (selectedId && transformerRef.current && layerRef.current) {
+      const selectedNode = layerRef.current.findOne(`#${selectedId}`);
+      if (selectedNode) {
+        transformerRef.current.nodes([selectedNode]);
+        transformerRef.current.getLayer()?.batchDraw();
       }
-      return;
+    } else if (transformerRef.current) {
+      transformerRef.current.nodes([]);
     }
+  }, [selectedId]);
 
-    const clickedId = e.target.id();
-    if (clickedId && canvasZones.find(z => z.id === clickedId)) {
-      setSelectedId(clickedId);
-      setSelectedTool('select');
-    }
+  const toggleZoneSelection = (templateId: string) => {
+    setZoneTemplates(prev =>
+      prev.map(zone => {
+        if (zone.templateId === templateId) {
+          const newIsSelected = !zone.isSelected;
+          return {
+            ...zone,
+            isSelected: newIsSelected,
+            opacity: newIsSelected ? 0.8 : 0.6,
+            color: newIsSelected
+              ? `${zone.borderColor}80`
+              : `${zone.borderColor}40`,
+            borderWidth: newIsSelected ? 3 : 2
+          };
+        }
+        return zone;
+      })
+    );
   };
 
-  const handleStageMouseUp = (e: Konva.KonvaEventObject<MouseEvent>) => {
-    if (!isDrawing || !newZoneStart || selectedTool === 'select') return;
-
-    const stage = e.target.getStage();
-    if (!stage) return;
-
-    const pos = stage.getPointerPosition();
-    if (!pos) return;
-
-    const width = Math.abs(pos.x - newZoneStart.x);
-    const height = Math.abs(pos.y - newZoneStart.y);
-
-    if (width > 10 && height > 10) {
-      const x = Math.min(newZoneStart.x, pos.x);
-      const y = Math.min(newZoneStart.y, pos.y);
-      createZone(selectedTool, x, y, width, height);
-    }
-
-    setIsDrawing(false);
-    setNewZoneStart(null);
-    setSelectedTool('select');
-  };
-
-  // Handle zone transform
   const handleZoneTransform = (id: string) => {
     const node = layerRef.current?.findOne(`#${id}`);
     if (!node) return;
@@ -239,7 +237,7 @@ const ZoneDesignerTab: React.FC<ZoneDesignerTabProps> = ({
       rotation: node.rotation(),
     };
 
-    setCanvasZones(prev =>
+    setZoneTemplates(prev =>
       prev.map(zone => {
         if (zone.id === id) {
           return {
@@ -257,28 +255,64 @@ const ZoneDesignerTab: React.FC<ZoneDesignerTabProps> = ({
     );
   };
 
-  // Update zone property
-  const updateZoneProperty = (id: string, property: keyof ZoneShape, value: any) => {
-    setCanvasZones(prev =>
+  const handleStageMouseDown = (e: Konva.KonvaEventObject<MouseEvent>) => {
+    const stage = e.target.getStage();
+    if (!stage) return;
+
+    if (e.target === stage) {
+      setSelectedId(null);
+      return;
+    }
+
+    const clickedId = e.target.id();
+    if (clickedId && zoneTemplates.find(z => z.id === clickedId)) {
+      setSelectedId(clickedId);
+
+      const zone = zoneTemplates.find(z => z.id === clickedId);
+      if (zone) {
+        toggleZoneSelection(zone.templateId);
+      }
+    }
+  };
+
+  const updateZoneProperty = (id: string, property: keyof ZoneTemplate, value: any) => {
+    setZoneTemplates(prev =>
       prev.map(zone =>
         zone.id === id ? { ...zone, [property]: value } : zone
       )
     );
   };
 
-  // Delete selected zone
-  const deleteSelectedZone = () => {
-    if (selectedId) {
-      setCanvasZones(prev => prev.filter(zone => zone.id !== selectedId));
-      setSelectedId(null);
-    }
+  const selectAllZones = () => {
+    setZoneTemplates(prev =>
+      prev.map(zone => ({
+        ...zone,
+        isSelected: true,
+        opacity: 0.8,
+        color: `${zone.borderColor}80`,
+        borderWidth: 3
+      }))
+    );
   };
 
-  // Get selected zone
-  const selectedZone = canvasZones.find(zone => zone.id === selectedId);
+  const deselectAllZones = () => {
+    setZoneTemplates(prev =>
+      prev.map(zone => ({
+        ...zone,
+        isSelected: false,
+        opacity: 0.6,
+        color: `${zone.borderColor}40`,
+        borderWidth: 2
+      }))
+    );
+  };
+
+  // Get current data
+  const selectedZone = zoneTemplates.find(zone => zone.id === selectedId);
+  const selectedZonesCount = zoneTemplates.filter(zone => zone.isSelected).length;
 
   // Render shape on canvas
-  const renderShape = (zone: ZoneShape) => {
+  const renderShape = (zone: ZoneTemplate) => {
     const commonProps = {
       id: zone.id,
       x: zone.position.x,
@@ -308,13 +342,24 @@ const ZoneDesignerTab: React.FC<ZoneDesignerTabProps> = ({
                 x={zone.position.x + zone.size.width / 2}
                 y={zone.position.y + zone.size.height / 2}
                 text={zone.name}
-                fontSize={14}
+                fontSize={12}
                 fontFamily="Arial"
-                fill="#ffffff"
+                fill="#000000"
                 align="center"
                 verticalAlign="middle"
-                offsetX={zone.name.length * 4}
-                offsetY={7}
+                offsetX={zone.name.length * 3}
+                offsetY={6}
+              />
+            )}
+            {zone.isSelected && (
+              <Text
+                x={zone.position.x + zone.size.width - 15}
+                y={zone.position.y + 5}
+                text="✓"
+                fontSize={14}
+                fontFamily="Arial"
+                fill="#00ff00"
+                fontStyle="bold"
               />
             )}
           </React.Fragment>
@@ -332,13 +377,24 @@ const ZoneDesignerTab: React.FC<ZoneDesignerTabProps> = ({
                 x={zone.position.x}
                 y={zone.position.y}
                 text={zone.name}
-                fontSize={14}
+                fontSize={12}
                 fontFamily="Arial"
-                fill="#ffffff"
+                fill="#000000"
                 align="center"
                 verticalAlign="middle"
-                offsetX={zone.name.length * 4}
-                offsetY={7}
+                offsetX={zone.name.length * 3}
+                offsetY={6}
+              />
+            )}
+            {zone.isSelected && (
+              <Text
+                x={zone.position.x + 25}
+                y={zone.position.y - 25}
+                text="✓"
+                fontSize={14}
+                fontFamily="Arial"
+                fill="#00ff00"
+                fontStyle="bold"
               />
             )}
           </React.Fragment>
@@ -357,13 +413,24 @@ const ZoneDesignerTab: React.FC<ZoneDesignerTabProps> = ({
                 x={zone.position.x}
                 y={zone.position.y}
                 text={zone.name}
-                fontSize={14}
+                fontSize={12}
                 fontFamily="Arial"
-                fill="#ffffff"
+                fill="#000000"
                 align="center"
                 verticalAlign="middle"
-                offsetX={zone.name.length * 4}
-                offsetY={7}
+                offsetX={zone.name.length * 3}
+                offsetY={6}
+              />
+            )}
+            {zone.isSelected && (
+              <Text
+                x={zone.position.x + 25}
+                y={zone.position.y - 25}
+                text="✓"
+                fontSize={14}
+                fontFamily="Arial"
+                fill="#00ff00"
+                fontStyle="bold"
               />
             )}
           </React.Fragment>
@@ -374,79 +441,75 @@ const ZoneDesignerTab: React.FC<ZoneDesignerTabProps> = ({
     }
   };
 
+  if (isLoading) {
+    return (
+      <Container fluid className="d-flex justify-content-center align-items-center" style={{ height: '400px' }}>
+        <div className="text-center">
+          <div className="spinner-border mb-3" role="status">
+            <span className="visually-hidden">Loading...</span>
+          </div>
+          <p>Đang tải dữ liệu khu vực...</p>
+        </div>
+      </Container>
+    );
+  }
+
   return (
     <Container fluid className="interactive-zone-designer">
+      {notification && (
+        <div className="notification-container">
+          <Alert variant={notification.type} className="notification-alert">
+            {notification.message}
+          </Alert>
+        </div>
+      )}
       <Row className="mb-3">
         <Col>
           <Alert variant="info">
             <i className="fas fa-info-circle me-2"></i>
-            {isEditMode ? 
-              'Chỉnh sửa layout khu vực cho sự kiện. Bạn có thể thêm, xóa hoặc sửa đổi các khu vực hiện có.' :
-              'Thiết kế layout khu vực cho sự kiện. Các khu vực này sẽ được sử dụng để tạo loại vé tương ứng.'
+            {isEditMode ?
+              'Chỉnh sửa khu vực cho sự kiện từ các mẫu có sẵn.' :
+              'Chọn các khu vực từ mẫu có sẵn cho sự kiện của bạn. Bạn có thể tùy chỉnh tên và vị trí.'
             }
           </Alert>
         </Col>
       </Row>
 
       <Row className="h-100">
-        {/* Toolbar */}
         <Col md={3} className="zone-designer-sidebar">
           <Card className="universe-card h-100">
-            <Card.Header className="universe-card-header">
-              <h6><i className="fas fa-tools"></i> Công cụ thiết kế</h6>
+            <Card.Header className="universe-card-header d-flex justify-content-between align-items-center">
+              <h6>
+                <i className="fas fa-tools"></i> Quản lý khu vực
+              </h6>
+              <Badge bg="light" text="dark">{selectedZonesCount}/{zoneTemplates.length}</Badge>
             </Card.Header>
             <Card.Body className="p-3">
-              {/* Tool Selection */}
-              <div className="tool-section mb-4">
-                <h6 className="section-title">Công cụ</h6>
-                <ButtonGroup vertical className="w-100">
-                  <Button
-                    variant={selectedTool === 'select' ? 'primary' : 'outline-primary'}
-                    onClick={() => setSelectedTool('select')}
-                    className="universe-btn"
-                    size="sm"
-                  >
-                    <i className="fas fa-mouse-pointer"></i> Chọn
+              {/* Quick Actions */}
+              <div className="template-controls mb-4">
+                <h6 className="section-title">Chọn nhanh</h6>
+                <ButtonGroup className="w-100 mb-2">
+                  <Button variant="outline-success" size="sm" onClick={selectAllZones}>
+                    Chọn tất cả
                   </Button>
-                  <Button
-                    variant={selectedTool === 'rectangle' ? 'primary' : 'outline-primary'}
-                    onClick={() => setSelectedTool('rectangle')}
-                    className="universe-btn"
-                    size="sm"
-                  >
-                    <i className="fas fa-square"></i> Chữ nhật
-                  </Button>
-                  <Button
-                    variant={selectedTool === 'square' ? 'primary' : 'outline-primary'}
-                    onClick={() => setSelectedTool('square')}
-                    className="universe-btn"
-                    size="sm"
-                  >
-                    <i className="fas fa-stop"></i> Vuông
-                  </Button>
-                  <Button
-                    variant={selectedTool === 'circle' ? 'primary' : 'outline-primary'}
-                    onClick={() => setSelectedTool('circle')}
-                    className="universe-btn"
-                    size="sm"
-                  >
-                    <i className="fas fa-circle"></i> Tròn
-                  </Button>
-                  <Button
-                    variant={selectedTool === 'triangle' ? 'primary' : 'outline-primary'}
-                    onClick={() => setSelectedTool('triangle')}
-                    className="universe-btn"
-                    size="sm"
-                  >
-                    <i className="fas fa-play"></i> Tam giác
+                  <Button variant="outline-secondary" size="sm" onClick={deselectAllZones}>
+                    Bỏ chọn tất cả
                   </Button>
                 </ButtonGroup>
+                <small className="text-muted d-block">
+                  Nhấp vào khu vực trên sơ đồ để chọn/bỏ chọn
+                </small>
               </div>
 
               {/* Zone Properties */}
               {selectedZone && (
-                <div className="zone-properties">
-                  <h6 className="section-title">Thuộc tính khu vực</h6>
+                <div className="zone-properties mb-4">
+                  <h6 className="section-title">
+                    Tùy chỉnh: {selectedZone.tenGoc}
+                    {selectedZone.isSelected && (
+                      <Badge bg="success" className="ms-2">Đã chọn</Badge>
+                    )}
+                  </h6>
                   <Form>
                     <Form.Group className="mb-3">
                       <Form.Label>Tên khu vực</Form.Label>
@@ -454,7 +517,23 @@ const ZoneDesignerTab: React.FC<ZoneDesignerTabProps> = ({
                         type="text"
                         value={selectedZone.name}
                         onChange={(e) => updateZoneProperty(selectedId!, 'name', e.target.value)}
-                        className="universe-input"
+                        placeholder={selectedZone.tenGoc}
+                        size="sm"
+                      />
+                    </Form.Group>
+
+                    <Form.Group className="mb-3">
+                      <Form.Label>Màu sắc</Form.Label>
+                      <Form.Control
+                        type="color"
+                        value={selectedZone.borderColor}
+                        onChange={(e) => {
+                          const color = e.target.value;
+                          updateZoneProperty(selectedId!, 'borderColor', color);
+                          updateZoneProperty(selectedId!, 'color',
+                            selectedZone.isSelected ? `${color}80` : `${color}40`
+                          );
+                        }}
                         size="sm"
                       />
                     </Form.Group>
@@ -462,12 +541,11 @@ const ZoneDesignerTab: React.FC<ZoneDesignerTabProps> = ({
                     <Form.Group className="mb-3">
                       <Form.Label>Độ mờ: {(selectedZone.opacity * 100).toFixed(0)}%</Form.Label>
                       <Form.Range
-                        min={0.1}
+                        min={0.3}
                         max={1}
                         step={0.1}
                         value={selectedZone.opacity}
                         onChange={(e) => updateZoneProperty(selectedId!, 'opacity', parseFloat(e.target.value))}
-                        className="universe-range"
                       />
                     </Form.Group>
 
@@ -476,72 +554,94 @@ const ZoneDesignerTab: React.FC<ZoneDesignerTabProps> = ({
                       label="Hiển thị tên"
                       checked={selectedZone.labelVisible}
                       onChange={(e) => updateZoneProperty(selectedId!, 'labelVisible', e.target.checked)}
-                      className="universe-checkbox mb-3"
+                      className="mb-3"
                     />
 
-                    <Button
-                      variant="danger"
-                      onClick={deleteSelectedZone}
-                      className="universe-btn w-100"
-                      size="sm"
-                    >
-                      <i className="fas fa-trash"></i> Xóa
-                    </Button>
+                    <div className="d-grid">
+                      <Button
+                        variant={selectedZone.isSelected ? "warning" : "success"}
+                        onClick={() => toggleZoneSelection(selectedZone.templateId)}
+                        size="sm"
+                      >
+                        <i className={`fas fa-${selectedZone.isSelected ? 'times' : 'check'}`}></i>
+                        {selectedZone.isSelected ? ' Bỏ chọn' : ' Chọn khu vực'}
+                      </Button>
+                    </div>
                   </Form>
                 </div>
               )}
 
-              {/* Zone List */}
-              <div className="zone-list mt-4">
-                <h6 className="section-title">Danh sách khu vực ({canvasZones.length})</h6>
-                <div className="zone-list-container" style={{ maxHeight: '200px' }}>
-                  {canvasZones.map((zone) => (
+              <div className="zone-list">
+                <h6 className="section-title">
+                  Danh sách mẫu khu vực ({zoneTemplates.length})
+                </h6>
+                <div className="zone-list-container" style={{ maxHeight: '300px' }}>
+                  {zoneTemplates.map((zone) => (
                     <div
                       key={zone.id}
-                      className={`zone-list-item ${selectedId === zone.id ? 'selected' : ''}`}
+                      className={`zone-list-item ${selectedId === zone.id ? 'selected' : ''} ${zone.isSelected ? 'zone-enabled' : 'zone-disabled'
+                        }`}
                       onClick={() => setSelectedId(zone.id)}
+                      onDoubleClick={() => toggleZoneSelection(zone.templateId)}
                     >
+                      <div className="zone-checkbox">
+                        <Form.Check
+                          type="checkbox"
+                          checked={zone.isSelected}
+                          onChange={() => toggleZoneSelection(zone.templateId)}
+                          onClick={(e) => e.stopPropagation()}
+                        />
+                      </div>
                       <div className="zone-icon">
-                        <i className={`fas fa-${zone.type === 'rectangle' ? 'square' : zone.type === 'circle' ? 'circle' : zone.type === 'triangle' ? 'play' : 'square'}`}></i>
+                        <i className={`fas fa-${zone.type === 'rectangle' || zone.type === 'square' ? 'square' :
+                          zone.type === 'circle' ? 'circle' :
+                            zone.type === 'triangle' ? 'play' : 'square'
+                          }`}></i>
                       </div>
                       <div className="zone-info">
-                        <div className="zone-name">{zone.name}</div>
+                        <div className="zone-name">
+                          {zone.name}
+                          {zone.name !== zone.tenGoc && (
+                            <small className="text-muted d-block">({zone.tenGoc})</small>
+                          )}
+                        </div>
                         <div className="zone-type">{zone.type}</div>
                       </div>
                       <div className="zone-color" style={{ backgroundColor: zone.borderColor }}></div>
                     </div>
                   ))}
-                  {canvasZones.length === 0 && (
-                    <div className="no-zones">
-                      <i className="fas fa-info-circle"></i>
-                      <span>Chưa có khu vực nào</span>
-                    </div>
-                  )}
                 </div>
+                <small className="text-muted mt-2 d-block">
+                  <i className="fas fa-info-circle"></i> Nhấp đúp để chọn/bỏ chọn
+                </small>
               </div>
             </Card.Body>
           </Card>
         </Col>
 
-        {/* Canvas */}
         <Col md={9} className="zone-canvas-container">
           <Card className="universe-card h-100">
             <Card.Header className="universe-card-header">
-              <h6><i className="fas fa-map"></i> Thiết kế sơ đồ khu vực</h6>
-              <div className="canvas-controls">
-                <span className="selected-tool">
-                  Công cụ: <strong>{selectedTool === 'select' ? 'Chọn' : selectedTool}</strong>
-                </span>
+              <h6><i className="fas fa-map"></i> Sơ đồ khu vực sự kiện</h6>
+              <div className="canvas-info">
+                <Badge bg="success" className="me-2">{selectedZonesCount} đã chọn</Badge>
+                <Badge bg="secondary">{zoneTemplates.length - selectedZonesCount} chưa chọn</Badge>
               </div>
             </Card.Header>
             <Card.Body className="p-2">
+              <div className="canvas-instructions mb-2">
+                <small className="text-muted">
+                  <i className="fas fa-mouse-pointer"></i> Nhấp để chọn khu vực •
+                  <i className="fas fa-hand-pointer ms-2"></i> Nhấp vào khu vực để chọn/bỏ chọn •
+                  <i className="fas fa-arrows-alt ms-2"></i> Kéo thả để di chuyển
+                </small>
+              </div>
               <div className="stage-container" style={{ height: '500px' }}>
                 <Stage
                   width={canvas.width}
                   height={canvas.height}
                   ref={stageRef}
                   onMouseDown={handleStageMouseDown}
-                  onMouseUp={handleStageMouseUp}
                   className="zone-stage"
                 >
                   <Layer ref={layerRef}>
@@ -567,10 +667,8 @@ const ZoneDesignerTab: React.FC<ZoneDesignerTabProps> = ({
                       </>
                     )}
 
-                    {/* Render all zones */}
-                    {canvasZones.filter(zone => zone.visible).map(renderShape)}
+                    {zoneTemplates.filter(zone => zone.visible).map(renderShape)}
 
-                    {/* Transformer for selected zone */}
                     <Transformer
                       ref={transformerRef}
                       boundBoxFunc={(oldBox, newBox) => {
@@ -588,25 +686,30 @@ const ZoneDesignerTab: React.FC<ZoneDesignerTabProps> = ({
         </Col>
       </Row>
 
-      {/* Zone Summary */}
       {zones.length > 0 && (
         <Row className="mt-3">
           <Col>
             <Card className="universe-card">
               <Card.Header className="universe-card-header">
-                <h6><i className="fas fa-list"></i> Tóm tắt khu vực ({zones.length})</h6>
+                <h6><i className="fas fa-list"></i> Tóm tắt khu vực đã chọn ({zones.length})</h6>
               </Card.Header>
               <Card.Body>
                 <Row>
-                  {zones.map((zone, index) => (
-                    <Col key={index} md={6} lg={4} className="mb-2">
-                      <div className="zone-summary-item">
-                        <strong>{zone.tenKhuVuc}</strong>
-                        <br />
-                        <small className="text-muted">{zone.viTri}</small>
-                      </div>
-                    </Col>
-                  ))}
+                  {zones.map((zone, index) => {
+                    const template = mockTemplates.find(t => t.maKhuVucMau === zone.maKhuVucMau);
+                    const displayName = zone.tenTuyChon || template?.tenKhuVuc || 'Unknown';
+                    return (
+                      <Col key={index} md={6} lg={4} className="mb-2">
+                        <div className="zone-summary-item">
+                          <strong>{displayName}</strong>
+                          <br />
+                          <small className="text-muted">
+                            {template?.tenKhuVuc} - {zone.viTri}
+                          </small>
+                        </div>
+                      </Col>
+                    );
+                  })}
                 </Row>
               </Card.Body>
             </Card>

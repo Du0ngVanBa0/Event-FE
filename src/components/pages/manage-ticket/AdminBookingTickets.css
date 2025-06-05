@@ -2,28 +2,35 @@
   min-height: calc(100vh - var(--header-height));
   padding: 2rem;
   color: var(--color-text);
+  background: var(--color-background);
 }
+
 .admin-booking-wrapper {
-  background: linear-gradient(to bottom, #1a1a1a, #000000);
+  background: white;
   padding: 2rem;
   border-radius: 12px;
-  box-shadow: 0 2px 10px rgba(255, 255, 255, 0.1);
+  box-shadow: var(--shadow-lg);
   margin: 0 auto;
   max-width: 1400px;
+  border: 1px solid var(--color-border);
 }
+
 .admin-booking-wrapper .page-title {
   color: var(--color-primary);
   font-size: 1.8rem;
   margin-bottom: 1.5rem;
 }
+
 .admin-search-card {
-  background: rgba(255, 255, 255, 0.05);
+  background: white;
   border: 2px solid transparent;
   border-radius: 8px;
   overflow: hidden;
   transition: var(--transition-default);
   position: relative;
+  box-shadow: var(--shadow-sm);
 }
+
 .admin-search-card::before {
   content: "";
   position: absolute;
@@ -44,35 +51,42 @@
   mask-composite: exclude;
   pointer-events: none;
 }
+
 .admin-search-card .form-label {
   color: var(--color-text);
 }
+
 .admin-search-card .form-control,
 .admin-search-card .form-select {
-  background: rgba(30, 30, 30, 0.7);
-  border: 1px solid rgba(255, 255, 255, 0.1);
+  background: white;
+  border: 1px solid var(--color-border);
   color: var(--color-text);
   transition: var(--transition-default);
 }
+
 .admin-search-card .form-control:focus,
 .admin-search-card .form-select:focus {
-  background: rgba(40, 40, 40, 0.7);
-  border-color: var(--color-secondary);
-  box-shadow: 0 0 5px rgba(0, 247, 255, 0.3);
+  background: white;
+  border-color: var(--color-primary);
+  box-shadow: 0 0 0 0.2rem rgba(99, 102, 241, 0.25);
 }
+
 .admin-search-card .input-group-text {
-  background: rgba(20, 20, 20, 0.7);
-  border-color: rgba(255, 255, 255, 0.1);
+  background: var(--color-background);
+  border-color: var(--color-border);
   color: var(--color-secondary);
 }
+
 .admin-table-card {
-  background: rgba(255, 255, 255, 0.05);
+  background: white;
   border: 2px solid transparent;
   border-radius: 8px;
   overflow: hidden;
   transition: var(--transition-default);
   position: relative;
+  box-shadow: var(--shadow-sm);
 }
+
 .admin-table-card::before {
   content: "";
   position: absolute;
@@ -93,38 +107,48 @@
   mask-composite: exclude;
   pointer-events: none;
 }
+
 .admin-booking-table {
   color: var(--color-text);
+  background: white;
 }
+
 .admin-booking-table thead th {
-  background-color: rgba(0, 0, 0, 0.3);
-  color: var(--color-secondary);
-  border-bottom: 2px solid rgba(0, 247, 255, 0.3);
+  background: linear-gradient(135deg, var(--color-primary), var(--color-secondary));
+  color: white;
+  border-bottom: 2px solid var(--color-primary);
   padding: 1rem;
   font-weight: 500;
 }
+
 .admin-booking-table tbody td {
   padding: 1rem;
-  border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+  border-bottom: 1px solid var(--color-border-light);
   vertical-align: middle;
+  background: white;
 }
+
 .admin-booking-row {
   cursor: pointer;
   transition: var(--transition-default);
 }
+
 .admin-booking-row:hover {
-  background-color: rgba(167, 135, 255, 0.1);
+  background-color: var(--color-background) !important;
 }
+
 .event-cell {
   min-width: 200px;
 }
+
 .event-thumbnail {
   width: 60px;
   height: 40px;
   object-fit: contain;
   border-radius: 4px;
-  border: 1px solid rgba(255, 255, 255, 0.1);
+  border: 1px solid var(--color-border);
 }
+
 .event-title {
   font-weight: 500;
   color: var(--color-primary);
@@ -133,14 +157,17 @@
   overflow: hidden;
   max-width: 200px;
 }
+
 .admin-action-cell {
   width: 100px;
 }
+
 .admin-action-buttons {
   display: flex;
   gap: 0.5rem;
   justify-content: center;
 }
+
 .admin-action-btn {
   width: 32px;
   height: 32px;
@@ -149,96 +176,145 @@
   justify-content: center;
   transition: var(--transition-default);
   border-radius: 4px;
+  border: 1px solid;
+  background: white;
 }
+
+.admin-action-btn.btn-danger {
+  border-color: #ef4444;
+  color: #ef4444;
+}
+
 .admin-action-btn:hover {
   transform: translateY(-2px);
-  box-shadow: var(--glow-effect);
+  box-shadow: var(--shadow-md);
 }
+
+.admin-action-btn.btn-danger:hover {
+  background: #ef4444;
+  color: white;
+}
+
 .admin-filter-btn {
-  background: linear-gradient(
-    135deg,
-    var(--color-primary),
-    var(--color-secondary)
-  );
+  background: var(--color-primary);
   border: none;
-  color: var(--color-text-dark);
+  color: white;
   font-weight: 500;
   transition: var(--transition-default);
 }
+
 .admin-filter-btn:hover {
   transform: translateY(-2px);
   box-shadow: var(--glow-effect);
-  background: linear-gradient(
-    135deg,
-    var(--color-secondary),
-    var(--color-primary)
-  );
-  color: var(--color-text-dark);
+  background: var(--color-secondary);
+  color: white;
 }
+
 .page-size-select {
-  background-color: rgba(30, 30, 30, 0.7);
-  border: 1px solid rgba(255, 255, 255, 0.1);
+  background: white;
+  border: 1px solid var(--color-border);
   color: var(--color-text);
 }
+
 .no-data-message {
   display: flex;
   flex-direction: column;
   align-items: center;
   gap: 1rem;
-  color: rgba(255, 255, 255, 0.5);
+  color: var(--color-text-light);
 }
+
 .no-data-message i {
   font-size: 2.5rem;
   color: var(--color-secondary);
 }
+
 .booking-detail .detail-section-title {
   color: var(--color-secondary);
   font-size: 1.2rem;
   margin-bottom: 1rem;
-  border-bottom: 1px solid rgba(0, 247, 255, 0.3);
+  border-bottom: 1px solid var(--color-primary);
   padding-bottom: 0.5rem;
 }
+
 .booking-detail .detail-item {
   display: flex;
   margin-bottom: 0.5rem;
 }
+
 .booking-detail .detail-label {
   width: 120px;
-  color: rgba(255, 255, 255, 0.7);
+  color: var(--color-text-light);
   flex-shrink: 0;
 }
+
 .booking-detail .detail-value {
   color: var(--color-text);
   font-weight: 500;
 }
+
 .booking-detail .event-detail {
   display: flex;
   gap: 1.5rem;
-  background: rgba(0, 0, 0, 0.3);
+  background: var(--color-background);
   padding: 1rem;
   border-radius: 8px;
+  border: 1px solid var(--color-border-light);
 }
+
 .booking-detail .admin-event-image {
   width: 300px;
   flex-shrink: 0;
 }
+
 .booking-detail .admin-event-image img {
   width: 100%;
   border-radius: 6px;
   object-fit: contain;
   aspect-ratio: 16/9;
+  border: 1px solid var(--color-border);
 }
+
 .booking-detail .event-info {
   flex-grow: 1;
 }
+
 .booking-detail .event-info h5 {
   color: var(--color-primary);
   margin-bottom: 1rem;
 }
+
 .confirm-delete-info {
-  background: rgba(255, 0, 0, 0.05);
-  border: 1px solid rgba(255, 0, 0, 0.2);
+  background: rgba(239, 68, 68, 0.1);
+  border: 1px solid #ef4444;
   border-radius: 8px;
   padding: 1rem;
   margin-top: 1rem;
+}
+
+/* Print styles */
+@media print {
+  .admin-booking-container,
+  .admin-booking-wrapper {
+    background: white !important;
+    color: black !important;
+    box-shadow: none !important;
+    border: 1px solid #000 !important;
+  }
+  
+  .admin-search-card,
+  .admin-table-card {
+    border: 1px solid #000 !important;
+    box-shadow: none !important;
+  }
+  
+  .admin-action-buttons,
+  .admin-filter-btn {
+    display: none !important;
+  }
+  
+  * {
+    background: white !important;
+    color: black !important;
+  }
 }

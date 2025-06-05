@@ -11,8 +11,8 @@ class EventService extends BaseService<SuKien, CreateSuKienDTO> {
     async getPaginatedFiler(page: number, size: number, maDanhMuc?: string, hoatDong?: boolean) {
         const response = await axiosInstance.get<PaginatedResponse<SuKien>>(
             `${this.endpoint}/page-filter?page=${page}&size=${size}&sort=ngayTao,desc`
-                + `${maDanhMuc ? `&maDanhMuc=${maDanhMuc}` : ''}` 
-                + `${hoatDong != null ? `&hoatDong=${hoatDong}` : ''}`
+            + `${maDanhMuc ? `&maDanhMuc=${maDanhMuc}` : ''}`
+            + `${hoatDong != null ? `&hoatDong=${hoatDong}` : ''}`
         );
         return response.data;
     }
@@ -36,7 +36,8 @@ class EventService extends BaseService<SuKien, CreateSuKienDTO> {
         formData.append('maKhuVuc', '1')
 
         Object.entries(data).forEach(([key, value]) => {
-            if (key !== 'anhBia' && key !== 'loaiVes' && key !== 'maDanhMucs' && value !== null) {
+            if (key !== 'anhBia' && key !== 'loaiVes' &&
+                key !== 'khuVucs' && key !== 'maDanhMucs' && value !== null) {
                 formData.append(key, String(value));
             }
         });
@@ -46,6 +47,14 @@ class EventService extends BaseService<SuKien, CreateSuKienDTO> {
         });
 
         formData.append('loaiVes', JSON.stringify(data.loaiVes));
+
+        if (data.khuVucs && data.khuVucs.length > 0) {
+            formData.append('khuVucs', JSON.stringify(data.khuVucs));
+        } else if (data.customKhuVucs && data.customKhuVucs.length > 0) {
+            formData.append('khuVucs', JSON.stringify(data.customKhuVucs));
+        } else {
+            formData.append('khuVucs', JSON.stringify([]));
+        }
 
         if (data.anhBia instanceof File) {
             formData.append('anhBia', data.anhBia);
@@ -107,7 +116,7 @@ class EventService extends BaseService<SuKien, CreateSuKienDTO> {
             size: size.toString(),
             sort: "ngayTao,desc"
         });
-        
+
         if (approved !== undefined) {
             params.append('approved', approved.toString());
         }

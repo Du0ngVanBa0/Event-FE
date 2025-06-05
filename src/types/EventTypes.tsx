@@ -8,8 +8,8 @@ export interface TicketType {
     veConLai?: number;
     soLuongToiThieu: number;
     soLuongToiDa: number;
-    maKhuVuc?: string; // Add zone reference
-    tenKhuVuc?: string; // Add zone name for display
+    maKhuVuc?: string;
+    tenKhuVuc?: string;
 }
 
 export interface DiaDiem {
@@ -28,21 +28,51 @@ export interface DanhMucSuKienRef {
     tenDanhMuc: string;
 }
 
-export interface SuKien {
+export interface KhuVucEventRequest {
+    maKhuVucMau: string;
+    tenTuyChon?: string;
+    moTaTuyChon?: string;
+    mauSacTuyChon?: string; 
+    
+    toaDoX?: number;
+    toaDoY?: number;
+    chieuRong?: number;
+    chieuCao?: number;
+    viTri?: string;
+}
+
+export interface KhuVucDTO {
+    tempId?: string;
+    tenKhuVuc: string;
+    moTa?: string;
+    viTri: string;
+    layoutData: string;
+}
+
+export interface KhuVuc extends KhuVucDTO {
+    maKhuVuc: string;
     maSuKien: string;
-    tieuDe: string;
-    moTa: string;
-    thoiGianBatDau: string;
-    thoiGianKetThuc: string;
-    ngayMoBanVe: string;
-    ngayDongBanVe: string;
-    anhBia: string;
+}
+
+export interface KhuVucResponse {
+    maKhuVuc: string;
+    tenHienThi: string; 
+    tenGoc: string;
+    moTa?: string;
+    viTri: string;
+    mauSacHienThi: string; 
+    toaDoX: number;
+    toaDoY: number;
+    chieuRong: number;
+    chieuCao: number;
     hoatDong: boolean;
-    diaDiem: DiaDiem;
-    danhMucs: DanhMucSuKienRef[];
-    loaiVes: TicketType[];
-    khuVucs?: KhuVucResponse[]; // Add zones to event response
-    ngayTao?: string;
+    template?: {
+        maKhuVucMau: string;
+        tenKhuVuc: string;
+        mauSac: string;
+        hinhDang: string; 
+        thuTuHienThi: number;
+    };
 }
 
 export interface CreateLoaiVeDTO {
@@ -62,7 +92,10 @@ export interface CreateSuKienDTO {
     maPhuongXa: string;
     maDanhMucs: string[];
     loaiVes: CreateLoaiVeDTO[];
-    khuVucs?: KhuVucDTO[];
+    
+    khuVucs?: KhuVucEventRequest[];
+    customKhuVucs?: KhuVucDTO[];
+    
     thoiGianBatDau: string;
     thoiGianKetThuc: string;
     ngayMoBanVe: string;
@@ -72,27 +105,35 @@ export interface CreateSuKienDTO {
 
 export interface UpdateSuKienDTO extends Omit<CreateSuKienDTO, 'anhBia'> {
     anhBia?: File | null;
-    khuVucs?: KhuVucDTO[]; // Add zones to update DTO
 }
 
-export interface KhuVucDTO {
-  tenKhuVuc: string;
-  moTa?: string;
-  viTri: string;
-  layoutData: string;
-  tempId?: string;
+export interface SuKien {
+    maSuKien: string;
+    tieuDe: string;
+    moTa: string;
+    thoiGianBatDau: string;
+    thoiGianKetThuc: string;
+    ngayMoBanVe: string;
+    ngayDongBanVe: string;
+    anhBia: string;
+    hoatDong: boolean;
+    diaDiem: DiaDiem;
+    danhMucs: DanhMucSuKienRef[];
+    loaiVes: TicketType[];
+    khuVucs?: KhuVucResponse[];
+    ngayTao?: string;
 }
 
-export interface KhuVuc extends KhuVucDTO {
-  maKhuVuc: string;
-  maSuKien: string;
-}
-
-export interface KhuVucResponse {
-    maKhuVuc: string;
-    tempId?: string;
+export interface KhuVucTemplate {
+    maKhuVucMau: string;
     tenKhuVuc: string;
-    moTa?: string;
-    viTri: string;
-    layoutData: string;
+    moTa: string;
+    mauSac: string;
+    hinhDang: string;
+    thuTuHienThi: number;
+    hoatDong: boolean;
+    toaDoXMacDinh?: number;
+    toaDoYMacDinh?: number;
+    chieuRongMacDinh?: number;
+    chieuCaoMacDinh?: number;
 }

@@ -1,344 +1,509 @@
-import React, { useState, useEffect } from 'react';
-import { Container, Row, Col, Card, Badge } from 'react-bootstrap';
-import { Stage, Layer, Rect, Circle, RegularPolygon, Text } from 'react-konva';
+import React, { useState, useRef, useEffect } from 'react';
+import { Stage, Layer, Rect, Circle, Text } from 'react-konva';
+import Konva from 'konva';
+import { Card, Alert } from 'react-bootstrap';
+import { KhuVucResponse, TicketType } from '../../../types/EventTypes';
 
-import axios from 'axios';
-import './styles/ZoneListViewer.css';
-import { ZoneDesignData, ZoneShape } from '../../../types/ZoneTypes';
-
-interface ZoneListViewerProps {
-  eventId: string;
-  onZoneSelect?: (zoneId: string) => void;
+interface ZoneMapViewerProps {
+  eventZones: KhuVucResponse[];
+  tickets: TicketType[];
   selectedZoneId?: string;
+  onZoneClick?: (zoneId: string, ticketType?: TicketType) => void;
+  onZoneHover?: (zoneId: string | null) => void;
+  width?: number;
+  height?: number;
+  showLabels?: boolean;
   showTicketInfo?: boolean;
+  readOnly?: boolean;
+  className?: string;
 }
 
-interface TicketInfo {
-  maLoaiVe: string;
-  tenLoaiVe: string;
-  giaTien: number;
-  soLuong: number;
-  soLuongDaBan: number;
+interface MinimalTemplate {
+  maKhuVucMau: string;
+  tenKhuVuc: string;
+  mauSac: string;
+  hinhDang: string;
+  thuTuHienThi: number;
 }
 
-const ZoneListViewer: React.FC<ZoneListViewerProps> = ({
-  eventId,
-  onZoneSelect,
+interface ZoneData {
+  id: string;
+  template?: MinimalTemplate;
+  eventZone: KhuVucResponse;
+  ticket?: TicketType;
+  position: { x: number; y: number };
+  size: { width: number; height: number };
+  color: string;
+  borderColor: string;
+  isAvailable: boolean;
+  isSelected: boolean;
+  shape: string;
+  textColor: string;
+}
+
+interface ViewportBounds {
+  minX: number;
+  minY: number;
+  maxX: number;
+  maxY: number;
+  width: number;
+  height: number;
+}
+
+const ZoneMapViewer: React.FC<ZoneMapViewerProps> = ({
+  eventZones,
+  tickets,
   selectedZoneId,
-  showTicketInfo = true
+  onZoneClick,
+  onZoneHover,
+  width = 800,
+  height = 600,
+  showLabels = true,
+  showTicketInfo = true,
+  readOnly = false,
+  className = ''
 }) => {
-  const [zones, setZones] = useState<ZoneShape[]>([]);
-  const [tickets, setTickets] = useState<Record<string, TicketInfo[]>>({});
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
+  const [zones, setZones] = useState<ZoneData[]>([]);
+  const [hoveredZone, setHoveredZone] = useState<string | null>(null);
+  const [scale, setScale] = useState(1);
+  const [offset, setOffset] = useState({ x: 0, y: 0 });
+  const stageRef = useRef<Konva.Stage>(null);
+  const layerRef = useRef<Konva.Layer>(null);
 
-  // Fetch zones data
-  useEffect(() => {
-    const fetchZonesData = async () => {
-      try {
-        setLoading(true);
-        
-        // Fetch zone design data
-        const zoneResponse = await axios.get(`/api/sukien/${eventId}/zones`);
-        const zoneData: ZoneDesignData = zoneResponse.data;
-        setZones(zoneData.zones || []);
-
-        // Fetch ticket information if needed
-        if (showTicketInfo) {
-          const ticketResponse = await axios.get(`/api/sukien/${eventId}/tickets`);
-          setTickets(ticketResponse.data || {});
-        }
-      } catch (err) {
-        console.error('Lỗi khi tải dữ liệu khu vực:', err);
-        setError('Không thể tải dữ liệu khu vực');
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    if (eventId) {
-      fetchZonesData();
+  // Calculate bounds of all zones
+  const calculateBounds = (zoneData: ZoneData[]): ViewportBounds => {
+    if (zoneData.length === 0) {
+      return { minX: 0, minY: 0, maxX: width, maxY: height, width, height };
     }
-  }, [eventId, showTicketInfo]);
 
-  // Format currency
-  const formatCurrency = (amount: number) => {
-    return new Intl.NumberFormat('vi-VN', { style: 'currency', currency: 'VND' }).format(amount);
+    let minX = Infinity;
+    let minY = Infinity;
+    let maxX = -Infinity;
+    let maxY = -Infinity;
+
+    zoneData.forEach(zone => {
+      const left = zone.position.x;
+      const top = zone.position.y;
+      const right = zone.position.x + zone.size.width;
+      const bottom = zone.position.y + zone.size.height;
+
+      minX = Math.min(minX, left);
+      minY = Math.min(minY, top);
+      maxX = Math.max(maxX, right);
+      maxY = Math.max(maxY, bottom);
+    });
+
+    return {
+      minX,
+      minY,
+      maxX,
+      maxY,
+      width: maxX - minX,
+      height: maxY - minY
+    };
   };
 
-  // Render mini zone preview
-  const renderZonePreview = (zone: ZoneShape, size: number = 60) => {
-    const scale = size / Math.max(zone.size.width, zone.size.height);
-    const centerX = size / 2;
-    const centerY = size / 2;
+  // Calculate scale and offset to fit all zones in viewport
+  const calculateViewport = (zoneData: ZoneData[]) => {
+    const bounds = calculateBounds(zoneData);
+    
+    if (bounds.width === 0 || bounds.height === 0) {
+      setScale(1);
+      setOffset({ x: 0, y: 0 });
+      return;
+    }
 
-    const commonProps = {
-      x: centerX,
-      y: centerY,
-      fill: zone.color,
-      stroke: zone.borderColor,
-      strokeWidth: 2,
-      opacity: zone.opacity,
+    // Add padding around the content
+    const padding = 50;
+    const availableWidth = width - padding * 2;
+    const availableHeight = height - padding * 2;
+
+    const scaleX = availableWidth / bounds.width;
+    const scaleY = availableHeight / bounds.height;
+    const newScale = Math.min(scaleX, scaleY, 1);
+
+    const scaledWidth = bounds.width * newScale;
+    const scaledHeight = bounds.height * newScale;
+    const centerX = (width - scaledWidth) / 2;
+    const centerY = (height - scaledHeight) / 2;
+
+    const newOffset = {
+      x: centerX - bounds.minX * newScale,
+      y: centerY - bounds.minY * newScale
     };
 
-    switch (zone.type) {
+    setScale(newScale);
+    setOffset(newOffset);
+  };
+
+  // Convert templates and tickets to zone data
+  useEffect(() => {
+    const zoneData: ZoneData[] = eventZones.map(eventZone => {
+      const ticket = tickets.find(t => t.maKhuVuc === eventZone.maKhuVuc);
+      const isAvailable = ticket ? (ticket.veConLai || 0) > 0 : false;
+      const isSelected = selectedZoneId === eventZone.maKhuVuc;
+
+      let color: string;
+      let borderColor: string;
+      let textColor: string;
+
+      if (!ticket) {
+        // No ticket for this zone - use light gray with dark text
+        color = '#e9ecef';
+        borderColor = '#6c757d';
+        textColor = '#495057';
+      } else if (!isAvailable) {
+        // Sold out
+        color = '#dc3545';
+        borderColor = '#dc3545';
+        textColor = '#fff';
+      } else if (isSelected) {
+        // Selected
+        color = '#28a745';
+        borderColor = '#28a745';
+        textColor = '#fff';
+      } else {
+        // Available - use template color if available
+        const templateColor = eventZone.template?.mauSac || eventZone.mauSacHienThi || '#007bff';
+        color = templateColor;
+        borderColor = templateColor;
+        textColor = '#fff';
+      }
+
+      return {
+        id: eventZone.maKhuVuc,
+        template: eventZone.template as MinimalTemplate,
+        eventZone,
+        ticket,
+        position: {
+          x: eventZone.toaDoX || 100,
+          y: eventZone.toaDoY || 100
+        },
+        size: {
+          width: eventZone.chieuRong || 200,
+          height: eventZone.chieuCao || 150
+        },
+        color,
+        borderColor,
+        isAvailable,
+        isSelected,
+        shape: eventZone.template?.hinhDang?.toLowerCase() || 'rectangle',
+        textColor
+      };
+    });
+
+    console.log('Generated zoneData:', zoneData);
+    setZones(zoneData);
+    
+    // Calculate viewport after zones are set
+    calculateViewport(zoneData);
+  }, [eventZones, tickets, selectedZoneId, width, height]);
+
+  const handleZoneClick = (zone: ZoneData) => {
+    if (readOnly || !onZoneClick) return;
+
+    // Only allow clicks on zones that have tickets
+    if (zone.ticket) {
+      onZoneClick(zone.id, zone.ticket);
+    }
+  };
+
+  const handleZoneMouseEnter = (zoneId: string) => {
+    if (readOnly) return;
+
+    const zone = zones.find(z => z.id === zoneId);
+    
+    // Only show hover for zones with tickets
+    if (zone?.ticket) {
+      setHoveredZone(zoneId);
+      onZoneHover?.(zoneId);
+
+      // Change cursor
+      if (stageRef.current) {
+        stageRef.current.container().style.cursor = 'pointer';
+      }
+    }
+  };
+
+  const handleZoneMouseLeave = () => {
+    setHoveredZone(null);
+    onZoneHover?.(null);
+
+    if (stageRef.current) {
+      stageRef.current.container().style.cursor = 'default';
+    }
+  };
+
+  const renderZone = (zone: ZoneData) => {
+    const isHovered = hoveredZone === zone.id;
+    const commonProps = {
+      id: zone.id,
+      x: zone.position.x,
+      y: zone.position.y,
+      fill: zone.color,
+      stroke: zone.borderColor,
+      strokeWidth: zone.isSelected ? 3 : (isHovered ? 2.5 : 2),
+      opacity: isHovered ? 0.9 : 0.8,
+      onMouseEnter: () => handleZoneMouseEnter(zone.id),
+      onMouseLeave: handleZoneMouseLeave,
+      onClick: () => handleZoneClick(zone),
+    };
+
+    const labelText = zone.ticket?.tenLoaiVe || zone.template?.tenKhuVuc || zone.eventZone.tenHienThi || 'Khu vực';
+    const priceText = zone.ticket ? `${zone.ticket.giaTien.toLocaleString('vi-VN')}đ` : '';
+    const availableText = zone.ticket ? `Còn ${zone.ticket.veConLai || 0}` : '';
+    const noTicketText = !zone.ticket ? 'Không bán vé' : '';
+
+    // Scale font sizes based on scale
+    const baseFontSize = Math.max(10, 14 * scale);
+    const priceFontSize = Math.max(8, 12 * scale);
+    const availableFontSize = Math.max(7, 10 * scale);
+
+    const shapeType = zone.template?.hinhDang?.toLowerCase() || 'rectangle';
+
+    switch (shapeType) {
       case 'rectangle':
-      case 'square':
         return (
-          <Rect
-            {...commonProps}
-            width={zone.size.width * scale}
-            height={zone.size.height * scale}
-            offsetX={(zone.size.width * scale) / 2}
-            offsetY={(zone.size.height * scale) / 2}
-          />
+          <React.Fragment key={zone.id}>
+            <Rect
+              {...commonProps}
+              width={zone.size.width}
+              height={zone.size.height}
+            />
+            {showLabels && (
+              <>
+                <Text
+                  x={zone.position.x + zone.size.width / 2}
+                  y={zone.position.y + zone.size.height / 2 - (zone.ticket ? 20 : 10)}
+                  text={labelText}
+                  fontSize={baseFontSize}
+                  fontFamily="Arial"
+                  fill={zone.textColor}
+                  fontStyle="bold"
+                  align="center"
+                  offsetX={labelText.length * (baseFontSize / 4)}
+                  listening={false}
+                />
+                {zone.ticket ? (
+                  <>
+                    {showTicketInfo && (
+                      <>
+                        <Text
+                          x={zone.position.x + zone.size.width / 2}
+                          y={zone.position.y + zone.size.height / 2}
+                          text={priceText}
+                          fontSize={priceFontSize}
+                          fontFamily="Arial"
+                          fill={zone.textColor}
+                          align="center"
+                          offsetX={priceText.length * (priceFontSize / 4)}
+                          listening={false}
+                        />
+                        <Text
+                          x={zone.position.x + zone.size.width / 2}
+                          y={zone.position.y + zone.size.height / 2 + 20}
+                          text={availableText}
+                          fontSize={availableFontSize}
+                          fontFamily="Arial"
+                          fill={zone.textColor}
+                          align="center"
+                          offsetX={availableText.length * (availableFontSize / 4)}
+                          listening={false}
+                        />
+                      </>
+                    )}
+                    {!zone.isAvailable && (
+                      <Text
+                        x={zone.position.x + zone.size.width / 2}
+                        y={zone.position.y + zone.size.height / 2 + 40}
+                        text="HẾT VÉ"
+                        fontSize={baseFontSize}
+                        fontFamily="Arial"
+                        fill={zone.textColor}
+                        fontStyle="bold"
+                        align="center"
+                        offsetX={25}
+                        listening={false}
+                      />
+                    )}
+                  </>
+                ) : (
+                  <Text
+                    x={zone.position.x + zone.size.width / 2}
+                    y={zone.position.y + zone.size.height / 2 + 10}
+                    text={noTicketText}
+                    fontSize={availableFontSize}
+                    fontFamily="Arial"
+                    fill={zone.textColor}
+                    align="center"
+                    offsetX={noTicketText.length * (availableFontSize / 4)}
+                    listening={false}
+                  />
+                )}
+              </>
+            )}
+          </React.Fragment>
         );
 
       case 'circle':
+        { const radius = Math.min(zone.size.width, zone.size.height) / 2;
         return (
-          <Circle
-            {...commonProps}
-            radius={(Math.max(zone.size.width, zone.size.height) / 2) * scale}
-          />
-        );
-
-      case 'triangle':
-        return (
-          <RegularPolygon
-            {...commonProps}
-            sides={3}
-            radius={(Math.max(zone.size.width, zone.size.height) / 2) * scale}
-          />
-        );
+          <React.Fragment key={zone.id}>
+            <Circle
+              {...commonProps}
+              x={zone.position.x + zone.size.width / 2}
+              y={zone.position.y + zone.size.height / 2}
+              radius={radius}
+            />
+            {showLabels && (
+              <>
+                <Text
+                  x={zone.position.x + zone.size.width / 2}
+                  y={zone.position.y + zone.size.height / 2 - (zone.ticket ? 15 : 5)}
+                  text={labelText}
+                  fontSize={baseFontSize}
+                  fontFamily="Arial"
+                  fill={zone.textColor}
+                  fontStyle="bold"
+                  align="center"
+                  offsetX={labelText.length * (baseFontSize / 4)}
+                  listening={false}
+                />
+                {zone.ticket ? (
+                  <>
+                    {showTicketInfo && (
+                      <>
+                        <Text
+                          x={zone.position.x + zone.size.width / 2}
+                          y={zone.position.y + zone.size.height / 2 + 5}
+                          text={priceText}
+                          fontSize={priceFontSize}
+                          fontFamily="Arial"
+                          fill={zone.textColor}
+                          align="center"
+                          offsetX={priceText.length * (priceFontSize / 4)}
+                          listening={false}
+                        />
+                        <Text
+                          x={zone.position.x + zone.size.width / 2}
+                          y={zone.position.y + zone.size.height / 2 + 20}
+                          text={availableText}
+                          fontSize={availableFontSize}
+                          fontFamily="Arial"
+                          fill={zone.textColor}
+                          align="center"
+                          offsetX={availableText.length * (availableFontSize / 4)}
+                          listening={false}
+                        />
+                      </>
+                    )}
+                  </>
+                ) : (
+                  <Text
+                    x={zone.position.x + zone.size.width / 2}
+                    y={zone.position.y + zone.size.height / 2 + 10}
+                    text={noTicketText}
+                    fontSize={availableFontSize}
+                    fontFamily="Arial"
+                    fill={zone.textColor}
+                    align="center"
+                    offsetX={noTicketText.length * (availableFontSize / 4)}
+                    listening={false}
+                  />
+                )}
+              </>
+            )}
+          </React.Fragment>
+        ); }
 
       default:
-        return null;
+        // Default to rectangle for unknown shapes
+        return (
+          <React.Fragment key={zone.id}>
+            <Rect
+              {...commonProps}
+              width={zone.size.width}
+              height={zone.size.height}
+            />
+            <Text
+              x={zone.position.x + zone.size.width / 2}
+              y={zone.position.y + zone.size.height / 2}
+              text={labelText}
+              fontSize={baseFontSize}
+              fontFamily="Arial"
+              fill={zone.textColor}
+              fontStyle="bold"
+              align="center"
+              offsetX={labelText.length * (baseFontSize / 4)}
+              listening={false}
+            />
+          </React.Fragment>
+        );
     }
   };
 
-  if (loading) {
-    return (
-      <Container className="zone-list-viewer">
-        <div className="loading-container">
-          <div className="spinner-border text-primary" role="status">
-            <span className="visually-hidden">Đang tải...</span>
-          </div>
-        </div>
-      </Container>
-    );
-  }
-
-  if (error) {
-    return (
-      <Container className="zone-list-viewer">
-        <Card className="universe-card error-card">
-          <Card.Body>
-            <div className="error-content">
-              <i className="fas fa-exclamation-triangle"></i>
-              <p>{error}</p>
-            </div>
-          </Card.Body>
-        </Card>
-      </Container>
-    );
-  }
+  const hoveredZoneData = zones.find(z => z.id === hoveredZone);
 
   return (
-    <Container className="zone-list-viewer">
-      <Row>
-        <Col lg={8}>
-          {/* Zone Grid */}
-          <Card className="universe-card zones-grid-card">
-            <Card.Header className="universe-card-header">
-              <h5><i className="fas fa-map-marked-alt"></i> Sơ đồ khu vực ({zones.length})</h5>
-            </Card.Header>
-            <Card.Body>
-              {zones.length > 0 ? (
-                <Row className="zone-grid">
-                  {zones.map((zone) => (
-                    <Col key={zone.id} md={6} lg={4} className="mb-4">
-                      <Card 
-                        className={`zone-card ${selectedZoneId === zone.id ? 'selected' : ''}`}
-                        onClick={() => onZoneSelect?.(zone.id)}
-                      >
-                        <Card.Body className="p-3">
-                          <div className="zone-preview-container">
-                            <Stage width={80} height={80}>
-                              <Layer>
-                                {renderZonePreview(zone, 60)}
-                              </Layer>
-                            </Stage>
-                          </div>
-                          
-                          <div className="zone-info">
-                            <h6 className="zone-name">{zone.name}</h6>
-                            <div className="zone-meta">
-                              <Badge bg="secondary" className="zone-type-badge">
-                                {zone.type}
-                              </Badge>
-                              <span className="zone-size">
-                                {Math.round(zone.size.width)} × {Math.round(zone.size.height)}
-                              </span>
-                            </div>
-                          </div>
+    <div className={`zone-map-viewer ${className}`}>
+      <Card>
+        <Card.Body className="p-2">
 
-                          {showTicketInfo && tickets[zone.id] && (
-                            <div className="ticket-summary">
-                              <div className="ticket-count">
-                                <i className="fas fa-ticket-alt"></i>
-                                <span>{tickets[zone.id].length} loại vé</span>
-                              </div>
-                              {tickets[zone.id].length > 0 && (
-                                <div className="price-range">
-                                  {formatCurrency(Math.min(...tickets[zone.id].map(t => t.giaTien)))}
-                                  {tickets[zone.id].length > 1 && 
-                                    ` - ${formatCurrency(Math.max(...tickets[zone.id].map(t => t.giaTien)))}`
-                                  }
-                                </div>
-                              )}
-                            </div>
-                          )}
-                        </Card.Body>
-                      </Card>
-                    </Col>
-                  ))}
-                </Row>
-              ) : (
-                <div className="no-zones-message">
-                  <i className="fas fa-map"></i>
-                  <h6>Chưa có khu vực nào</h6>
-                  <p>Hãy tạo khu vực đầu tiên cho sự kiện của bạn</p>
-                </div>
-              )}
-            </Card.Body>
-          </Card>
-        </Col>
-
-        <Col lg={4}>
-          {/* Zone Details */}
-          {selectedZoneId && zones.find(z => z.id === selectedZoneId) && (
-            <Card className="universe-card zone-detail-card">
-              <Card.Header className="universe-card-header">
-                <h6><i className="fas fa-info-circle"></i> Chi tiết khu vực</h6>
-              </Card.Header>
-              <Card.Body>
-                {(() => {
-                  const selectedZone = zones.find(z => z.id === selectedZoneId)!;
-                  return (
-                    <>
-                      <div className="zone-detail-preview">
-                        <Stage width={200} height={120}>
-                          <Layer>
-                            {renderZonePreview(selectedZone, 100)}
-                            <Text
-                              x={100}
-                              y={105}
-                              text={selectedZone.name}
-                              fontSize={12}
-                              fontFamily="Arial"
-                              fill="#ffffff"
-                              align="center"
-                              offsetX={selectedZone.name.length * 3}
-                            />
-                          </Layer>
-                        </Stage>
-                      </div>
-
-                      <div className="zone-properties">
-                        <div className="property-row">
-                          <span className="property-label">Tên:</span>
-                          <span className="property-value">{selectedZone.name}</span>
-                        </div>
-                        <div className="property-row">
-                          <span className="property-label">Loại:</span>
-                          <span className="property-value">{selectedZone.type}</span>
-                        </div>
-                        <div className="property-row">
-                          <span className="property-label">Kích thước:</span>
-                          <span className="property-value">
-                            {Math.round(selectedZone.size.width)} × {Math.round(selectedZone.size.height)}
-                          </span>
-                        </div>
-                        <div className="property-row">
-                          <span className="property-label">Vị trí:</span>
-                          <span className="property-value">
-                            ({Math.round(selectedZone.position.x)}, {Math.round(selectedZone.position.y)})
-                          </span>
-                        </div>
-                      </div>
-
-                      {showTicketInfo && tickets[selectedZoneId] && (
-                        <div className="ticket-details">
-                          <h6 className="section-title">
-                            <i className="fas fa-ticket-alt"></i> Thông tin vé
-                          </h6>
-                          {tickets[selectedZoneId].length > 0 ? (
-                            <div className="ticket-list">
-                              {tickets[selectedZoneId].map((ticket) => (
-                                <div key={ticket.maLoaiVe} className="ticket-item">
-                                  <div className="ticket-name">{ticket.tenLoaiVe}</div>
-                                  <div className="ticket-price">{formatCurrency(ticket.giaTien)}</div>
-                                  <div className="ticket-availability">
-                                    Còn lại: {ticket.soLuong - ticket.soLuongDaBan}/{ticket.soLuong}
-                                  </div>
-                                </div>
-                              ))}
-                            </div>
-                          ) : (
-                            <div className="no-tickets">
-                              <i className="fas fa-info-circle"></i>
-                              <span>Chưa có loại vé nào</span>
-                            </div>
-                          )}
-                        </div>
-                      )}
-                    </>
-                  );
-                })()}
-              </Card.Body>
-            </Card>
+          {hoveredZoneData && hoveredZoneData.ticket && (
+            <Alert variant="info" className="mb-2 py-2">
+              <strong>{hoveredZoneData.ticket?.tenLoaiVe || hoveredZoneData.template?.tenKhuVuc || hoveredZoneData.eventZone.tenHienThi}</strong>
+              <br />
+              <small>
+                Giá: {hoveredZoneData.ticket.giaTien.toLocaleString('vi-VN')}đ |
+                Còn: {hoveredZoneData.ticket.veConLai || 0} vé |
+                Tối thiểu: {hoveredZoneData.ticket.soLuongToiThieu} - Tối đa: {hoveredZoneData.ticket.soLuongToiDa}
+              </small>
+            </Alert>
           )}
 
-          {/* Zone Statistics */}
-          <Card className="universe-card zone-stats-card mt-3">
-            <Card.Header className="universe-card-header">
-              <h6><i className="fas fa-chart-bar"></i> Thống kê</h6>
-            </Card.Header>
-            <Card.Body>
-              <div className="stat-item">
-                <span className="stat-label">Tổng khu vực:</span>
-                <span className="stat-value">{zones.length}</span>
-              </div>
-              <div className="stat-item">
-                <span className="stat-label">Loại hình dạng:</span>
-                <span className="stat-value">
-                  {[...new Set(zones.map(z => z.type))].length}
-                </span>
-              </div>
-              {showTicketInfo && (
-                <>
-                  <div className="stat-item">
-                    <span className="stat-label">Tổng loại vé:</span>
-                    <span className="stat-value">
-                      {Object.values(tickets).reduce((sum, ticketList) => sum + ticketList.length, 0)}
-                    </span>
-                  </div>
-                  <div className="stat-item">
-                    <span className="stat-label">Tổng vé:</span>
-                    <span className="stat-value">
-                      {Object.values(tickets)
-                        .flat()
-                        .reduce((sum, ticket) => sum + ticket.soLuong, 0)}
-                    </span>
-                  </div>
-                </>
-              )}
-            </Card.Body>
-          </Card>
-        </Col>
-      </Row>
-    </Container>
+          <div className="canvas-container" style={{ height: `${height}px`, border: '1px solid #dee2e6', borderRadius: '4px', backgroundColor: '#ffffff' }}>
+            <Stage
+              width={width}
+              height={height}
+              ref={stageRef}
+              scaleX={scale}
+              scaleY={scale}
+              x={offset.x}
+              y={offset.y}
+            >
+              <Layer ref={layerRef}>
+                {zones.map(zone => renderZone(zone))}
+              </Layer>
+            </Stage>
+          </div>
+
+          {zones.length === 0 && (
+            <Alert variant="warning">
+              <i className="fas fa-exclamation-triangle me-2"></i>
+              Không có khu vực nào để hiển thị.
+            </Alert>
+          )}
+
+          <div className="legend mt-2">
+            <small className="text-muted">
+              <span className="legend-item">
+                <span className="legend-color" style={{ backgroundColor: '#28a745', width: '12px', height: '12px', display: 'inline-block', marginRight: '5px' }}></span>
+                Có vé
+              </span>
+              <span className="legend-item ms-3">
+                <span className="legend-color" style={{ backgroundColor: '#dc3545', width: '12px', height: '12px', display: 'inline-block', marginRight: '5px' }}></span>
+                Hết vé
+              </span>
+              <span className="legend-item ms-3">
+                <span className="legend-color" style={{ backgroundColor: '#e9ecef', border: '1px solid #6c757d', width: '12px', height: '12px', display: 'inline-block', marginRight: '5px' }}></span>
+                Không bán vé
+              </span>
+            </small>
+          </div>
+        </Card.Body>
+      </Card>
+    </div>
   );
 };
 
-export default ZoneListViewer;
+export default ZoneMapViewer;

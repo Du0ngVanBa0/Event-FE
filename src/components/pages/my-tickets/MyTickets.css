@@ -2,15 +2,17 @@
     min-height: calc(100vh - var(--header-height));
     padding: 2rem;
     color: var(--color-text);
+    background: var(--color-background);
 }
 
 .my-tickets-wrapper {
-    background: linear-gradient(to bottom, #1a1a1a, #000000);
+    background: white;
     padding: 2rem;
     border-radius: 12px;
-    box-shadow: 0 2px 10px rgba(255, 255, 255, 0.1);
+    box-shadow: var(--shadow-lg);
     margin: 0 auto;
     max-width: 1200px;
+    border: 1px solid var(--color-border);
 }
 
 .my-tickets-list {
@@ -20,12 +22,13 @@
 }
 
 .my-tickets-card {
-    background: rgba(255, 255, 255, 0.05);
-    border: 2px solid transparent;
+    background: white;
+    border: 1px solid var(--color-border);
     border-radius: 8px;
     overflow: hidden;
     transition: var(--transition-default);
     position: relative;
+    box-shadow: var(--shadow-sm);
 }
 
 .my-tickets-card::before {
@@ -51,7 +54,7 @@
 
 .my-tickets-card:hover {
     transform: translateY(-2px);
-    box-shadow: var(--glow-effect);
+    box-shadow: var(--shadow-lg);
 }
 
 .my-tickets-content {
@@ -69,6 +72,7 @@
     color: var(--color-primary);
     font-size: 1.2rem;
     margin: 0;
+    font-weight: 600;
 }
 
 .my-tickets-status {
@@ -79,27 +83,28 @@
 }
 
 .my-tickets-status.paid {
-    background: rgba(0, 255, 0, 0.1);
-    color: #00ff00;
-    border: 1px solid #00ff00;
+    background: rgba(16, 185, 129, 0.1);
+    color: var(--color-success);
+    border: 1px solid var(--color-success);
 }
 
 .my-tickets-status.pending {
-    background: rgba(255, 193, 7, 0.1);
-    color: #ffc107;
-    border: 1px solid #ffc107;
+    background: rgba(245, 158, 11, 0.1);
+    color: #f59e0b;
+    border: 1px solid #f59e0b;
 }
 
 .my-tickets-status.expired {
-    background: rgba(255, 0, 0, 0.1);
-    color: #ff0000;
-    border: 1px solid #ff0000;
+    background: rgba(239, 68, 68, 0.1);
+    color: #ef4444;
+    border: 1px solid #ef4444;
 }
 
 .my-tickets-details {
-    background: rgba(0, 0, 0, 0.3);
+    background: var(--color-background);
     border-radius: 8px;
     padding: 1rem;
+    border: 1px solid var(--color-border-light);
 }
 
 .my-tickets-info {
@@ -120,7 +125,7 @@
 }
 
 .my-tickets-items {
-    border-top: 1px solid rgba(255, 255, 255, 0.1);
+    border-top: 1px solid var(--color-border-light);
     padding-top: 1rem;
 }
 
@@ -128,6 +133,7 @@
     color: var(--color-secondary);
     font-size: 1rem;
     margin-bottom: 0.5rem;
+    font-weight: 600;
 }
 
 .my-tickets-item {
@@ -135,9 +141,10 @@
     justify-content: space-between;
     align-items: center;
     padding: 0.75rem;
-    background: rgba(255, 255, 255, 0.05);
+    background: white;
     border-radius: 4px;
     margin-bottom: 0.5rem;
+    border: 1px solid var(--color-border-light);
 }
 
 .my-tickets-type {
@@ -172,7 +179,7 @@
     color: var(--color-secondary);
     font-weight: 500;
     font-size: 0.9rem;
-    background: rgba(0, 247, 255, 0.1);
+    background: rgba(14, 165, 233, 0.1);
     padding: 0.2rem 0.5rem;
     border-radius: 4px;
     border: 1px solid var(--color-secondary);
@@ -190,6 +197,8 @@
     height: 100px;
     aspect-ratio: 16/9;
     object-fit: contain;
+    border-radius: 4px;
+    border: 1px solid var(--color-border);
 }
 
 .no-tickets-message {
@@ -223,13 +232,100 @@
     align-items: center;
     gap: 0.5rem;
     transition: all 0.3s ease;
+    background: var(--color-primary);
+    border-color: var(--color-primary);
+    color: white;
 }
 
 .my-tickets-pay-button:hover {
     transform: translateY(-2px);
-    box-shadow: var(--glow-effect);
+    box-shadow: var(--shadow-md);
+    background: var(--color-secondary);
+    border-color: var(--color-secondary);
+    color: white;
 }
 
 .my-tickets-pay-button i {
     font-size: 1rem;
-} 
+}
+
+.universe-tabs {
+    border-bottom: 2px solid var(--color-primary);
+}
+
+.universe-tabs .nav-link {
+    background: transparent;
+    border: none;
+    color: var(--color-text);
+    padding: 0.75rem 1.5rem;
+    transition: var(--transition-default);
+}
+
+.universe-tabs .nav-link:hover {
+    color: var(--color-primary);
+}
+
+.universe-tabs .nav-link.active {
+    background: rgba(99, 102, 241, 0.1);
+    border: none;
+    color: var(--color-primary);
+    border-bottom: 2px solid var(--color-primary);
+}
+
+.page-size-select {
+    background: white;
+    border: 2px solid var(--color-border);
+    color: var(--color-text);
+    padding: 0.25rem 2rem 0.25rem 0.5rem;
+    border-radius: 8px;
+    transition: var(--transition-default);
+    font-weight: 500;
+}
+
+.page-size-select:focus {
+    box-shadow: 0 0 0 0.2rem rgba(99, 102, 241, 0.25);
+    border-color: var(--color-primary);
+    outline: none;
+}
+
+.page-size-select option {
+    background: white;
+    color: var(--color-text);
+}
+
+.text-light {
+    color: var(--color-text) !important;
+}
+
+.page-title {
+    color: var(--color-primary);
+    margin-bottom: 2rem;
+    font-weight: 600;
+    font-size: 2rem;
+}
+
+/* Print styles */
+@media print {
+    .my-tickets-container,
+    .my-tickets-wrapper {
+        background: white !important;
+        color: black !important;
+        box-shadow: none !important;
+        border: 1px solid #000 !important;
+    }
+    
+    .my-tickets-card {
+        border: 1px solid #000 !important;
+        box-shadow: none !important;
+    }
+    
+    .my-tickets-pay-button,
+    .universe-tabs {
+        display: none !important;
+    }
+    
+    * {
+        background: white !important;
+        color: black !important;
+    }
+}

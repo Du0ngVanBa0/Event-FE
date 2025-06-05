@@ -1,273 +1,30 @@
-.zone-list-viewer {
-  min-height: calc(100vh - var(--header-height));
-  background: var(--color-background);
-  color: var(--color-text);
-  padding: 1rem;
-}
-
-/* Zone Grid */
-.zones-grid-card {
-  margin-bottom: 1rem;
-}
-
-.zone-grid {
-  margin: 0;
-}
-
-.zone-card {
-  background: rgba(255, 255, 255, 0.05);
-  border: 1px solid rgba(167, 135, 255, 0.2);
-  border-radius: 12px;
-  transition: var(--transition-default);
-  cursor: pointer;
-  height: 100%;
-}
-
-.zone-card:hover {
-  transform: translateY(-4px);
-  box-shadow: 0 8px 25px rgba(167, 135, 255, 0.2);
-  border-color: var(--color-primary);
-}
-
-.zone-card.selected {
-  background: rgba(167, 135, 255, 0.15);
-  border-color: var(--color-primary);
-  box-shadow: var(--glow-effect);
-}
-
-.zone-preview-container {
-  display: flex;
-  justify-content: center;
-  margin-bottom: 1rem;
-  background: rgba(0, 0, 0, 0.3);
-  border-radius: 8px;
-  padding: 0.5rem;
-}
-
-.zone-info {
-  text-align: center;
-  margin-bottom: 1rem;
-}
-
-.zone-name {
-  color: var(--color-primary);
-  font-weight: 600;
-  margin-bottom: 0.5rem;
-}
-
-.zone-meta {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-}
-
-.zone-type-badge {
-  background: rgba(0, 247, 255, 0.2) !important;
-  color: var(--color-secondary);
-  border: 1px solid var(--color-secondary);
-  text-transform: capitalize;
-}
-
-.zone-size {
-  font-size: 0.8rem;
-  color: rgba(255, 255, 255, 0.7);
-}
-
-.ticket-summary {
-  border-top: 1px solid rgba(255, 255, 255, 0.1);
-  padding-top: 0.75rem;
-  margin-top: 0.75rem;
-}
-
-.ticket-count {
-  display: flex;
-  align-items: center;
-  gap: 0.5rem;
-  color: var(--color-secondary);
-  font-size: 0.9rem;
-  margin-bottom: 0.25rem;
-}
-
-.price-range {
-  font-weight: 600;
-  color: var(--color-success);
-  font-size: 0.9rem;
-}
-
-/* No zones message */
-.no-zones-message {
-  text-align: center;
-  padding: 4rem 2rem;
-  color: rgba(255, 255, 255, 0.6);
-}
-
-.no-zones-message i {
-  font-size: 3rem;
-  color: var(--color-secondary);
-  margin-bottom: 1rem;
-}
-
-.no-zones-message h6 {
-  color: var(--color-primary);
-  margin-bottom: 0.5rem;
-}
-
-/* Zone Details */
-.zone-detail-card, .zone-stats-card {
-  margin-bottom: 1rem;
-}
-
-.zone-detail-preview {
-  text-align: center;
-  background: rgba(0, 0, 0, 0.3);
-  border-radius: 8px;
-  padding: 1rem;
-  margin-bottom: 1rem;
-}
-
-.zone-properties {
-  margin-bottom: 1.5rem;
-}
-
-.property-row {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  padding: 0.5rem 0;
-  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
-}
-
-.property-row:last-child {
-  border-bottom: none;
-}
-
-.property-label {
-  font-weight: 500;
-  color: rgba(255, 255, 255, 0.8);
-}
-
-.property-value {
-  color: var(--color-text);
-  font-weight: 600;
-}
-
-/* Ticket Details */
-.ticket-details {
-  border-top: 1px solid rgba(255, 255, 255, 0.1);
-  padding-top: 1rem;
-}
-
-.ticket-list {
-  max-height: 200px;
-  overflow-y: auto;
-}
-
-.ticket-item {
-  background: rgba(0, 0, 0, 0.2);
+.zone-map-viewer .canvas-container {
+  border: 1px solid #dee2e6;
   border-radius: 6px;
-  padding: 0.75rem;
-  margin-bottom: 0.5rem;
-  border: 1px solid rgba(167, 135, 255, 0.2);
+  overflow: hidden;
+  background: linear-gradient(45deg, #f8f9fa 25%, transparent 25%), 
+              linear-gradient(-45deg, #f8f9fa 25%, transparent 25%), 
+              linear-gradient(45deg, transparent 75%, #f8f9fa 75%), 
+              linear-gradient(-45deg, transparent 75%, #f8f9fa 75%);
+  background-size: 20px 20px;
+  background-position: 0 0, 0 10px, 10px -10px, -10px 0px;
 }
 
-.ticket-name {
-  font-weight: 600;
-  color: var(--color-primary);
-  margin-bottom: 0.25rem;
-}
-
-.ticket-price {
-  color: var(--color-success);
-  font-weight: 600;
-  margin-bottom: 0.25rem;
-}
-
-.ticket-availability {
-  font-size: 0.8rem;
-  color: rgba(255, 255, 255, 0.7);
-}
-
-.no-tickets {
-  text-align: center;
-  padding: 1rem;
-  color: rgba(255, 255, 255, 0.5);
-}
-
-/* Statistics */
-.stat-item {
+.zone-map-viewer .legend {
   display: flex;
-  justify-content: space-between;
   align-items: center;
-  padding: 0.5rem 0;
-  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+  flex-wrap: wrap;
 }
 
-.stat-item:last-child {
-  border-bottom: none;
-}
-
-.stat-label {
-  color: rgba(255, 255, 255, 0.8);
-}
-
-.stat-value {
-  color: var(--color-secondary);
-  font-weight: 600;
-}
-
-/* Loading and Error */
-.loading-container {
-  display: flex;
-  justify-content: center;
+.zone-map-viewer .legend-item {
+  display: inline-flex;
   align-items: center;
-  height: 400px;
 }
 
-.error-card {
-  border-color: #ff5757;
-}
-
-.error-content {
-  text-align: center;
-  padding: 2rem;
-  color: #ff5757;
-}
-
-.error-content i {
-  font-size: 2rem;
-  margin-bottom: 1rem;
-}
-
-/* Scrollbar */
-::-webkit-scrollbar {
-  width: 6px;
-}
-
-::-webkit-scrollbar-track {
-  background: rgba(0, 0, 0, 0.3);
-  border-radius: 10px;
-}
-
-::-webkit-scrollbar-thumb {
-  background: var(--color-primary);
-  border-radius: 10px;
-}
-
-::-webkit-scrollbar-thumb:hover {
-  background: var(--color-secondary);
-}
-
-/* Responsive */
-@media (max-width: 768px) {
-  .zone-list-viewer {
-    padding: 0.5rem;
-  }
-  
-  .zone-grid .col-md-6 {
-    margin-bottom: 1rem;
-  }
-  
-  .zone-detail-card, .zone-stats-card {
-    margin-top: 1rem;
-  }
+.zone-map-viewer .legend-color {
+  width: 12px;
+  height: 12px;
+  border-radius: 2px;
+  margin-right: 4px;
+  display: inline-block;
 }

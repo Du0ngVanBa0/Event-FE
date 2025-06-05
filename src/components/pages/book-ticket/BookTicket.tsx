@@ -1,10 +1,11 @@
-import { useState, useEffect } from 'react';
-import { Container, Row, Col, Button, Alert, Form } from 'react-bootstrap';
+import { useState, useEffect, useRef } from 'react';
+import { Container, Row, Col, Button, Alert, Form, Card } from 'react-bootstrap';
 import { useNavigate, useParams } from 'react-router-dom';
-import { SuKien } from '../../../types/EventTypes';
+import { SuKien, TicketType } from '../../../types/EventTypes';
 import './BookTicket.css';
 import eventService from '../../../api/eventService';
 import { bookTicketService } from '../../../api/bookTicketService';
+import ZoneMapViewer from '../../common/zone-design/ZoneListViewer';
 
 interface TicketSelection {
     id: string;
@@ -21,6 +22,9 @@ const BookTicket = () => {
     const [selectedTickets, setSelectedTickets] = useState<TicketSelection[]>([]);
     const [isBooking, setIsBooking] = useState(false);
     const [bookingError, setBookingError] = useState<string | null>(null);
+    const [selectedZoneId, setSelectedZoneId] = useState<string | null>(null);
+
+    const ticketRefs = useRef<{ [key: string]: HTMLDivElement | null }>({});
 
     const formatAddress = (event: SuKien) => {
         return `${event.diaDiem.tenDiaDiem}, ${event.diaDiem.tenPhuongXa}, ${event.diaDiem.tenQuanHuyen}, ${event.diaDiem.tenTinhThanh}`;
@@ -92,6 +96,46 @@ const BookTicket = () => {
                 t.id === ticketId ? { ...t, quantity } : t
             );
         });
+    };
+
+    // Handle zone click - auto increment ticket quantity or focus
+    const handleZoneClick = (zoneId: string, ticketType?: TicketType) => {
+        setSelectedZoneId(zoneId);
+
+        if (ticketType && ticketType.maLoaiVe) {
+            // Try to increment quantity by 1
+            const currentQuantity = getSelectedQuantity(ticketType.maLoaiVe);
+            const min = ticketType.soLuongToiThieu || 0;
+            const max = Math.min(ticketType.soLuongToiDa || ticketType.veConLai || 0, ticketType.veConLai || 0);
+
+            if (currentQuantity < max) {
+                // If current quantity is 0 and minimum is > 1, set to minimum
+                const newQuantity = currentQuantity === 0 ? Math.max(1, min) : currentQuantity + 1;
+                if (newQuantity <= max) {
+                    handleQuantityChange(ticketType.maLoaiVe, newQuantity - currentQuantity);
+                }
+            }
+
+            // Scroll to the corresponding ticket section
+            const ticketElement = ticketRefs.current[ticketType.maLoaiVe];
+            if (ticketElement) {
+                ticketElement.scrollIntoView({
+                    behavior: 'smooth',
+                    block: 'center'
+                });
+
+                // Add highlight effect
+                ticketElement.classList.add('ticket-highlight');
+                setTimeout(() => {
+                    ticketElement.classList.remove('ticket-highlight');
+                }, 2000);
+            }
+        }
+    };
+
+    const handleZoneHover = (zoneId: string | null) => {
+        // Optional: Add hover effects here
+        console.log('Hovering zone:', zoneId);
     };
 
     const formatCurrency = (amount: number) => {
@@ -177,6 +221,14 @@ const BookTicket = () => {
         }
     }, [id]);
 
+    useEffect(() => {
+        if (event) {
+            console.log('Event data:', event);
+            console.log('Event khuVucs:', event.khuVucs);
+            console.log('Event loaiVes:', event.loaiVes);
+        }
+    }, [event]);
+
     if (loading) {
         return (
             <Container className="book-ticket-container">
@@ -233,6 +285,39 @@ const BookTicket = () => {
                     </Col>
 
                     <Col lg={8}>
+                        {event.khuVucs && event.khuVucs.length > 0 ? (
+                            <Card className="mb-4">
+                                <Card.Header>
+                                    <h5 className="mb-0">
+                                        <i className="fas fa-map"></i> Sơ đồ chỗ ngồi
+                                    </h5>
+                                    <small className="text-muted">
+                                        Nhấp vào khu vực để chọn vé tương ứng (Có {event.khuVucs.length} khu vực)
+                                    </small>
+                                </Card.Header>
+                                <Card.Body>
+                                    <ZoneMapViewer
+                                        eventZones={event.khuVucs}
+                                        tickets={event.loaiVes}
+                                        selectedZoneId={selectedZoneId || undefined}
+                                        onZoneClick={handleZoneClick}
+                                        onZoneHover={handleZoneHover}
+                                        width={1200}
+                                        height={1080}
+                                        showLabels={true}
+                                        showTicketInfo={true}
+                                        readOnly={false}
+                                        className="zone-map-booking"
+                                    />
+                                </Card.Body>
+                            </Card>
+                        ) : (
+                            <Alert variant="info" className="mb-4">
+                                <i className="fas fa-info-circle me-2"></i>
+                                Sự kiện này không có sơ đồ chỗ ngồi
+                            </Alert>
+                        )}
+
                         <div className="ticket-selection-panel">
                             <div className="ticket-selection-header">
                                 <h3>Loại vé</h3>
@@ -251,7 +336,15 @@ const BookTicket = () => {
                                     const min = ticket.soLuongToiThieu || 0;
                                     const max = Math.min(ticket.soLuongToiDa || ticket.veConLai || 0, ticket.veConLai || 0);
                                     return (
-                                        <div key={ticket.maLoaiVe} className="ticket-selection-item">
+                                        <div
+                                            key={ticket.maLoaiVe}
+                                            className="ticket-selection-item"
+                                            ref={(el) => {
+                                                if (ticket.maLoaiVe) {
+                                                    ticketRefs.current[ticket.maLoaiVe] = el;
+                                                }
+                                            }}
+                                        >
                                             <div className="ticket-info">
                                                 <h4>{ticket.tenLoaiVe}</h4>
                                                 <p className="ticket-price">{formatCurrency(ticket.giaTien)}</p>
