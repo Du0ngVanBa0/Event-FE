@@ -1,4 +1,4 @@
-import { Container, Nav, Row, Col, Card } from 'react-bootstrap';
+import { Container, Nav, Row, Col, Card, Alert } from 'react-bootstrap';
 import { Link, Outlet, useLocation } from 'react-router-dom';
 import './Dashboard.css';
 import { useEffect, useState } from 'react';
@@ -54,9 +54,10 @@ const Dashboard = () => {
                     }))
                 });
                 
-                setLoading(false);
             } catch (err) {
                 setError(err instanceof Error ? err.message : "Không thể tải dữ liệu thống kê");
+            } finally {
+                setLoading(false);
             }
         };
         
@@ -66,11 +67,39 @@ const Dashboard = () => {
     const renderDashboardContent = () => {
         if (loading) {
             return (
-                <div className="alert alert-info" role="alert">
-                    <i className="fas fa-spinner fa-spin"></i> Đang tải dữ liệu thống kê...
+                <div className="dashboard-loading">
+                    <div className="text-center">
+                        <div className="spinner-border text-primary" role="status">
+                            <span className="visually-hidden">Đang tải...</span>
+                        </div>
+                        <p className="mt-2">Đang tải dữ liệu thống kê...</p>
+                    </div>
                 </div>
             );
-        } else return (
+        }
+
+        if (error) {
+            return (
+                <Alert variant="danger" className="dashboard-error">
+                    <Alert.Heading>
+                        <i className="fas fa-exclamation-triangle"></i>
+                        Lỗi tải dữ liệu
+                    </Alert.Heading>
+                    <p className="mb-3">{error}</p>
+                    <div className="d-flex gap-2">
+                        <button 
+                            className="btn btn-outline-danger"
+                            onClick={() => window.location.reload()}
+                        >
+                            <i className="fas fa-redo"></i>
+                            Thử lại
+                        </button>
+                    </div>
+                </Alert>
+            );
+        }
+
+        return (
             <div className="dashboard-content">
                 <h2 className="mb-4">Tổng quan hệ thống</h2>
                 
@@ -135,12 +164,16 @@ const Dashboard = () => {
                             <Card.Body>
                                 <h4>Danh mục phổ biến</h4>
                                 <div className="category-stats">
-                                    {reportData.popularCategories.map((category, index) => (
-                                        <div key={index} className="category-stat-item">
-                                            <span className="category-name">{category.name}</span>
-                                            <span className="category-count">{category.count} sự kiện</span>
-                                        </div>
-                                    ))}
+                                    {reportData.popularCategories.length > 0 ? (
+                                        reportData.popularCategories.map((category, index) => (
+                                            <div key={index} className="category-stat-item">
+                                                <span className="category-name">{category.name}</span>
+                                                <span className="category-count">{category.count} sự kiện</span>
+                                            </div>
+                                        ))
+                                    ) : (
+                                        <p className="text-muted">Chưa có dữ liệu danh mục</p>
+                                    )}
                                 </div>
                             </Card.Body>
                         </Card>
@@ -150,15 +183,19 @@ const Dashboard = () => {
                             <Card.Body>
                                 <h4>Sự kiện nổi bật gần đây</h4>
                                 <div className="recent-events">
-                                    {reportData.recentEvents.map((event, index) => (
-                                        <div key={index} className="recent-event-item">
-                                            <span className="event-name">{event.name}</span>
-                                            <div className="event-stats">
-                                                <span>{event.tickets} vé</span>
-                                                <span>{formatCurrency(event.revenue)}</span>
+                                    {reportData.recentEvents.length > 0 ? (
+                                        reportData.recentEvents.map((event, index) => (
+                                            <div key={index} className="recent-event-item">
+                                                <span className="event-name">{event.name}</span>
+                                                <div className="event-stats">
+                                                    <span>{event.tickets} vé</span>
+                                                    <span>{formatCurrency(event.revenue)}</span>
+                                                </div>
                                             </div>
-                                        </div>
-                                    ))}
+                                        ))
+                                    ) : (
+                                        <p className="text-muted">Chưa có dữ liệu sự kiện</p>
+                                    )}
                                 </div>
                             </Card.Body>
                         </Card>

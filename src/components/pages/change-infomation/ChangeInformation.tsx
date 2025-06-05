@@ -172,7 +172,7 @@ const ChangeInformation = () => {
   };
 
   useEffect(() => {
-    let timeoutId: NodeJS.Timeout;
+    let timeoutId: NodeJS.Timeout | null = null;
     if (success || error) {
       timeoutId = setTimeout(() => {
         setSuccess("");

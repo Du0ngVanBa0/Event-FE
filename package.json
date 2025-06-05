@@ -9,7 +9,8 @@
     "lint": "eslint .",
     "preview": "vite preview",
     "predeploy": "npm run build",
-    "deploy": "gh-pages -d dist"
+    "deploy": "gh-pages -d dist",
+    "build:deploy": "vite build"
   },
   "dependencies": {
     "@ckeditor/ckeditor5-build-classic": "^41.4.2",
@@ -20,17 +21,20 @@
     "html2canvas": "^1.4.1",
     "jspdf": "^3.0.1",
     "jwt-decode": "^4.0.0",
+    "konva": "^9.3.20",
     "qrcode": "^1.5.4",
     "react": "^19.0.0",
     "react-bootstrap": "^2.10.9",
     "react-dom": "^19.0.0",
     "react-icons": "^5.5.0",
-    "react-konva": "^19.0.3",
+    "react-konva": "^19.0.4",
     "react-qr-reader": "^3.0.0-beta-1",
     "react-router-dom": "^7.6.0"
   },
   "devDependencies": {
     "@eslint/js": "^9.22.0",
+    "@types/node": "^22.15.29",
+    "@types/qrcode": "^1.5.5",
     "@types/react": "^19.0.10",
     "@types/react-dom": "^19.0.4",
     "@vitejs/plugin-react": "^4.3.4",
