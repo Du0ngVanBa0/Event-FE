@@ -39,6 +39,7 @@ const UniversePagination = ({ currentPage, totalPages, onPageChange }: UniverseP
                 <Pagination.Item
                     key={i}
                     active={i === currentPage}
+                    disabled={i === currentPage}
                     onClick={() => onPageChange(i)}
                 >
                     {i + 1}

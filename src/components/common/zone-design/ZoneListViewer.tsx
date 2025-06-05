@@ -197,6 +197,7 @@ const ZoneMapViewer: React.FC<ZoneMapViewerProps> = ({
     
     // Calculate viewport after zones are set
     calculateViewport(zoneData);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [eventZones, tickets, selectedZoneId, width, height]);
 
   const handleZoneClick = (zone: ZoneData) => {
