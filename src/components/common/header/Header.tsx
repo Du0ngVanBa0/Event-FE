@@ -2,7 +2,7 @@ import { Navbar, Container, Nav, Button, Dropdown, Image, Spinner } from 'react-
 import { Link, useLocation } from 'react-router-dom';
 import { useState, useEffect } from 'react';
 import 'bootstrap/dist/css/bootstrap.min.css';
-import './Header.css';
+import './header.css';
 import { useAuth } from '../../../hooks/useAuth';
 import { getDefaulImagetUrl, getImageUrl } from '../../../utils/helper';
 
