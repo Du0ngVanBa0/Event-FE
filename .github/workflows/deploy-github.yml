@@ -26,7 +26,7 @@ jobs:
         cache: 'npm'
         
     - name: Install dependencies
-      run: npm Install --legacy-peer-depsnpm run build
+      run: npm install --legacy-peer-depsnpm run build
       
     - name: Run TypeScript check
       run: npx tsc --noEmit
