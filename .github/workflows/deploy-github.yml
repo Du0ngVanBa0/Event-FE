@@ -31,11 +31,24 @@ jobs:
     - name: Run TypeScript check
       run: npx tsc --noEmit
       
+    - name: Debug environment variables
+      env:
+        VITE_API_URL: ${{ secrets.VITE_API_URL }}
+      run: |
+        echo "VITE_API_URL is: $VITE_API_URL"
+        echo "All VITE env vars:"
+        env | grep VITE || echo "No VITE env vars found"
+      
     - name: Build project
       env:
         VITE_API_URL: ${{ secrets.VITE_API_URL }}
       run: npm run build
       
+    - name: Check build output
+      run: |
+        echo "Checking if API URL was injected into build:"
+        find dist/ -name "*.js" -exec grep -l "localhost:8080" {} \; || echo "localhost:8080 not found in build"
+        
     - name: Setup Pages
       uses: actions/configure-pages@v4
       
