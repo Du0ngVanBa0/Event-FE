@@ -103,10 +103,6 @@ export interface CreateSuKienDTO {
     anhBia: File | null;
 }
 
-export interface UpdateSuKienDTO extends Omit<CreateSuKienDTO, 'anhBia'> {
-    anhBia?: File | null;
-}
-
 export interface SuKien {
     maSuKien: string;
     tieuDe: string;

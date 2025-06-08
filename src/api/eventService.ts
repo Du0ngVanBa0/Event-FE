@@ -1,4 +1,4 @@
-import { SuKien, CreateSuKienDTO, UpdateSuKienDTO } from '../types/EventTypes';
+import { SuKien, CreateSuKienDTO } from '../types/EventTypes';
 import { BaseService } from './baseService';
 import { ApiResponse, PaginatedResponse } from '../types/ResponseTypes';
 import axiosInstance from './axios';
@@ -33,7 +33,6 @@ class EventService extends BaseService<SuKien, CreateSuKienDTO> {
 
     override async create(data: CreateSuKienDTO): Promise<SuKien> {
         const formData = new FormData();
-        formData.append('maKhuVuc', '1')
 
         Object.entries(data).forEach(([key, value]) => {
             if (key !== 'anhBia' && key !== 'loaiVes' &&
@@ -73,12 +72,12 @@ class EventService extends BaseService<SuKien, CreateSuKienDTO> {
         return response.data.data;
     }
 
-    override async update(id: string, data: Partial<UpdateSuKienDTO>): Promise<SuKien> {
+    override async update(id: string, data: Partial<CreateSuKienDTO>): Promise<SuKien> {
         const formData = new FormData();
-        formData.append('maKhuVuc', '1')
 
         Object.entries(data).forEach(([key, value]) => {
-            if (key !== 'anhBia' && key !== 'loaiVes' && key !== 'maDanhMucs' && value !== undefined && value !== null) {
+            if (key !== 'anhBia' && key !== 'loaiVes' &&
+                key !== 'khuVucs' && key !== 'maDanhMucs' && value !== null) {
                 formData.append(key, String(value));
             }
         });
@@ -87,6 +86,12 @@ class EventService extends BaseService<SuKien, CreateSuKienDTO> {
             data.maDanhMucs.forEach((maDanhMuc: string) => {
                 formData.append('maDanhMucs', maDanhMuc);
             });
+        }
+
+        if (data.khuVucs && data.khuVucs.length > 0) {
+            formData.append('khuVucs', JSON.stringify(data.khuVucs));
+        } else {
+            formData.append('khuVucs', JSON.stringify([]));
         }
 
         if (data.loaiVes?.length) {
