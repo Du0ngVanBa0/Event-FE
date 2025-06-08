@@ -32,6 +32,8 @@ jobs:
       run: npx tsc --noEmit
       
     - name: Build project
+      env:
+        VITE_API_URL: ${{ secrets.VITE_API_URL }}
       run: npm run build
       
     - name: Setup Pages
@@ -45,5 +47,3 @@ jobs:
     - name: Deploy to GitHub Pages
       id: deployment
       uses: actions/deploy-pages@v4
-      env:
-        VITE_API_URL: ${{ secrets.VITE_API_URL }}
