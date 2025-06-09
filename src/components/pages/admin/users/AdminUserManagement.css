@@ -43,7 +43,7 @@
     width: 40px;
     height: 40px;
     border-radius: 50%;
-    object-fit: cover;
+    object-fit: contain;
     border: 2px solid var(--color-primary);
 }
 
@@ -129,7 +129,7 @@
     width: 80px;
     height: 80px;
     border-radius: 50%;
-    object-fit: cover;
+    object-fit: contain;
     border: 3px solid var(--color-primary);
 }
 
