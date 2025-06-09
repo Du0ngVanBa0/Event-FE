@@ -32,8 +32,15 @@ jobs:
       run: npx tsc --noEmit
       
     - name: Build project
+      env:
+        VITE_API_URL: ${{ secrets.VITE_API_URL }}
       run: npm run build
       
+    - name: Check build output
+      run: |
+        echo "Checking if API URL was injected into build:"
+        find dist/ -name "*.js" -exec grep -l "localhost:8080" {} \; || echo "localhost:8080 not found in build"
+        
     - name: Setup Pages
       uses: actions/configure-pages@v4
       
