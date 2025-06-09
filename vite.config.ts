@@ -8,9 +8,6 @@ export default defineConfig({
     outDir: 'dist',
     sourcemap: true
   },
-  define: {
-    'import.meta.env.VITE_API_URL': JSON.stringify(process.env.VITE_API_URL || 'http://localhost:8080')
-  },,
   // Skip ESLint checking during build
   esbuild: {
     logOverride: { 'this-is-undefined-in-esm': 'silent' }

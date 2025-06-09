@@ -359,7 +359,7 @@
     border: 2px solid var(--color-primary);
     transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
     cursor: pointer;
-    object-fit: cover;
+    object-fit: contain;
 }
 
 .header-user-toggle:hover .header-avatar-circle {
@@ -453,7 +453,7 @@
     height: 48px;
     border-radius: 50%;
     border: 2px solid var(--color-primary);
-    object-fit: cover;
+    object-fit: contain;
 }
 
 .header-dropdown-name {

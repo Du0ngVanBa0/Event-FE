@@ -31,10 +31,16 @@ const LandingPage = () => {
 
     const createParticle = (x: number, y: number) => {
       const particle = document.createElement("div");
-      const isNote = Math.random() > 0.5;
-
-      if (isNote) {
-        particle.innerHTML = ["♪", "♫", "♬", "♩"][
+      const random = Math.random();
+      
+      if (random > 0.7) {
+        particle.innerHTML = "🎫";
+        particle.className = "landing-page-ticket-particle";
+      } else if (random > 0.5) {
+        particle.className = "landing-page-confetti-particle";
+        particle.style.background = `hsl(${Math.random() * 360}, 70%, 60%)`;
+      } else if (random > 0.3) {
+        particle.innerHTML = ["♪", "♫", "♬", "♩"] [
           Math.floor(Math.random() * 4)
         ];
         particle.className = "landing-page-music-note";
@@ -51,11 +57,11 @@ const LandingPage = () => {
 
       setTimeout(() => {
         particle.remove();
-      }, 3000);
+      }, 4000);
     };
 
     const handleMouseMove = (e: MouseEvent) => {
-      if (Math.random() > 0.95) {
+      if (Math.random() > 0.92) {
         createParticle(e.clientX, e.clientY);
       }
     };
@@ -64,7 +70,7 @@ const LandingPage = () => {
       const x = Math.random() * window.innerWidth;
       const y = Math.random() * window.innerHeight;
       createParticle(x, y);
-    }, 2000);
+    }, 1500);
 
     document.addEventListener("mousemove", handleMouseMove);
     return () => {
@@ -120,6 +126,29 @@ const LandingPage = () => {
     },
   ];
 
+  const features = [
+    {
+      icon: "fas fa-ticket-alt",
+      title: "Đặt vé dễ dàng",
+      description: "Giao diện thân thiện, đặt vé chỉ trong vài phút"
+    },
+    {
+      icon: "fas fa-shield-alt",
+      title: "Thanh toán bảo mật",
+      description: "Hệ thống thanh toán an toàn với nhiều phương thức"
+    },
+    {
+      icon: "fas fa-mobile-alt",
+      title: "Vé điện tử",
+      description: "Vé được gửi ngay qua email và app di động"
+    },
+    {
+      icon: "fas fa-headset",
+      title: "Hỗ trợ 24/7",
+      description: "Đội ngũ chăm sóc khách hàng luôn sẵn sàng hỗ trợ"
+    }
+  ];
+
   return (
     <div className="landing-page">
       <div className="landing-page-mouse-particles" ref={mouseParticlesRef}></div>
@@ -128,6 +157,9 @@ const LandingPage = () => {
         <div className="landing-page-bg-circle landing-page-bg-circle-1"></div>
         <div className="landing-page-bg-circle landing-page-bg-circle-2"></div>
         <div className="landing-page-bg-circle landing-page-bg-circle-3"></div>
+        <div className="landing-page-bg-ticket landing-page-bg-ticket-1">🎫</div>
+        <div className="landing-page-bg-ticket landing-page-bg-ticket-2">🎟️</div>
+        <div className="landing-page-bg-ticket landing-page-bg-ticket-3">🎫</div>
       </div>
 
       <section
@@ -139,109 +171,174 @@ const LandingPage = () => {
         } as React.CSSProperties}
       >
         <div className="landing-page-hero-bg-glow"></div>
-        <div className="landing-page-hero-content">
-          <h1 className="landing-page-hero-title">
-            Khám phá & Đặt vé
-            <br />
-            <span className="landing-page-title-highlight">Sự kiện tuyệt vời</span>
-          </h1>
-          <p className="landing-page-hero-subtitle">
-            Nền tảng đặt vé sự kiện hàng đầu Việt Nam. Tìm kiếm, đặt vé và tham
-            gia hàng ngàn sự kiện chất lượng từ âm nhạc, nghệ thuật đến thể thao
-            và giáo dục.
-          </p>
+        <Container>
+          <div className="landing-page-hero-content">
+            <div className="landing-page-hero-left">
+              <h1 className="landing-page-hero-title">
+                Đặt vé
+                <span className="landing-page-ticket-emoji">🎫</span>
+                <br />
+                <span className="landing-page-title-highlight">Sự kiện tuyệt vời</span>
+                <br />
+                ngay hôm nay!
+              </h1>
+              <p className="landing-page-hero-subtitle">
+                Nền tảng đặt vé sự kiện hàng đầu Việt Nam. Tìm kiếm, đặt vé và tham
+                gia hàng ngàn sự kiện chất lượng từ âm nhạc, nghệ thuật đến thể thao
+                và giáo dục với giá tốt nhất.
+              </p>
 
-          <div className="landing-page-hero-search">
-            <div className="landing-page-search-container">
-              <input
-                type="text"
-                className="landing-page-search-input"
-                placeholder="Tìm kiếm sự kiện, địa điểm, nghệ sĩ..."
-                value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
-                onKeyPress={handleKeyPress}
-              />
-              <button
-                className="landing-page-search-btn"
-                onClick={handleSearch}
-              >
-                <i className="fas fa-search"></i>
-                <span>Tìm kiếm</span>
-              </button>
+              <div className="landing-page-hero-search">
+                <div className="landing-page-search-container">
+                  <input
+                    type="text"
+                    className="landing-page-search-input"
+                    placeholder="🎫 Tìm sự kiện, nghệ sĩ, địa điểm..."
+                    value={searchQuery}
+                    onChange={(e) => setSearchQuery(e.target.value)}
+                    onKeyPress={handleKeyPress}
+                  />
+                  <button
+                    className="landing-page-search-btn"
+                    onClick={handleSearch}
+                  >
+                    <i className="fas fa-search"></i>
+                    <span>Tìm vé ngay</span>
+                  </button>
+                </div>
+
+                <div className="landing-page-trending-tags">
+                  <span className="landing-page-trending-label">🔥 Phổ biến:</span>
+                  <a
+                    href="/events?category=music"
+                    className="landing-page-trending-tag"
+                  >
+                    Concert
+                  </a>
+                  <a
+                    href="/events?category=art"
+                    className="landing-page-trending-tag"
+                  >
+                    Triển lãm
+                  </a>
+                  <a
+                    href="/events?category=sport"
+                    className="landing-page-trending-tag"
+                  >
+                    Thể thao
+                  </a>
+                  <a
+                    href="/events?category=food"
+                    className="landing-page-trending-tag"
+                  >
+                    Food Festival
+                  </a>
+                </div>
+              </div>
+
+              <div className="landing-page-hero-buttons">
+                <Button
+                  className="landing-page-cta_primary"
+                  onClick={() => navigate("/events")}
+                >
+                  <i className="fas fa-ticket-alt"></i>
+                  <span> Đặt vé ngay</span>
+                  <div className="landing-page-button-glow"></div>
+                </Button>
+                {isAuthenticated ? (
+                  <Button
+                    className="landing-page-cta-secondary"
+                    onClick={() => navigate("/organizer/create-event")}
+                  >
+                    <i className="fas fa-plus"></i>
+                    <span>Tạo sự kiện</span>
+                  </Button>
+                ) : (
+                  <Button
+                    className="landing-page-cta-secondary"
+                    onClick={() => navigate("/register")}
+                  >
+                    <i className="fas fa-user-plus"></i>
+                    <span>Đăng ký miễn phí</span>
+                  </Button>
+                )}
+              </div>
+
+              <div className="landing-page-hero-stats">
+                <div className="landing-page-stat-item">
+                  <span className="landing-page-stat-number">1000+</span>
+                  <span className="landing-page-stat-label">Vé đã bán</span>
+                </div>
+                <div className="landing-page-stat-item">
+                  <span className="landing-page-stat-number">50K+</span>
+                  <span className="landing-page-stat-label">Khách hàng tin tưởng</span>
+                </div>
+                <div className="landing-page-stat-item">
+                  <span className="landing-page-stat-number">500+</span>
+                  <span className="landing-page-stat-label">Sự kiện đã tổ chức</span>
+                </div>
+              </div>
             </div>
 
-            <div className="landing-page-trending-tags">
-              <span className="landing-page-trending-label">Xu hướng:</span>
-              <a
-                href="/events?category=music"
-                className="landing-page-trending-tag"
-              >
-                Nhạc sống
-              </a>
-              <a
-                href="/events?category=art"
-                className="landing-page-trending-tag"
-              >
-                Triển lãm
-              </a>
-              <a
-                href="/events?category=sport"
-                className="landing-page-trending-tag"
-              >
-                Marathon
-              </a>
-              <a
-                href="/events?category=food"
-                className="landing-page-trending-tag"
-              >
-                Food Festival
-              </a>
+            <div className="landing-page-hero-right">
+              <div className="landing-page-hero-visual">
+                <div className="landing-page-main-ticket">
+                  <div className="landing-page-ticket-perforation"></div>
+                  <div className="landing-page-ticket-content">
+                    <div className="landing-page-ticket-header">
+                      <div>
+                        <div className="landing-page-ticket-title">LIVE CONCERT</div>
+                        <div className="landing-page-ticket-date">28 DEC 2024 • 20:00</div>
+                      </div>
+                      <div className="landing-page-ticket-qr">
+                        <i className="fas fa-qrcode"></i>
+                      </div>
+                    </div>
+                    <div className="landing-page-ticket-footer">
+                      <div className="landing-page-ticket-price">500K</div>
+                      <div className="landing-page-ticket-id">#VE001234</div>
+                    </div>
+                  </div>
+                </div>
+                
+                <div className="landing-page-floating-tickets">
+                  <div className="landing-page-mini-ticket landing-page-mini-ticket-1"></div>
+                  <div className="landing-page-mini-ticket landing-page-mini-ticket-2"></div>
+                  <div className="landing-page-mini-ticket landing-page-mini-ticket-3"></div>
+                </div>
+              </div>
             </div>
           </div>
+        </Container>
+      </section>
 
-          <div className="landing-page-hero-buttons">
-            <Button
-              className="landing-page-cta-primary"
-              onClick={() => navigate("/events")}
-            >
-              <i className="fas fa-calendar-alt"></i>
-              <span>Khám phá sự kiện</span>
-              <div className="landing-page-button-glow"></div>
-            </Button>
-            {isAuthenticated ? (
-              <Button
-                className="landing-page-cta-secondary"
-                onClick={() => navigate("/organizer/create-event")}
-              >
-                <i className="fas fa-plus"></i>
-                <span>Tạo sự kiện</span>
-              </Button>
-            ) : (
-              <Button
-                className="landing-page-cta-secondary"
-                onClick={() => navigate("/register")}
-              >
-                <i className="fas fa-user-plus"></i>
-                <span>Đăng ký miễn phí</span>
-              </Button>
-            )}
+      <section className="landing-page-features-section">
+        <Container>
+          <div className="landing-page-section-header">
+            <h2 className="landing-page-section-title">
+              <span>Tại sao chọn chúng tôi?</span>
+              <div className="landing-page-title-underline"></div>
+            </h2>
+            <p className="landing-page-section-subtitle">
+              Trải nghiệm đặt vé tuyệt vời với những tính năng vượt trội
+            </p>
           </div>
-
-          <div className="landing-page-hero-stats">
-            <div className="landing-page-stat-item">
-              <span className="landing-page-stat-number">1000+</span>
-              <span className="landing-page-stat-label">Sự kiện đã tổ chức</span>
-            </div>
-            <div className="landing-page-stat-item">
-              <span className="landing-page-stat-number">50K+</span>
-              <span className="landing-page-stat-label">Người dùng tin tưởng</span>
-            </div>
-            <div className="landing-page-stat-item">
-              <span className="landing-page-stat-number">500+</span>
-              <span className="landing-page-stat-label">Đối tác tổ chức</span>
-            </div>
+          <div className="landing-page-features-grid">
+            {features.map((feature, index) => (
+              <div
+                key={index}
+                className="landing-page-feature-card"
+                style={{ "--delay": `${index * 0.1}s` } as React.CSSProperties}
+              >
+                <div className="landing-page-feature-icon">
+                  <i className={feature.icon}></i>
+                </div>
+                <h3 className="landing-page-feature-title">{feature.title}</h3>
+                <p className="landing-page-feature-description">{feature.description}</p>
+              </div>
+            ))}
           </div>
-        </div>
+        </Container>
       </section>
 
       <div className="landing-page-wave-divider">
@@ -258,7 +355,7 @@ const LandingPage = () => {
               <div className="landing-page-title-underline"></div>
             </h2>
             <p className="landing-page-section-subtitle">
-              Những sự kiện được yêu thích và đánh giá cao nhất từ cộng đồng
+              Những sự kiện được yêu thích và đặt vé nhiều nhất
             </p>
           </div>
           <div className="landing-page-events-container">
@@ -284,7 +381,7 @@ const LandingPage = () => {
               <div className="landing-page-title-underline"></div>
             </h2>
             <p className="landing-page-section-subtitle">
-              Khám phá sự kiện theo từng lĩnh vực yêu thích của bạn
+              Khám phá vé sự kiện theo từng lĩnh vực yêu thích của bạn
             </p>
           </div>
           <div className="landing-page-categories-grid">
@@ -315,11 +412,11 @@ const LandingPage = () => {
         <Container>
           <div className="landing-page-section-header">
             <h2 className="landing-page-section-title">
-              <span>Cách thức hoạt động</span>
+              <span>Cách đặt vé</span>
               <div className="landing-page-title-underline"></div>
             </h2>
             <p className="landing-page-section-subtitle">
-              Chỉ với 4 bước đơn giản để tham gia sự kiện yêu thích
+              Chỉ với 4 bước đơn giản để có vé tham gia sự kiện yêu thích
             </p>
           </div>
           <div className="landing-page-steps-grid">
@@ -348,9 +445,9 @@ const LandingPage = () => {
         <div className="landing-page-cta-bg"></div>
         <Container>
           <div className="landing-page-cta-content">
-            <h2>Bắt đầu hành trình khám phá</h2>
+            <h2>Bắt đầu đặt vé ngay hôm nay!</h2>
             <p>
-              Tham gia cùng hàng nghìn người đã tin tưởng và sử dụng nền tảng
+              Tham gia cùng hàng nghìn người đã tin tưởng và đặt vé qua nền tảng
               của chúng tôi
             </p>
             {!isAuthenticated ? (
@@ -358,25 +455,25 @@ const LandingPage = () => {
                 className="landing-page-cta-final"
                 onClick={() => navigate("/register")}
               >
-                <i className="fas fa-rocket"></i>
-                <span>Đăng ký ngay miễn phí</span>
+                <i className="fas fa-ticket-alt"></i>
+                <span>Đăng ký & Đặt vé ngay</span>
                 <div className="landing-page-button-shine"></div>
               </Button>
             ) : (
               <div className="landing-page-cta-buttons">
                 <Button
-                  className="landing-page-cta-primary"
+                  className="landing-page-cta_primary"
                   onClick={() => navigate("/events")}
                 >
-                  <i className="fas fa-calendar"></i>
-                  <span>Khám phá sự kiện</span>
+                  <i className="fas fa-ticket-alt"></i>
+                  <span> Đặt vé ngay</span>
                 </Button>
                 <Button
-                  className="landing-page-cta-primary"
+                  className="landing-page-cta_primary"
                   onClick={() => navigate("/organizer/create-event")}
                 >
                   <i className="fas fa-plus"></i>
-                  <span>Tạo sự kiện mới</span>
+                  <span> Tạo sự kiện mới</span>
                 </Button>
               </div>
             )}

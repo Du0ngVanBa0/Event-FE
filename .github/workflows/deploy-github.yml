@@ -31,14 +31,6 @@ jobs:
     - name: Run TypeScript check
       run: npx tsc --noEmit
       
-    - name: Debug environment variables
-      env:
-        VITE_API_URL: ${{ secrets.VITE_API_URL }}
-      run: |
-        echo "VITE_API_URL is: $VITE_API_URL"
-        echo "All VITE env vars:"
-        env | grep VITE || echo "No VITE env vars found"
-      
     - name: Build project
       env:
         VITE_API_URL: ${{ secrets.VITE_API_URL }}
