@@ -14,6 +14,16 @@ export interface ThongKeResponse {
   doanhThuThang: number;
 }
 
+export interface ThongKeSuKienResponse {
+  maSuKien: string;
+  tieuDe: string;
+  thoiGianBatDau: string;
+  thoiGianKetThuc: string;
+  tongDoanhThu: number;
+  soVeDaBan: number;
+  soVeConLai: number;
+}
+
 export interface ReportDataState {
   totalEvents: number;
   pendingEvents: number;

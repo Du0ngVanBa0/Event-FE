@@ -4,7 +4,7 @@ import { Link, Outlet, useLocation } from 'react-router-dom';
 import reportService from '../../../api/reportService';
 import eventService from '../../../api/eventService';
 import './Dashboard.css';
-import { ThongKeResponse, TopKhachHangResponse } from '../../../types/ReportTypes';
+import { ThongKeResponse, TopKhachHangResponse, ThongKeSuKienResponse } from '../../../types/ReportTypes';
 import { SuKien } from '../../../types/EventTypes';
 import { getImageUrl, formatCurrency } from '../../../utils/helper';
 
@@ -86,22 +86,26 @@ const DashboardPage: React.FC = () => {
     const [rangeData, setRangeData] = useState<ThongKeResponse | null>(null);
     const [topCustomers, setTopCustomers] = useState<TopKhachHangResponse[]>([]);
     const [eventTopCustomers, setEventTopCustomers] = useState<TopKhachHangResponse[]>([]);
+    const [eventStats, setEventStats] = useState<ThongKeSuKienResponse | null>(null);
     const [events, setEvents] = useState<SuKien[]>([]);
     
     const [startDate, setStartDate] = useState('');
     const [endDate, setEndDate] = useState('');
     const [selectedEvent, setSelectedEvent] = useState('');
+    const [selectedEventForStats, setSelectedEventForStats] = useState('');
     const [customerLimit, setCustomerLimit] = useState(5);
     
     const [loading, setLoading] = useState(true);
     const [rangeLoading, setRangeLoading] = useState(false);
     const [customersLoading, setCustomersLoading] = useState(false);
     const [eventCustomersLoading, setEventCustomersLoading] = useState(false);
+    const [eventStatsLoading, setEventStatsLoading] = useState(false);
     
     const [error, setError] = useState('');
     const [rangeError, setRangeError] = useState('');
     const [customersError, setCustomersError] = useState('');
     const [eventCustomersError, setEventCustomersError] = useState('');
+    const [eventStatsError, setEventStatsError] = useState('');
 
     useEffect(() => {
         fetchAllTimeData();
@@ -203,11 +207,40 @@ const DashboardPage: React.FC = () => {
         }
     };
 
+    const fetchEventStats = async () => {
+        if (!selectedEventForStats) {
+            setEventStatsError('Vui lòng chọn sự kiện');
+            return;
+        }
+
+        try {
+            setEventStatsLoading(true);
+            setEventStatsError('');
+            const response = await reportService.getThongKeSuKien(selectedEventForStats);
+            setEventStats(response.data);
+        } catch (err) {
+            setEventStatsError(err instanceof Error ? err.message : 'Không thể tải thống kê sự kiện');
+        } finally {
+            setEventStatsLoading(false);
+        }
+    };
+
     const formatDateRange = () => {
         if (!startDate || !endDate) return '';
         const start = new Date(startDate).toLocaleDateString('vi-VN');
         const end = new Date(endDate).toLocaleDateString('vi-VN');
         return `${start} - ${end}`;
+    };
+
+    const formatDateTime = (dateTimeString: string) => {
+        const date = new Date(dateTimeString);
+        return date.toLocaleString('vi-VN', {
+            year: 'numeric',
+            month: '2-digit',
+            day: '2-digit',
+            hour: '2-digit',
+            minute: '2-digit'
+        });
     };
 
     const CustomerTable: React.FC<{ customers: TopKhachHangResponse[]; title: string }> = ({ customers, title }) => (
@@ -369,6 +402,172 @@ const DashboardPage: React.FC = () => {
                         </Row>
                     </div>
                 )}
+
+                {/* Event Statistics Section */}
+                <div className="dashboard-page-section">
+                    <h2 className="dashboard-page-section-title">
+                        <i className="fas fa-chart-bar"></i>
+                        Thống kê chi tiết sự kiện
+                    </h2>
+
+                    <Card className="dashboard-page-range-filter">
+                        <Card.Body>
+                            <Row className="align-items-end">
+                                <Col md={8}>
+                                    <Form.Group>
+                                        <Form.Label className="dashboard-page-label">
+                                            <i className="fas fa-calendar-check"></i>
+                                            Chọn sự kiện để xem thống kê chi tiết
+                                        </Form.Label>
+                                        <Form.Select
+                                            value={selectedEventForStats}
+                                            onChange={(e) => setSelectedEventForStats(e.target.value)}
+                                            className="dashboard-page-date-input"
+                                        >
+                                            <option value="">-- Chọn sự kiện --</option>
+                                            {events.map((event) => (
+                                                <option key={event.maSuKien} value={event.maSuKien}>
+                                                    {event.tieuDe}
+                                                </option>
+                                            ))}
+                                        </Form.Select>
+                                    </Form.Group>
+                                </Col>
+                                <Col md={4}>
+                                    <Button
+                                        variant="primary"
+                                        onClick={fetchEventStats}
+                                        disabled={eventStatsLoading || !selectedEventForStats}
+                                        className="dashboard-page-filter-btn"
+                                    >
+                                        {eventStatsLoading ? (
+                                            <>
+                                                <Spinner animation="border" size="sm" className="me-2" />
+                                                Đang tải...
+                                            </>
+                                        ) : (
+                                            <>
+                                                <i className="fas fa-chart-bar"></i>
+                                                Xem thống kê
+                                            </>
+                                        )}
+                                    </Button>
+                                </Col>
+                            </Row>
+
+                            {eventStatsError && (
+                                <Alert variant="danger" className="mt-3 dashboard-page-range-error">
+                                    <i className="fas fa-exclamation-circle"></i>
+                                    {eventStatsError}
+                                </Alert>
+                            )}
+                        </Card.Body>
+                    </Card>
+
+                    {/* Event Statistics Results */}
+                    {eventStats && (
+                        <div className="dashboard-page-range-results">
+                            <div className="dashboard-page-range-header">
+                                <h3 className="dashboard-page-range-title">
+                                    Thống kê sự kiện: {eventStats.tieuDe}
+                                </h3>
+                                <p className="dashboard-page-range-period">
+                                    Thời gian: {formatDateTime(eventStats.thoiGianBatDau)} - {formatDateTime(eventStats.thoiGianKetThuc)}
+                                </p>
+                            </div>
+
+                            <Row className="dashboard-page-range-grid">
+                                <Col xl={3} lg={6} md={6} sm={12}>
+                                    <SummaryCard
+                                        icon="fas fa-money-bill-wave"
+                                        title="Tổng doanh thu"
+                                        value={formatCurrency(eventStats.tongDoanhThu)}
+                                        subtitle="Từ bán vé"
+                                        color="green"
+                                    />
+                                </Col>
+                                <Col xl={3} lg={6} md={6} sm={12}>
+                                    <SummaryCard
+                                        icon="fas fa-ticket-alt"
+                                        title="Vé đã bán"
+                                        value={eventStats.soVeDaBan}
+                                        subtitle="Số lượng vé"
+                                        color="blue"
+                                    />
+                                </Col>
+                                <Col xl={3} lg={6} md={6} sm={12}>
+                                    <SummaryCard
+                                        icon="fas fa-clipboard-list"
+                                        title="Vé còn lại"
+                                        value={eventStats.soVeConLai}
+                                        subtitle="Chưa bán"
+                                        color="orange"
+                                    />
+                                </Col>
+                                <Col xl={3} lg={6} md={6} sm={12}>
+                                    <SummaryCard
+                                        icon="fas fa-percentage"
+                                        title="Tỷ lệ bán"
+                                        value={`${((eventStats.soVeDaBan / (eventStats.soVeDaBan + eventStats.soVeConLai)) * 100).toFixed(1)}%`}
+                                        subtitle="Đã bán / Tổng vé"
+                                        color="purple"
+                                    />
+                                </Col>
+                            </Row>
+
+                            {/* Event Details Card */}
+                            <Row className="mt-4">
+                                <Col lg={12}>
+                                    <Card className="dashboard-page-chart-card">
+                                        <Card.Body>
+                                            <h4 className="dashboard-page-chart-title">
+                                                <i className="fas fa-info-circle"></i>
+                                                Chi tiết sự kiện
+                                            </h4>
+                                            <div className="dashboard-page-event-details">
+                                                <div className="row">
+                                                    <div className="col-md-6">
+                                                        <div className="dashboard-page-detail-item">
+                                                            <strong>Mã sự kiện:</strong>
+                                                            <span className="ms-2">{eventStats.maSuKien}</span>
+                                                        </div>
+                                                        <div className="dashboard-page-detail-item">
+                                                            <strong>Tên sự kiện:</strong>
+                                                            <span className="ms-2">{eventStats.tieuDe}</span>
+                                                        </div>
+                                                        <div className="dashboard-page-detail-item">
+                                                            <strong>Thời gian bắt đầu:</strong>
+                                                            <span className="ms-2">{formatDateTime(eventStats.thoiGianBatDau)}</span>
+                                                        </div>
+                                                    </div>
+                                                    <div className="col-md-6">
+                                                        <div className="dashboard-page-detail-item">
+                                                            <strong>Thời gian kết thúc:</strong>
+                                                            <span className="ms-2">{formatDateTime(eventStats.thoiGianKetThuc)}</span>
+                                                        </div>
+                                                        <div className="dashboard-page-detail-item">
+                                                            <strong>Tổng số vé:</strong>
+                                                            <span className="ms-2">{(eventStats.soVeDaBan + eventStats.soVeConLai).toLocaleString('vi-VN')}</span>
+                                                        </div>
+                                                        <div className="dashboard-page-detail-item">
+                                                            <strong>Doanh thu trung bình/vé:</strong>
+                                                            <span className="ms-2">
+                                                                {eventStats.soVeDaBan > 0 
+                                                                    ? formatCurrency(eventStats.tongDoanhThu / eventStats.soVeDaBan)
+                                                                    : '0 VND'
+                                                                }
+                                                            </span>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </Card.Body>
+                                    </Card>
+                                </Col>
+                            </Row>
+                        </div>
+                    )}
+                </div>
 
                 {/* Date Range Filter */}
                 <div className="dashboard-page-section">

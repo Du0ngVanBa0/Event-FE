@@ -1,6 +1,6 @@
 import axiosInstance from './axios';
 import { ApiResponse } from '../types/ResponseTypes';
-import { ThongKeResponse, TopKhachHangResponse } from '../types/ReportTypes';
+import { ThongKeResponse, TopKhachHangResponse, ThongKeSuKienResponse } from '../types/ReportTypes';
 import { ThongKeRangeParams, TopKhachHangParams } from '../types/RequestTypes';
 
 export const reportService = {
@@ -48,6 +48,11 @@ export const reportService = {
                 limit
             }
         });
+        return response.data;
+    },
+
+    getThongKeSuKien: async (maSuKien: string): Promise<ApiResponse<ThongKeSuKienResponse>> => {
+        const response = await axiosInstance.get<ApiResponse<ThongKeSuKienResponse>>(`/thong-ke/su-kien/${maSuKien}`);
         return response.data;
     }
 };

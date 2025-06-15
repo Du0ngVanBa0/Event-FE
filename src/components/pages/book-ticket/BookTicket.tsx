@@ -30,7 +30,6 @@ const BookTicket = () => {
         return `${event.diaDiem.tenDiaDiem}, ${event.diaDiem.tenPhuongXa}, ${event.diaDiem.tenQuanHuyen}, ${event.diaDiem.tenTinhThanh}`;
     };
 
-    // Helper: Find current selected quantity for a ticket
     const getSelectedQuantity = (ticketId: string) =>
         selectedTickets.find(t => t.id === ticketId)?.quantity || 0;
 
@@ -46,7 +45,6 @@ const BookTicket = () => {
             const current = existing?.quantity || 0;
             let newQuantity = current + change;
 
-            // Clamp to min/max and never below 0
             if (newQuantity < min && newQuantity !== 0) newQuantity = min;
             if (newQuantity > max) newQuantity = max;
             if (newQuantity < 0) newQuantity = 0;
@@ -59,7 +57,6 @@ const BookTicket = () => {
             }
 
             if (newQuantity === 0) {
-                // Remove selection if quantity is zero
                 return prev.filter(t => t.id !== ticketId);
             }
 
@@ -98,25 +95,21 @@ const BookTicket = () => {
         });
     };
 
-    // Handle zone click - auto increment ticket quantity or focus
     const handleZoneClick = (zoneId: string, ticketType?: TicketType) => {
         setSelectedZoneId(zoneId);
 
         if (ticketType && ticketType.maLoaiVe) {
-            // Try to increment quantity by 1
             const currentQuantity = getSelectedQuantity(ticketType.maLoaiVe);
             const min = ticketType.soLuongToiThieu || 0;
             const max = Math.min(ticketType.soLuongToiDa || ticketType.veConLai || 0, ticketType.veConLai || 0);
 
             if (currentQuantity < max) {
-                // If current quantity is 0 and minimum is > 1, set to minimum
                 const newQuantity = currentQuantity === 0 ? Math.max(1, min) : currentQuantity + 1;
                 if (newQuantity <= max) {
                     handleQuantityChange(ticketType.maLoaiVe, newQuantity - currentQuantity);
                 }
             }
 
-            // Scroll to the corresponding ticket section
             const ticketElement = ticketRefs.current[ticketType.maLoaiVe];
             if (ticketElement) {
                 ticketElement.scrollIntoView({
@@ -124,18 +117,12 @@ const BookTicket = () => {
                     block: 'center'
                 });
 
-                // Add highlight effect
                 ticketElement.classList.add('book-ticket-highlight');
                 setTimeout(() => {
                     ticketElement.classList.remove('book-ticket-highlight');
                 }, 2000);
             }
         }
-    };
-
-    const handleZoneHover = (zoneId: string | null) => {
-        // Optional: Add hover effects here
-        console.log('Hovering zone:', zoneId);
     };
 
     const formatCurrency = (amount: number) => {
@@ -164,7 +151,6 @@ const BookTicket = () => {
     };
 
     const handlePayment = async () => {
-        // Validate min/max before booking
         const bookingValidationError = validateBooking();
         if (bookingValidationError) {
             setBookingError(bookingValidationError);
@@ -469,7 +455,6 @@ const BookTicket = () => {
                                         tickets={event.loaiVes}
                                         selectedZoneId={selectedZoneId || undefined}
                                         onZoneClick={handleZoneClick}
-                                        onZoneHover={handleZoneHover}
                                         width={800}
                                         height={500}
                                         showLabels={true}
