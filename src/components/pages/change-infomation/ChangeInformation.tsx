@@ -3,15 +3,9 @@ import { Container, Form, Button, Alert, InputGroup } from "react-bootstrap";
 import { useAuth } from "../../../hooks/useAuth";
 import AvatarConfirmModal from "./AvatarConfirmModal";
 import "./ChangeInformation.css";
-import { getDefaulImagetUrl } from "../../../utils/helper";
-
-interface ChangeInfoForm {
-  fullName: string;
-  email: string;
-  currentPassword: string;
-  newPassword: string;
-  confirmPassword: string;
-}
+import { getDefaulImagetUrl, getImageUrl } from "../../../utils/helper";
+import { ChangeInfoForm } from "../../../types/UserTypes";
+import userService from "../../../api/userService";
 
 const ChangeInformation = () => {
   const { user, updateUser } = useAuth();
@@ -57,12 +51,24 @@ const ChangeInformation = () => {
         errors.currentPassword = "Vui lòng nhập mật khẩu hiện tại";
       }
 
-      if (formData.newPassword && formData.newPassword.length < 6) {
+      if (!formData.newPassword) {
+        errors.newPassword = "Vui lòng nhập mật khẩu mới";
+      } else if (formData.newPassword.length < 6) {
         errors.newPassword = "Mật khẩu mới phải có ít nhất 6 ký tự";
       }
 
-      if (formData.newPassword !== formData.confirmPassword) {
+      if (!formData.confirmPassword) {
+        errors.confirmPassword = "Vui lòng xác nhận mật khẩu mới";
+      } else if (formData.newPassword !== formData.confirmPassword) {
         errors.confirmPassword = "Mật khẩu xác nhận không khớp";
+      }
+
+      if (formData.newPassword.length < 6) {
+        errors.newPassword = "Mật khẩu mới phải có ít nhất 6 ký tự";
+      }
+
+  if (formData.fullName.length < 5 || formData.fullName.length > 20) {
+        errors.fullName = "Họ và tên phải từ 5 đến 20 ký tự"; 
       }
     }
 
@@ -89,31 +95,9 @@ const ChangeInformation = () => {
     }
   };
 
-  const handleAvatarConfirm = async () => {
-    if (newAvatar) {
-      setLoading(true);
-      try {
-        const formData = new FormData();
-        formData.append('avatar', newAvatar);
-        
-        await new Promise(resolve => setTimeout(resolve, 1000));
-        
-        updateUser({ 
-          ...user,
-          avatar: previewUrl
-        });
-        
-        setSuccess("Ảnh đại diện đã được cập nhật thành công");
-      } catch (err) {
-        setError("Không thể cập nhật ảnh đại diện");
-        console.error("Error uploading avatar:", err);
-      } finally {
-        setLoading(false);
-        setShowAvatarModal(false);
-        setNewAvatar(null);
-        setPreviewUrl("");
-      }
-    }
+  const handleAvatarConfirm = () => {
+    setShowAvatarModal(false);
+    setSuccess("Ảnh đại diện sẽ được cập nhật khi bạn lưu thay đổi");
   };
 
   const handleSubmit = async (e: FormEvent) => {
@@ -127,31 +111,57 @@ const ChangeInformation = () => {
       return;
     }
 
+    const hasBasicInfoChange = formData.fullName !== user?.displayName;
+    const hasPasswordChange = showPasswordSection && formData.newPassword;
+    const hasAvatarChange = newAvatar !== null;
+
+    if (!hasBasicInfoChange && !hasPasswordChange && !hasAvatarChange) {
+      setError("Không có thông tin nào thay đổi");
+      return;
+    }
+
     setLoading(true);
     try {
-      await new Promise(resolve => setTimeout(resolve, 1000));
-      
-      updateUser({
-        displayName: formData.fullName,
-        email: formData.email,
-      });
+      const changeInfoRequest = {
+        hoVaTen: formData.fullName,
+        matKhauHienTai: showPasswordSection ? formData.currentPassword : "",
+        matKhauMoi: showPasswordSection ? formData.newPassword : "",
+        anhDaiDien: newAvatar ?? null,
+      };
 
-      setSuccess("Thông tin đã được cập nhật thành công");
+      const response = await userService.changeInfomation(changeInfoRequest);
 
-      if (showPasswordSection) {
-        setFormData((prev) => ({
-          ...prev,
-          currentPassword: "",
-          newPassword: "",
-          confirmPassword: "",
-        }));
-        setShowPasswordSection(false);
+      if (response.success) {
+        updateUser({
+          ...user,
+          displayName: formData.fullName,
+          avatar: response?.data?.anhDaiDien || user?.avatar,
+        });
+
+        setSuccess("Thông tin đã được cập nhật thành công");
+
+        if (showPasswordSection) {
+          setFormData((prev) => ({
+            ...prev,
+            currentPassword: "",
+            newPassword: "",
+            confirmPassword: "",
+          }));
+          setShowPasswordSection(false);
+        }
+
+        if (newAvatar) {
+          setNewAvatar(null);
+          setPreviewUrl("");
+        }
+
+        window.scrollTo({ top: 0, behavior: 'smooth' });
+      } else {
+        setError(response.message || "Không thể cập nhật thông tin");
       }
-
-      window.scrollTo({ top: 0, behavior: 'smooth' });
     } catch (err) {
-      setError("Không thể cập nhật thông tin. Vui lòng thử lại sau.");
       console.error("Error updating user information:", err);
+        setError("Không thể cập nhật thông tin. Vui lòng thử lại sau.");
     } finally {
       setLoading(false);
     }
@@ -169,6 +179,8 @@ const ChangeInformation = () => {
     setError("");
     setSuccess("");
     setShowPasswordSection(false);
+    setNewAvatar(null);
+    setPreviewUrl("");
   };
 
   useEffect(() => {
@@ -217,7 +229,7 @@ const ChangeInformation = () => {
             <div className="change-info-page-avatar-container">
               <div className="change-info-page-avatar-wrapper">
                 <img
-                  src={user?.avatar || getDefaulImagetUrl()}
+                  src={previewUrl || getImageUrl(user?.avatar || '') || getDefaulImagetUrl()}
                   alt="Profile Avatar"
                   className="change-info-page-avatar-image"
                 />
@@ -239,6 +251,12 @@ const ChangeInformation = () => {
                 <h3>Ảnh đại diện</h3>
                 <p>Nhấp vào ảnh để thay đổi ảnh đại diện</p>
                 <small>Định dạng: JPG, PNG. Kích thước tối đa: 5MB</small>
+                {newAvatar && (
+                  <div className="change-info-page-avatar-status">
+                    <i className="fas fa-info-circle text-info"></i>
+                    <span>Ảnh mới đã được chọn</span>
+                  </div>
+                )}
               </div>
             </div>
           </div>
@@ -287,7 +305,6 @@ const ChangeInformation = () => {
                   </small>
                 </Form.Group>
 
-                
                 <Form.Group className="change-info-page-form-group">
                   <Form.Label className="change-info-page-label">Tên đăng nhập</Form.Label>
                   <Form.Control
@@ -352,7 +369,9 @@ const ChangeInformation = () => {
                     </Form.Group>
 
                     <Form.Group className="change-info-page-form-group">
-                      <Form.Label className="change-info-page-label">Mật khẩu mới</Form.Label>
+                      <Form.Label className="change-info-page-label">
+                        Mật khẩu mới <span className="change-info-page-required">*</span>
+                      </Form.Label>
                       <InputGroup>
                         <Form.Control
                           type={showNewPassword ? "text" : "password"}
@@ -378,7 +397,9 @@ const ChangeInformation = () => {
                     </Form.Group>
 
                     <Form.Group className="change-info-page-form-group">
-                      <Form.Label className="change-info-page-label">Xác nhận mật khẩu mới</Form.Label>
+                      <Form.Label className="change-info-page-label">
+                        Xác nhận mật khẩu mới <span className="change-info-page-required">*</span>
+                      </Form.Label>
                       <InputGroup>
                         <Form.Control
                           type={showConfirmPassword ? "text" : "password"}

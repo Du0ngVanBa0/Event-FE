@@ -34,3 +34,10 @@ export interface VerifyOtpRequest {
     maOtp: string;
     maXacThuc: string;
 }
+
+export interface ChangeInfoRequest {
+  hoVaTen: string;
+  matKhauHienTai: string;
+  matKhauMoi: string;
+  anhDaiDien: File | null;
+}
