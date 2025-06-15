@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef } from 'react';
-import { Container, Row, Col, Button, Alert, Form, Card } from 'react-bootstrap';
+import { Container, Row, Col, Button, Alert, Form, Card, Badge } from 'react-bootstrap';
 import { useNavigate, useParams } from 'react-router-dom';
 import { SuKien, TicketType } from '../../../types/EventTypes';
 import './BookTicket.css';
@@ -30,7 +30,6 @@ const BookTicket = () => {
         return `${event.diaDiem.tenDiaDiem}, ${event.diaDiem.tenPhuongXa}, ${event.diaDiem.tenQuanHuyen}, ${event.diaDiem.tenTinhThanh}`;
     };
 
-    // Helper: Find current selected quantity for a ticket
     const getSelectedQuantity = (ticketId: string) =>
         selectedTickets.find(t => t.id === ticketId)?.quantity || 0;
 
@@ -46,7 +45,6 @@ const BookTicket = () => {
             const current = existing?.quantity || 0;
             let newQuantity = current + change;
 
-            // Clamp to min/max and never below 0
             if (newQuantity < min && newQuantity !== 0) newQuantity = min;
             if (newQuantity > max) newQuantity = max;
             if (newQuantity < 0) newQuantity = 0;
@@ -59,7 +57,6 @@ const BookTicket = () => {
             }
 
             if (newQuantity === 0) {
-                // Remove selection if quantity is zero
                 return prev.filter(t => t.id !== ticketId);
             }
 
@@ -98,25 +95,21 @@ const BookTicket = () => {
         });
     };
 
-    // Handle zone click - auto increment ticket quantity or focus
     const handleZoneClick = (zoneId: string, ticketType?: TicketType) => {
         setSelectedZoneId(zoneId);
 
         if (ticketType && ticketType.maLoaiVe) {
-            // Try to increment quantity by 1
             const currentQuantity = getSelectedQuantity(ticketType.maLoaiVe);
             const min = ticketType.soLuongToiThieu || 0;
             const max = Math.min(ticketType.soLuongToiDa || ticketType.veConLai || 0, ticketType.veConLai || 0);
 
             if (currentQuantity < max) {
-                // If current quantity is 0 and minimum is > 1, set to minimum
                 const newQuantity = currentQuantity === 0 ? Math.max(1, min) : currentQuantity + 1;
                 if (newQuantity <= max) {
                     handleQuantityChange(ticketType.maLoaiVe, newQuantity - currentQuantity);
                 }
             }
 
-            // Scroll to the corresponding ticket section
             const ticketElement = ticketRefs.current[ticketType.maLoaiVe];
             if (ticketElement) {
                 ticketElement.scrollIntoView({
@@ -124,18 +117,12 @@ const BookTicket = () => {
                     block: 'center'
                 });
 
-                // Add highlight effect
-                ticketElement.classList.add('ticket-highlight');
+                ticketElement.classList.add('book-ticket-highlight');
                 setTimeout(() => {
-                    ticketElement.classList.remove('ticket-highlight');
+                    ticketElement.classList.remove('book-ticket-highlight');
                 }, 2000);
             }
         }
-    };
-
-    const handleZoneHover = (zoneId: string | null) => {
-        // Optional: Add hover effects here
-        console.log('Hovering zone:', zoneId);
     };
 
     const formatCurrency = (amount: number) => {
@@ -164,7 +151,6 @@ const BookTicket = () => {
     };
 
     const handlePayment = async () => {
-        // Validate min/max before booking
         const bookingValidationError = validateBooking();
         if (bookingValidationError) {
             setBookingError(bookingValidationError);
@@ -231,195 +217,307 @@ const BookTicket = () => {
 
     if (loading) {
         return (
-            <Container className="book-ticket-container">
-                <div className="loading-container">
+            <div className="book-ticket-container">
+                <div className="book-ticket-loading">
                     <div className="spinner-border text-primary" role="status">
-                        <span className="visually-hidden">Loading...</span>
+                        <span className="visually-hidden">Đang tải...</span>
                     </div>
+                    <p className="mt-3">Đang tải thông tin sự kiện...</p>
                 </div>
-            </Container>
+            </div>
         );
     }
 
     if (error || !event) {
         return (
-            <Container className="book-ticket-container">
-                <Alert variant="danger">{error || 'Không tìm thấy sự kiện'}</Alert>
-            </Container>
+            <div className="book-ticket-container">
+                <Alert variant="danger" className="book-ticket-error">
+                    <i className="fas fa-exclamation-triangle"></i>
+                    {error || 'Không tìm thấy sự kiện'}
+                </Alert>
+            </div>
         );
     }
 
     return (
-        <Container className="book-ticket-container">
-            <Button
-                variant="link"
-                className="back-button"
-                onClick={() => navigate(-1)}
-            >
-                <i className="fas fa-arrow-left"></i> Quay lại
-            </Button>
+        <div className="book-ticket-container">
+            <Container fluid className="book-ticket-wrapper">
+                <div className="book-ticket-header">
+                    <Button
+                        variant="link"
+                        className="book-ticket-back-button"
+                        onClick={() => navigate(-1)}
+                    >
+                        <i className="fas fa-arrow-left"></i> Quay lại
+                    </Button>
+                    <h1 className="book-ticket-title">Đặt vé sự kiện</h1>
+                </div>
 
-            <div className="booking-content">
-                <Row>
-                    <Col lg={4}>
-                        <div className="event-info-panel">
-                            <h2>{event.tieuDe}</h2>
-                            <p className="event-address">
-                                <i className="fas fa-map-marker-alt"></i>
-                                {formatAddress(event)}
-                            </p>
+                <Row className="book-ticket-content">
+                    <Col lg={4} className="book-ticket-sidebar">
+                        <Card className="book-ticket-event-card">
+                            <Card.Body>
+                                <div className="book-ticket-event-header">
+                                    <h2 className="book-ticket-event-title">{event.tieuDe}</h2>
+                                    <p className="book-ticket-event-address">
+                                        <i className="fas fa-map-marker-alt"></i>
+                                        {formatAddress(event)}
+                                    </p>
+                                </div>
 
-                            <div className="ticket-price-list">
-                                <h3>Giá vé</h3>
-                                {event.loaiVes.map(ticket => (
-                                    <div key={ticket.maLoaiVe} className="ticket-price-item">
-                                        <span>{ticket.tenLoaiVe}</span>
-                                        <span>{formatCurrency(ticket.giaTien)}</span>
-                                        <span>
-                                            (Tối thiểu {ticket.soLuongToiThieu || 0} / Tối đa {ticket.soLuongToiDa || ticket.veConLai || 0})
-                                        </span>
+                                <div className="book-ticket-price-section">
+                                    <h3 className="book-ticket-section-title">
+                                        <i className="fas fa-tags"></i>
+                                        Bảng giá vé
+                                    </h3>
+                                    <div className="book-ticket-price-list">
+                                        {event.loaiVes.map(ticket => (
+                                            <div key={ticket.maLoaiVe} className="book-ticket-price-item">
+                                                <div className="book-ticket-price-info">
+                                                    <span className="book-ticket-price-name">{ticket.tenLoaiVe}</span>
+                                                    <span className="book-ticket-price-amount">{formatCurrency(ticket.giaTien)}</span>
+                                                </div>
+                                                <div className="book-ticket-price-limits">
+                                                    <small>
+                                                        Tối thiểu: {ticket.soLuongToiThieu || 0} |
+                                                        Tối đa: {ticket.soLuongToiDa || ticket.veConLai || 0}
+                                                    </small>
+                                                </div>
+                                            </div>
+                                        ))}
                                     </div>
-                                ))}
-                            </div>
-                        </div>
+                                </div>
+
+                                {selectedTickets.length > 0 && (
+                                    <div className="book-ticket-summary-section">
+                                        <h3 className="book-ticket-section-title">
+                                            <i className="fas fa-shopping-cart"></i>
+                                            Vé đã chọn
+                                        </h3>
+                                        <div className="book-ticket-summary-list">
+                                            {selectedTickets.map(selection => {
+                                                const ticket = event.loaiVes.find(t => t.maLoaiVe === selection.id);
+                                                if (!ticket) return null;
+                                                return (
+                                                    <div key={selection.id} className="book-ticket-summary-item">
+                                                        <span className="book-ticket-summary-name">{ticket.tenLoaiVe}</span>
+                                                        <div className="book-ticket-summary-details">
+                                                            <span className="book-ticket-summary-quantity">x{selection.quantity}</span>
+                                                            <span className="book-ticket-summary-price">
+                                                                {formatCurrency(ticket.giaTien * selection.quantity)}
+                                                            </span>
+                                                        </div>
+                                                    </div>
+                                                );
+                                            })}
+                                        </div>
+                                        <div className="book-ticket-total">
+                                            <span>Tổng cộng:</span>
+                                            <span className="book-ticket-total-amount">{formatCurrency(calculateTotal())}</span>
+                                        </div>
+                                    </div>
+                                )}
+                            </Card.Body>
+                        </Card>
                     </Col>
 
-                    <Col lg={8}>
+                    <Col lg={7}>
+                        <Card className="book-ticket-selection-card">
+                            <Card.Header className="book-ticket-card-header">
+                                <h3 className="book-ticket-card-title">
+                                    <i className="fas fa-ticket-alt"></i>
+                                    Chọn loại vé và số lượng
+                                </h3>
+                                <p className="book-ticket-card-subtitle">
+                                    Chọn số lượng vé cho từng loại
+                                </p>
+                            </Card.Header>
+                            <Card.Body className="book-ticket-selection-body">
+                                {bookingError && (
+                                    <Alert variant="danger" className="book-ticket-booking-error">
+                                        <i className="fas fa-exclamation-circle"></i>
+                                        {bookingError}
+                                    </Alert>
+                                )}
+
+                                <div className="book-ticket-types-grid">
+                                    {event.loaiVes.map(ticket => {
+                                        const min = ticket.soLuongToiThieu || 0;
+                                        const max = Math.min(ticket.soLuongToiDa || ticket.veConLai || 0, ticket.veConLai || 0);
+                                        const selectedQuantity = getSelectedQuantity(ticket.maLoaiVe ?? '');
+                                        const isSelected = selectedQuantity > 0;
+                                        const isSoldOut = ticket.veConLai === 0;
+
+                                        return (
+                                            <div
+                                                key={ticket.maLoaiVe}
+                                                className={`book-ticket-type-card ${isSelected ? 'book-ticket-selected' : ''} ${isSoldOut ? 'book-ticket-sold-out' : ''}`}
+                                                ref={(el) => {
+                                                    if (ticket.maLoaiVe) {
+                                                        ticketRefs.current[ticket.maLoaiVe] = el;
+                                                    }
+                                                }}
+                                            >
+                                                <div className="book-ticket-type-header">
+                                                    <div className="book-ticket-type-info">
+                                                        <h4 className="book-ticket-type-name">{ticket.tenLoaiVe}</h4>
+                                                        <div className="book-ticket-type-price">{formatCurrency(ticket.giaTien)}</div>
+                                                    </div>
+                                                    <div className="book-ticket-type-status">
+                                                        {isSoldOut ? (
+                                                            <Badge bg="danger" className="book-ticket-status-badge">
+                                                                <i className="fas fa-times-circle"></i>
+                                                                Hết vé
+                                                            </Badge>
+                                                        ) : (
+                                                            <Badge bg={isSelected ? 'success' : 'secondary'} className="book-ticket-status-badge">
+                                                                <i className="fas fa-ticket-alt"></i>
+                                                                Còn {ticket.veConLai}
+                                                            </Badge>
+                                                        )}
+                                                    </div>
+                                                </div>
+
+                                                <div className="book-ticket-type-controls">
+                                                    <div className="book-ticket-quantity-section">
+                                                        <label className="book-ticket-quantity-label">Số lượng:</label>
+                                                        <div className="book-ticket-quantity-controls">
+                                                            <Button
+                                                                variant="outline-primary"
+                                                                size="sm"
+                                                                className="book-ticket-quantity-btn"
+                                                                onClick={() => handleQuantityChange(ticket.maLoaiVe ?? '', -1)}
+                                                                disabled={isSoldOut || selectedQuantity <= 0}
+                                                            >
+                                                                <i className="fas fa-minus"></i>
+                                                            </Button>
+                                                            <Form.Control
+                                                                type="number"
+                                                                min={0}
+                                                                max={max}
+                                                                value={selectedQuantity}
+                                                                onChange={(e) => handleQuantityInput(ticket.maLoaiVe ?? '', e.target.value)}
+                                                                className="book-ticket-quantity-input"
+                                                                disabled={isSoldOut}
+                                                            />
+                                                            <Button
+                                                                variant="outline-primary"
+                                                                size="sm"
+                                                                className="book-ticket-quantity-btn"
+                                                                onClick={() => handleQuantityChange(ticket.maLoaiVe ?? '', 1)}
+                                                                disabled={isSoldOut || selectedQuantity >= max}
+                                                            >
+                                                                <i className="fas fa-plus"></i>
+                                                            </Button>
+                                                        </div>
+                                                    </div>
+
+                                                    {isSelected && (
+                                                        <div className="book-ticket-type-total">
+                                                            <span>Thành tiền: </span>
+                                                            <span className="book-ticket-type-total-amount">
+                                                                {formatCurrency(ticket.giaTien * selectedQuantity)}
+                                                            </span>
+                                                        </div>
+                                                    )}
+                                                </div>
+
+                                                <div className="book-ticket-type-limits">
+                                                    <small className="text-muted">
+                                                        <i className="fas fa-info-circle"></i>
+                                                        Mua tối thiểu {min} vé, tối đa {max} vé
+                                                    </small>
+                                                </div>
+                                            </div>
+                                        );
+                                    })}
+                                </div>
+                            </Card.Body>
+                        </Card>
+                    </Col>
+
+                    <Col lg={8} className="book-ticket-main">
+                        {/* Zone Map Section */}
                         {event.khuVucs && event.khuVucs.length > 0 ? (
-                            <Card className="mb-4">
-                                <Card.Header>
-                                    <h5 className="mb-0">
-                                        <i className="fas fa-map"></i> Sơ đồ chỗ ngồi
-                                    </h5>
-                                    <small className="text-muted">
-                                        Nhấp vào khu vực để chọn vé tương ứng (Có {event.khuVucs.length} khu vực)
-                                    </small>
+                            <Card className="book-ticket-map-card">
+                                <Card.Header className="book-ticket-card-header">
+                                    <h3 className="book-ticket-card-title">
+                                        <i className="fas fa-map"></i>
+                                        Sơ đồ chỗ ngồi
+                                    </h3>
+                                    <p className="book-ticket-card-subtitle">
+                                        Nhấp vào khu vực để chọn vé tương ứng • {event.khuVucs.length} khu vực có sẵn
+                                    </p>
                                 </Card.Header>
-                                <Card.Body>
+                                <Card.Body className="book-ticket-map-body">
                                     <ZoneMapViewer
                                         eventZones={event.khuVucs}
                                         tickets={event.loaiVes}
                                         selectedZoneId={selectedZoneId || undefined}
                                         onZoneClick={handleZoneClick}
-                                        onZoneHover={handleZoneHover}
-                                        width={1200}
-                                        height={1080}
+                                        width={800}
+                                        height={500}
                                         showLabels={true}
                                         showTicketInfo={true}
                                         readOnly={false}
-                                        className="zone-map-booking"
+                                        className="book-ticket-zone-map"
                                     />
                                 </Card.Body>
                             </Card>
                         ) : (
-                            <Alert variant="info" className="mb-4">
-                                <i className="fas fa-info-circle me-2"></i>
+                            <Alert variant="info" className="book-ticket-info-alert">
+                                <i className="fas fa-info-circle"></i>
                                 Sự kiện này không có sơ đồ chỗ ngồi
                             </Alert>
                         )}
 
-                        <div className="ticket-selection-panel">
-                            <div className="ticket-selection-header">
-                                <h3>Loại vé</h3>
-                                <h3>Số lượng</h3>
-                            </div>
-
-                            {bookingError && (
-                                <Alert variant="danger" className="mt-3 mb-3">
-                                    <i className="fas fa-exclamation-circle me-2"></i>
-                                    {bookingError}
-                                </Alert>
-                            )}
-
-                            <div className="ticket-selection-list">
-                                {event.loaiVes.map(ticket => {
-                                    const min = ticket.soLuongToiThieu || 0;
-                                    const max = Math.min(ticket.soLuongToiDa || ticket.veConLai || 0, ticket.veConLai || 0);
-                                    return (
-                                        <div
-                                            key={ticket.maLoaiVe}
-                                            className="ticket-selection-item"
-                                            ref={(el) => {
-                                                if (ticket.maLoaiVe) {
-                                                    ticketRefs.current[ticket.maLoaiVe] = el;
-                                                }
-                                            }}
-                                        >
-                                            <div className="ticket-info">
-                                                <h4>{ticket.tenLoaiVe}</h4>
-                                                <p className="ticket-price">{formatCurrency(ticket.giaTien)}</p>
-                                                <p className="tickets-remaining">
-                                                    {ticket.veConLai === 0 ? (
-                                                        <span className="sold-out">Đã bán hết</span>
-                                                    ) : (
-                                                        <span>
-                                                            Còn {ticket.veConLai} vé&nbsp;
-                                                        </span>
-                                                    )}
-                                                </p>
-                                            </div>
-                                            <div className="quantity-control">
-                                                <Button
-                                                    variant="outline-primary"
-                                                    onClick={() => handleQuantityChange(ticket.maLoaiVe ?? '', -1)}
-                                                    className="quantity-button"
-                                                    disabled={ticket.veConLai === 0 || getSelectedQuantity(ticket.maLoaiVe ?? '') <= min}
-                                                >
-                                                    -
-                                                </Button>
-                                                <Form.Control
-                                                    type="number"
-                                                    min={min}
-                                                    max={max}
-                                                    value={getSelectedQuantity(ticket.maLoaiVe ?? '')}
-                                                    onChange={(e) => handleQuantityInput(ticket.maLoaiVe ?? '', e.target.value)}
-                                                    className="quantity-input"
-                                                    disabled={ticket.veConLai === 0}
-                                                />
-                                                <Button
-                                                    variant="outline-primary"
-                                                    onClick={() => handleQuantityChange(ticket.maLoaiVe ?? '', 1)}
-                                                    className="quantity-button"
-                                                    disabled={
-                                                        ticket.veConLai === 0 ||
-                                                        getSelectedQuantity(ticket.maLoaiVe ?? '') >= max
-                                                    }
-                                                >
-                                                    +
-                                                </Button>
-                                            </div>
+                        <Card className="book-ticket-payment-card">
+                            <Card.Body className="book-ticket-payment-body">
+                                <div className="book-ticket-payment-summary">
+                                    <div className="book-ticket-payment-details">
+                                        <h4 className="book-ticket-payment-title">
+                                            <i className="fas fa-receipt"></i>
+                                            Tổng thanh toán
+                                        </h4>
+                                        <div className="book-ticket-payment-amount">
+                                            {formatCurrency(calculateTotal())}
                                         </div>
-                                    );
-                                })}
-                            </div>
-
-                            <div className="payment-section">
-                                <div className="total-amount">
-                                    <span>Tổng tiền:</span>
-                                    <span className="amount">{formatCurrency(calculateTotal())}</span>
+                                        {selectedTickets.length > 0 && (
+                                            <div className="book-ticket-payment-breakdown">
+                                                <small className="text-muted">
+                                                    {selectedTickets.reduce((total, s) => total + s.quantity, 0)} vé được chọn
+                                                </small>
+                                            </div>
+                                        )}
+                                    </div>
+                                    <div className="book-ticket-payment-action">
+                                        <Button
+                                            variant="primary"
+                                            size="lg"
+                                            className="book-ticket-payment-button"
+                                            onClick={handlePayment}
+                                            disabled={calculateTotal() === 0 || isBooking}
+                                        >
+                                            {isBooking ? (
+                                                <>
+                                                    <span className="spinner-border spinner-border-sm me-2" role="status" aria-hidden="true"></span>
+                                                    Đang xử lý...
+                                                </>
+                                            ) : (
+                                                <>
+                                                    <i className="fas fa-credit-card me-2"></i>
+                                                    Tiến hành thanh toán
+                                                </>
+                                            )}
+                                        </Button>
+                                    </div>
                                 </div>
-                                <Button
-                                    variant="primary"
-                                    size="lg"
-                                    className="payment-button"
-                                    onClick={handlePayment}
-                                    disabled={calculateTotal() === 0 || isBooking}
-                                >
-                                    {isBooking ? (
-                                        <>
-                                            <span className="spinner-border spinner-border-sm me-2" role="status" aria-hidden="true"></span>
-                                            Đang xử lý...
-                                        </>
-                                    ) : (
-                                        'Thanh toán'
-                                    )}
-                                </Button>
-                            </div>
-                        </div>
+                            </Card.Body>
+                        </Card>
                     </Col>
                 </Row>
-            </div>
-        </Container>
+            </Container>
+        </div>
     );
 };
 

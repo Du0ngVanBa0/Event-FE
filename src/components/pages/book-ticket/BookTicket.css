@@ -1,318 +1,614 @@
 .book-ticket-container {
-    padding: 2rem;
-    min-height: calc(100vh - var(--header-height));
-    color: var(--color-text);
-    background: var(--color-background);
+    min-height: 100vh;
+    background: linear-gradient(135deg, #f8fafc 0%, #f1f5f9 100%);
+    padding: 2rem 0;
 }
 
-.back-button {
-    color: var(--color-text) !important;
+.book-ticket-wrapper {
+    max-width: 1400px;
+    margin: 0 auto;
+}
+
+.book-ticket-loading {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    min-height: 50vh;
+    color: var(--color-text);
+}
+
+.book-ticket-error {
+    max-width: 600px;
+    margin: 2rem auto;
+    text-align: center;
+    border-radius: 12px;
+    box-shadow: var(--shadow-md);
+}
+
+.book-ticket-header {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    margin-bottom: 2rem;
+    padding: 0 1rem;
+}
+
+.book-ticket-back-button {
+    background: white;
+    border: 1px solid var(--color-border);
+    border-radius: 8px;
+    padding: 0.75rem 1.5rem;
+    color: var(--color-text);
     text-decoration: none;
-    display: inline-flex;
+    transition: var(--transition-default);
+    display: flex;
     align-items: center;
     gap: 0.5rem;
-    margin-bottom: 2rem;
-    transition: var(--transition-default);
+    font-weight: 500;
 }
 
-.back-button:hover {
-    color: var(--color-primary) !important;
-    transform: translateX(-5px);
+.book-ticket-back-button:hover {
+    background: var(--color-primary);
+    border-color: var(--color-primary);
+    color: white;
+    transform: translateY(-2px);
+    box-shadow: var(--shadow-md);
 }
 
-.booking-content {
-    background: white;
-    border-radius: 12px;
-    padding: 2rem;
-    box-shadow: var(--shadow-lg);
-    border: 1px solid var(--color-border);
-}
-
-.event-info-panel {
-    padding: 1.5rem;
-    background: var(--color-background);
-    border-radius: 8px;
-    border: 1px solid var(--color-border);
-    position: relative;
-}
-
-.event-info-panel h2 {
+.book-ticket-title {
     color: var(--color-primary);
-    margin-bottom: 1rem;
-}
-
-.event-address {
-    color: var(--color-text);
-    margin-bottom: 2rem;
-    display: flex;
-    align-items: flex-start;
-    gap: 0.5rem;
-}
-
-.event-address i {
-    color: var(--color-secondary);
-}
-
-.ticket-price-list {
-    margin-top: 2rem;
-}
-
-.ticket-price-list h3 {
-    color: var(--color-secondary);
-    margin-bottom: 1rem;
-}
-
-.ticket-price-item {
-    display: flex;
-    justify-content: space-between;
-    padding: 0.5rem 0;
-    border-bottom: 1px solid var(--color-border-light);
-    color: var(--color-text);
-}
-
-.ticket-selection-panel {
-    padding: 1.5rem;
-    background: var(--color-background);
-    border-radius: 8px;
-    border: 1px solid var(--color-border);
-}
-
-.ticket-selection-header {
-    display: flex;
-    justify-content: space-between;
-    padding: 1rem 0;
-    border-bottom: 2px solid var(--color-primary);
-    margin-bottom: 1.5rem;
-}
-
-.ticket-selection-header h3 {
-    color: var(--color-primary);
+    font-size: 2rem;
+    font-weight: 700;
     margin: 0;
 }
 
-.ticket-selection-item {
+.book-ticket-content {
+    gap: 2rem;
+}
+
+.book-ticket-sidebar {
+    margin-bottom: 2rem;
+}
+
+.book-ticket-event-card {
+    border: none;
+    border-radius: 16px;
+    box-shadow: var(--shadow-md);
+    background: white;
+    position: sticky;
+    top: 2rem;
+}
+
+.book-ticket-event-header {
+    margin-bottom: 2rem;
+    padding-bottom: 1.5rem;
+    border-bottom: 1px solid var(--color-border-light);
+}
+
+.book-ticket-event-title {
+    color: var(--color-primary);
+    font-size: 1.5rem;
+    font-weight: 700;
+    margin-bottom: 1rem;
+    line-height: 1.3;
+}
+
+.book-ticket-event-address {
+    color: var(--color-text-light);
+    margin: 0;
+    display: flex;
+    align-items: flex-start;
+    gap: 0.5rem;
+    line-height: 1.5;
+}
+
+.book-ticket-event-address i {
+    color: var(--color-secondary);
+    margin-top: 0.25rem;
+    flex-shrink: 0;
+}
+
+.book-ticket-section-title {
+    color: var(--color-primary);
+    font-size: 1.2rem;
+    font-weight: 600;
+    margin-bottom: 1rem;
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+}
+
+.book-ticket-section-title i {
+    color: var(--color-secondary);
+}
+
+.book-ticket-price-section {
+    margin-bottom: 2rem;
+}
+
+.book-ticket-price-list {
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+}
+
+.book-ticket-price-item {
+    padding: 1rem;
+    background: var(--color-background);
+    border: 1px solid var(--color-border-light);
+    border-radius: 8px;
+    transition: var(--transition-default);
+}
+
+.book-ticket-price-item:hover {
+    background: rgba(99, 102, 241, 0.05);
+    border-color: var(--color-primary);
+}
+
+.book-ticket-price-info {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 0.5rem;
+}
+
+.book-ticket-price-name {
+    font-weight: 600;
+    color: var(--color-text);
+}
+
+.book-ticket-price-amount {
+    font-weight: 700;
+    color: var(--color-secondary);
+    font-size: 1.1rem;
+}
+
+.book-ticket-price-limits {
+    color: var(--color-text-light);
+    font-size: 0.85rem;
+}
+
+.book-ticket-summary-section {
+    margin-top: 2rem;
+    padding-top: 2rem;
+    border-top: 1px solid var(--color-border-light);
+}
+
+.book-ticket-summary-list {
+    display: flex;
+    flex-direction: column;
+    gap: 0.75rem;
+    margin-bottom: 1.5rem;
+}
+
+.book-ticket-summary-item {
+    display: flex;
+    flex-direction: column;
+    gap: 0.25rem;
+    padding: 0.75rem;
+    background: rgba(99, 102, 241, 0.05);
+    border-radius: 6px;
+    border: 1px solid rgba(99, 102, 241, 0.2);
+}
+
+.book-ticket-summary-name {
+    font-weight: 600;
+    color: var(--color-text);
+}
+
+.book-ticket-summary-details {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.book-ticket-summary-quantity {
+    font-size: 0.9rem;
+    color: var(--color-text-light);
+}
+
+.book-ticket-summary-price {
+    font-weight: 600;
+    color: var(--color-secondary);
+}
+
+.book-ticket-total {
     display: flex;
     justify-content: space-between;
     align-items: center;
     padding: 1rem;
-    border-bottom: 1px solid var(--color-border-light);
-    transition: var(--transition-default);
-}
-
-.ticket-selection-item.ticket-highlight {
-    background: rgba(99, 102, 241, 0.1);
-    border-color: var(--color-primary);
+    background: var(--color-primary);
+    color: white;
     border-radius: 8px;
-    transform: scale(1.02);
+    font-weight: 700;
+    font-size: 1.1rem;
 }
 
-.ticket-info h4 {
+.book-ticket-main {
+    display: flex;
+    flex-direction: column;
+    gap: 2rem;
+}
+
+.book-ticket-map-card,
+.book-ticket-selection-card,
+.book-ticket-payment-card {
+    border: none;
+    border-radius: 16px;
+    box-shadow: var(--shadow-md);
+    background: white;
+}
+
+.book-ticket-card-header {
+    background: var(--color-background);
+    border-bottom: 1px solid var(--color-border-light);
+    border-radius: 16px 16px 0 0 !important;
+    padding: 1.5rem;
+}
+
+.book-ticket-card-title {
     color: var(--color-primary);
-    margin-bottom: 0.5rem;
+    font-size: 1.3rem;
+    font-weight: 600;
+    margin: 0;
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
 }
 
-.ticket-price {
+.book-ticket-card-title i {
     color: var(--color-secondary);
 }
 
-.tickets-remaining {
+.book-ticket-card-subtitle {
+    color: var(--color-text-light);
+    margin: 0.5rem 0 0 0;
     font-size: 0.9rem;
-    margin-top: 0.25rem;
-    color: var(--color-text);
 }
 
-.tickets-remaining .sold-out {
-    color: #ef4444;
-    font-weight: 500;
+.book-ticket-map-body {
+    padding: 1.5rem;
 }
 
-.quantity-control {
-    display: flex;
-    align-items: center;
-    gap: 1rem;
-}
-
-.quantity-button {
-    width: 36px;
-    height: 36px;
-    padding: 0;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    border: 1px solid var(--color-primary) !important;
-    color: var(--color-primary) !important;
-    background: white !important;
-    transition: var(--transition-default);
-}
-
-.quantity-button:hover:not(:disabled) {
-    background-color: var(--color-primary) !important;
-    color: white !important;
-}
-
-.quantity-button:disabled {
-    opacity: 0.5;
-    cursor: not-allowed !important;
-    border-color: var(--color-border) !important;
-    color: var(--color-text-light) !important;
-}
-
-.quantity-input {
-    width: 60px;
-    text-align: center;
-    background: white !important;
-    border: 1px solid var(--color-border) !important;
-    color: var(--color-text) !important;
-}
-
-.quantity-input:focus {
-    border-color: var(--color-primary) !important;
-    box-shadow: 0 0 0 0.2rem rgba(99, 102, 241, 0.25) !important;
-}
-
-.quantity-display {
-    min-width: 40px;
-    text-align: center;
-    font-size: 1.1rem;
-}
-
-.payment-section {
-    margin-top: 2rem;
-    padding-top: 2rem;
-    border-top: 2px solid var(--color-primary);
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-}
-
-.total-amount {
-    font-size: 1.2rem;
-    display: flex;
-    align-items: center;
-    gap: 1rem;
-    color: var(--color-text);
-}
-
-.total-amount .amount {
-    font-size: 1.5rem;
-    font-weight: 600;
-    color: var(--color-primary);
-}
-
-.payment-button {
-    background: var(--color-primary);
-    border: 2px solid var(--color-primary);
-    color: white;
-    padding: 0.75rem 2.5rem;
-    font-size: 1.1rem;
-    transition: var(--transition-default);
-}
-
-.payment-button:hover:not(:disabled) {
-    background: var(--color-secondary);
-    border-color: var(--color-secondary);
-    color: white;
-    box-shadow: var(--glow-effect);
-    transform: translateY(-2px);
-}
-
-.payment-button:disabled {
-    opacity: 0.6;
-    cursor: not-allowed;
-}
-
-/* Card styling */
-.card {
-    background: white;
-    border: 1px solid var(--color-border);
-    border-radius: 8px;
+.book-ticket-info-alert {
+    border-radius: 12px;
     box-shadow: var(--shadow-sm);
 }
 
-.card-header {
-    background: var(--color-background);
-    border-bottom: 1px solid var(--color-border);
-    color: var(--color-primary);
-    font-weight: 600;
+.book-ticket-selection-body {
+    padding: 2rem;
 }
 
-.card-body {
-    background: white;
-    color: var(--color-text);
-}
-
-/* Alert styling */
-.alert {
+.book-ticket-booking-error {
     border-radius: 8px;
+    margin-bottom: 2rem;
 }
 
-.alert-info {
-    background: rgba(14, 165, 233, 0.1);
-    border-color: var(--color-secondary);
+.book-ticket-types-grid {
+    display: flex;
+    flex-direction: column;
+    gap: 1.5rem;
+}
+
+.book-ticket-type-card {
+    padding: 1.5rem;
+    border: 2px solid var(--color-border-light);
+    border-radius: 12px;
+    background: white;
+    transition: var(--transition-default);
+    position: relative;
+}
+
+.book-ticket-type-card:hover {
+    border-color: var(--color-primary);
+    transform: translateY(-2px);
+    box-shadow: var(--shadow-lg);
+}
+
+.book-ticket-type-card.book-ticket-selected {
+    border-color: var(--color-primary);
+    background: rgba(99, 102, 241, 0.05);
+    box-shadow: var(--glow-effect);
+}
+
+.book-ticket-type-card.book-ticket-sold-out {
+    opacity: 0.6;
+    background: #f8f9fa;
+    border-color: #dee2e6;
+}
+
+.book-ticket-type-card.book-ticket-sold-out:hover {
+    transform: none;
+    box-shadow: none;
+}
+
+.book-ticket-highlight {
+    animation: highlight 2s ease-in-out;
+}
+
+@keyframes highlight {
+    0%, 100% { background: rgba(99, 102, 241, 0.05); }
+    50% { background: rgba(99, 102, 241, 0.2); }
+}
+
+.book-ticket-type-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    margin-bottom: 1.5rem;
+}
+
+.book-ticket-type-info {
+    flex: 1;
+}
+
+.book-ticket-type-name {
+    color: var(--color-text);
+    font-size: 1.3rem;
+    font-weight: 700;
+    margin: 0 0 0.5rem 0;
+}
+
+.book-ticket-type-price {
+    color: var(--color-secondary);
+    font-size: 1.5rem;
+    font-weight: 700;
+}
+
+.book-ticket-type-status {
+    flex-shrink: 0;
+}
+
+.book-ticket-status-badge {
+    font-size: 0.85rem;
+    padding: 0.5rem 1rem;
+    border-radius: 20px;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.book-ticket-type-controls {
+    margin-bottom: 1rem;
+}
+
+.book-ticket-quantity-section {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    margin-bottom: 1rem;
+}
+
+.book-ticket-quantity-label {
+    font-weight: 600;
+    color: var(--color-text);
+    margin: 0;
+    min-width: 80px;
+}
+
+.book-ticket-quantity-controls {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.book-ticket-quantity-btn {
+    width: 40px;
+    height: 40px;
+    border-radius: 8px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: 600;
+    transition: var(--transition-default);
+}
+
+.book-ticket-quantity-btn:hover:not(:disabled) {
+    transform: scale(1.1);
+}
+
+.book-ticket-quantity-input {
+    width: 80px;
+    text-align: center;
+    border: 2px solid var(--color-border);
+    border-radius: 8px;
+    font-weight: 600;
+    transition: var(--transition-default);
+}
+
+.book-ticket-quantity-input:focus {
+    border-color: var(--color-primary);
+    box-shadow: 0 0 0 0.2rem rgba(99, 102, 241, 0.25);
+}
+
+.book-ticket-type-total {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 1rem;
+    background: rgba(40, 167, 69, 0.1);
+    border: 1px solid rgba(40, 167, 69, 0.3);
+    border-radius: 8px;
+    margin-bottom: 1rem;
+}
+
+.book-ticket-type-total-amount {
+    font-weight: 700;
+    color: var(--color-success);
+    font-size: 1.2rem;
+}
+
+.book-ticket-type-limits {
+    color: var(--color-text-light);
+}
+
+.book-ticket-payment-card {
+    position: sticky;
+    bottom: 2rem;
+}
+
+.book-ticket-payment-body {
+    padding: 2rem;
+}
+
+.book-ticket-payment-summary {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 2rem;
+}
+
+.book-ticket-payment-details {
+    flex: 1;
+}
+
+.book-ticket-payment-title {
+    color: var(--color-primary);
+    font-size: 1.3rem;
+    font-weight: 600;
+    margin: 0 0 0.5rem 0;
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+}
+
+.book-ticket-payment-title i {
     color: var(--color-secondary);
 }
 
-.alert-danger {
-    background: rgba(239, 68, 68, 0.1);
-    border-color: #ef4444;
-    color: #dc2626;
+.book-ticket-payment-amount {
+    color: var(--color-success);
+    font-size: 2.5rem;
+    font-weight: 700;
+    line-height: 1;
+    margin-bottom: 0.5rem;
 }
 
-/* Zone map styling */
-.zone-map-booking {
-    background: white;
-    border: 1px solid var(--color-border);
-    border-radius: 8px;
+.book-ticket-payment-breakdown {
+    color: var(--color-text-light);
 }
 
-/* Loading container */
-.loading-container {
+.book-ticket-payment-action {
+    flex-shrink: 0;
+}
+
+.book-ticket-payment-button {
+    background: linear-gradient(135deg, var(--color-primary), var(--color-secondary));
+    border: none;
+    border-radius: 12px;
+    padding: 1rem 2.5rem;
+    font-size: 1.1rem;
+    font-weight: 700;
+    transition: var(--transition-default);
     display: flex;
-    justify-content: center;
     align-items: center;
-    min-height: 400px;
-    color: var(--color-text);
+    gap: 0.75rem;
+    min-width: 200px;
+    justify-content: center;
 }
 
-/* Print styles */
+.book-ticket-payment-button:hover:not(:disabled) {
+    transform: translateY(-3px);
+    box-shadow: var(--shadow-lg);
+}
+
+.book-ticket-payment-button:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+    transform: none;
+}
+
+.book-ticket-zone-map {
+    border-radius: 8px;
+    overflow: hidden;
+}
+
+@media (max-width: 992px) {
+    .book-ticket-container {
+        padding: 1rem 0;
+    }
+    
+    .book-ticket-content {
+        gap: 1rem;
+    }
+    
+    .book-ticket-sidebar {
+        order: 2;
+    }
+    
+    .book-ticket-main {
+        order: 1;
+    }
+    
+    .book-ticket-event-card {
+        position: static;
+    }
+    
+    .book-ticket-payment-summary {
+        flex-direction: column;
+        gap: 1.5rem;
+        text-align: center;
+    }
+    
+    .book-ticket-payment-button {
+        width: 100%;
+    }
+}
+
+@media (max-width: 768px) {
+    .book-ticket-title {
+        font-size: 1.5rem;
+    }
+    
+    .book-ticket-header {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 1rem;
+    }
+    
+    .book-ticket-quantity-section {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 0.75rem;
+    }
+    
+    .book-ticket-payment-amount {
+        font-size: 2rem;
+    }
+}
+
 @media print {
-    .book-ticket-container,
-    .booking-content {
+    .book-ticket-container {
         background: white !important;
-        color: black !important;
+        padding: 0 !important;
+    }
+    
+    .book-ticket-back-button,
+    .book-ticket-quantity-controls,
+    .book-ticket-payment-button {
+        display: none !important;
+    }
+    
+    .book-ticket-type-card {
+        background: white !important;
+        border: 1px solid #000 !important;
+        box-shadow: none !important;
+        break-inside: avoid;
+    }
+    
+    .book-ticket-map-card,
+    .book-ticket-selection-card {
         box-shadow: none !important;
         border: 1px solid #000 !important;
     }
     
-    .back-button,
-    .payment-button,
-    .quantity-control {
-        display: none !important;
-    }
-    
     * {
-        background: white !important;
         color: black !important;
-    }
-}
-
-/* Responsive */
-@media (max-width: 768px) {
-    .book-ticket-container {
-        padding: 1rem;
+        background: white !important;
     }
     
-    .booking-content {
-        padding: 1rem;
-    }
-    
-    .payment-section {
-        flex-direction: column;
-        gap: 1rem;
-        align-items: stretch;
-    }
-    
-    .payment-button {
-        width: 100%;
+    .book-ticket-payment-card {
+        position: static !important;
     }
 }
