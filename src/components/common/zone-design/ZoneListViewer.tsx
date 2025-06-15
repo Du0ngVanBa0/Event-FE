@@ -1,8 +1,9 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { Stage, Layer, Rect, Circle, Text } from 'react-konva';
 import Konva from 'konva';
-import { Card, Alert } from 'react-bootstrap';
+import { Card, Alert, Row, Col, Badge, Button } from 'react-bootstrap';
 import { KhuVucResponse, TicketType } from '../../../types/EventTypes';
+import './styles/ZoneListViewer.css';
 
 interface ZoneMapViewerProps {
   eventZones: KhuVucResponse[];
@@ -67,6 +68,7 @@ const ZoneMapViewer: React.FC<ZoneMapViewerProps> = ({
   const [hoveredZone, setHoveredZone] = useState<string | null>(null);
   const [scale, setScale] = useState(1);
   const [offset, setOffset] = useState({ x: 0, y: 0 });
+  const [viewMode, setViewMode] = useState<'canvas' | 'list'>('list'); // Default to list view
   const stageRef = useRef<Konva.Stage>(null);
   const layerRef = useRef<Konva.Layer>(null);
 
@@ -443,66 +445,233 @@ const ZoneMapViewer: React.FC<ZoneMapViewerProps> = ({
     }
   };
 
+  const formatCurrency = (amount: number): string => {
+    return new Intl.NumberFormat('vi-VN', {
+      style: 'currency',
+      currency: 'VND'
+    }).format(amount);
+  };
+
+  const getAvailabilityStatus = (zone: ZoneData) => {
+    if (!zone.ticket) return { status: 'no-ticket', label: 'Không bán vé', variant: 'secondary' };
+    
+    const available = zone.ticket.veConLai || 0;
+    const total = zone.ticket.soLuongToiDa || 0;
+    const percentage = total > 0 ? (available / total) * 100 : 0;
+    
+    if (percentage > 50) return { status: 'high', label: 'Còn nhiều', };
+    if (percentage > 20) return { status: 'medium', label: 'Còn ít', variant: 'warning' };
+    if (percentage > 0) return { status: 'low', label: 'Sắp hết', variant: 'danger' };
+    return { status: 'sold-out', label: 'Hết vé', variant: 'danger' };
+  };
+
   const hoveredZoneData = zones.find(z => z.id === hoveredZone);
 
   return (
-    <div className={`zone-map-viewer ${className}`}>
-      <Card>
-        <Card.Body className="p-2">
-
-          {hoveredZoneData && hoveredZoneData.ticket && (
-            <Alert variant="info" className="mb-2 py-2">
-              <strong>{hoveredZoneData.ticket?.tenLoaiVe || hoveredZoneData.template?.tenKhuVuc || hoveredZoneData.eventZone.tenHienThi}</strong>
-              <br />
-              <small>
-                Giá: {hoveredZoneData.ticket.giaTien.toLocaleString('vi-VN')}đ |
-                Còn: {hoveredZoneData.ticket.veConLai || 0} vé |
-                Tối thiểu: {hoveredZoneData.ticket.soLuongToiThieu} - Tối đa: {hoveredZoneData.ticket.soLuongToiDa}
-              </small>
-            </Alert>
-          )}
-
-          <div className="canvas-container" style={{ height: `${height}px`, border: '1px solid #dee2e6', borderRadius: '4px', backgroundColor: '#ffffff' }}>
-            <Stage
-              width={width}
-              height={height}
-              ref={stageRef}
-              scaleX={scale}
-              scaleY={scale}
-              x={offset.x}
-              y={offset.y}
+    <div className={`zone-list-viewer-container ${className}`}>
+      {/* View Mode Toggle */}
+      <div className="zone-list-viewer-header">
+        <div className="d-flex justify-content-between align-items-center">
+          <div className="zone-list-viewer-stats">
+            <div className="zone-list-viewer-stat">
+              <i className="fas fa-layer-group"></i>
+              <div>
+                <div className="stat-number">{zones.length}</div>
+                <div className="stat-label">Khu vực</div>
+              </div>
+            </div>
+            <div className="zone-list-viewer-stat">
+              <i className="fas fa-ticket-alt"></i>
+              <div>
+                <div className="stat-number">
+                  {zones.filter(z => z.ticket).reduce((acc, zone) => acc + (zone.ticket?.veConLai || 0), 0)}
+                </div>
+                <div className="stat-label">Vé còn lại</div>
+              </div>
+            </div>
+          </div>
+          
+          <div className="zone-list-viewer-view-toggle">
+            <Button
+              variant={viewMode === 'list' ? 'primary' : 'outline-primary'}
+              size="sm"
+              onClick={() => setViewMode('list')}
+              className="me-2"
             >
-              <Layer ref={layerRef}>
-                {zones.map(zone => renderZone(zone))}
-              </Layer>
-            </Stage>
+              <i className="fas fa-list"></i>
+              Danh sách
+            </Button>
+            <Button
+              variant={viewMode === 'canvas' ? 'primary' : 'outline-primary'}
+              size="sm"
+              onClick={() => setViewMode('canvas')}
+            >
+              <i className="fas fa-map"></i>
+              Sơ đồ
+            </Button>
           </div>
+        </div>
+      </div>
 
-          {zones.length === 0 && (
-            <Alert variant="warning">
-              <i className="fas fa-exclamation-triangle me-2"></i>
-              Không có khu vực nào để hiển thị.
-            </Alert>
-          )}
-
-          <div className="legend mt-2">
-            <small className="text-muted">
-              <span className="legend-item">
-                <span className="legend-color" style={{ backgroundColor: '#28a745', width: '12px', height: '12px', display: 'inline-block', marginRight: '5px' }}></span>
-                Có vé
-              </span>
-              <span className="legend-item ms-3">
-                <span className="legend-color" style={{ backgroundColor: '#dc3545', width: '12px', height: '12px', display: 'inline-block', marginRight: '5px' }}></span>
-                Hết vé
-              </span>
-              <span className="legend-item ms-3">
-                <span className="legend-color" style={{ backgroundColor: '#e9ecef', border: '1px solid #6c757d', width: '12px', height: '12px', display: 'inline-block', marginRight: '5px' }}></span>
-                Không bán vé
-              </span>
+      <div className="zone-list-viewer-hover-info">
+        {hoveredZoneData && hoveredZoneData.ticket ? (
+          <Alert variant="info" className="mb-0 py-2">
+            <strong>{hoveredZoneData.ticket?.tenLoaiVe || hoveredZoneData.template?.tenKhuVuc || hoveredZoneData.eventZone.tenHienThi}</strong>
+            <br />
+            <small>
+              Giá: {hoveredZoneData.ticket.giaTien.toLocaleString('vi-VN')}đ |
+              Còn: {hoveredZoneData.ticket.veConLai || 0} vé |
+              Tối thiểu: {hoveredZoneData.ticket.soLuongToiThieu} - Tối đa: {hoveredZoneData.ticket.soLuongToiDa}
             </small>
+          </Alert>
+        ) : (
+          <div className="zone-list-viewer-hover-placeholder">
+            <small className="text-muted">Di chuột qua khu vực để xem thông tin chi tiết</small>
           </div>
-        </Card.Body>
-      </Card>
+        )}
+      </div>
+
+      {viewMode === 'list' ? (
+        <div className="zone-list-viewer-list-content">
+          {zones.length === 0 ? (
+            <div className="zone-list-viewer-empty">
+              <i className="fas fa-map-marked-alt"></i>
+              <h4>Chưa có khu vực nào</h4>
+              <p>Sự kiện này chưa được thiết lập khu vực ghế.</p>
+            </div>
+          ) : (
+            <Row className="zone-list-viewer-grid">
+              {zones.map((zone) => {
+                const availability = getAvailabilityStatus(zone);
+                const isSelected = selectedZoneId === zone.id;
+                
+                return (
+                  <Col key={zone.id} lg={6} xl={4} className="mb-4">
+                    <Card 
+                      className={`zone-list-viewer-zone-card ${isSelected ? 'zone-list-viewer-selected' : ''} ${zone.ticket && !readOnly ? 'selectable' : ''}`}
+                      onClick={() => handleZoneClick(zone)}
+                      onMouseEnter={() => handleZoneMouseEnter(zone.id)}
+                      onMouseLeave={handleZoneMouseLeave}
+                      style={{ cursor: zone.ticket && !readOnly ? 'pointer' : 'default' }}
+                    >
+                      <Card.Body>
+                        <div className="zone-list-viewer-zone-header">
+                          <div 
+                            className="zone-list-viewer-zone-color" 
+                            style={{ backgroundColor: zone.color }}
+                          ></div>
+                          <div className="zone-list-viewer-zone-info">
+                            <h5 className="zone-list-viewer-zone-name">
+                              {zone.ticket?.tenLoaiVe || zone.template?.tenKhuVuc || zone.eventZone.tenHienThi || 'Khu vực'}
+                            </h5>
+                            <div className="zone-list-viewer-zone-shape">
+                              <i className={`fas fa-${zone.shape === 'circle' ? 'circle' : 'square'}`}></i>
+                              {zone.template?.hinhDang || 'Hình chữ nhật'}
+                            </div>
+                          </div>
+                          {isSelected && (
+                            <div className="zone-list-viewer-selected-badge">
+                              <i className="fas fa-check-circle"></i>
+                            </div>
+                          )}
+                        </div>
+
+                        <div className="zone-list-viewer-availability">
+                          <Badge bg={availability.variant} className="zone-list-viewer-availability-badge">
+                            <i className={`fas fa-${availability.status === 'high' ? 'check' : availability.status === 'medium' ? 'exclamation' : availability.status === 'low' ? 'exclamation-triangle' : availability.status === 'no-ticket' ? 'ban' : 'times'}`}></i>
+                            {availability.label}
+                          </Badge>
+                          {zone.ticket && (
+                            <div className="zone-list-viewer-progress">
+                              <div 
+                                className="zone-list-viewer-progress-bar"
+                                style={{ 
+                                  width: `${zone.ticket.soLuongToiDa > 0 ? ((zone.ticket.veConLai || 0) / zone.ticket.soLuongToiDa) * 100 : 0}%`,
+                                  backgroundColor: availability.status === 'high' ? '#28a745' : 
+                                                 availability.status === 'medium' ? '#ffc107' : 
+                                                 availability.status === 'low' ? '#dc3545' : '#6c757d'
+                                }}
+                              ></div>
+                            </div>
+                          )}
+                        </div>
+
+                        {zone.ticket && (
+                          <div className="zone-list-viewer-ticket-info">
+                            <h6 className="zone-list-viewer-ticket-title">
+                              <i className="fas fa-tags"></i>
+                              Thông tin vé
+                            </h6>
+                            <div className="zone-list-viewer-ticket-details">
+                              <div className="zone-list-viewer-ticket-price">
+                                {formatCurrency(zone.ticket.giaTien)}
+                              </div>
+                              <div className="zone-list-viewer-ticket-available">
+                                <i className="fas fa-ticket-alt"></i>
+                                Còn {zone.ticket.veConLai || 0}
+                              </div>
+                            </div>
+                            <div className="zone-list-viewer-ticket-limits">
+                              <small className="text-muted">
+                                Tối thiểu: {zone.ticket.soLuongToiThieu} - Tối đa: {zone.ticket.soLuongToiDa} vé
+                              </small>
+                            </div>
+                          </div>
+                        )}
+                      </Card.Body>
+                    </Card>
+                  </Col>
+                );
+              })}
+            </Row>
+          )}
+        </div>
+      ) : (
+        /* Canvas View */
+        <Card className="zone-list-viewer-canvas-card">
+          <Card.Body className="p-2">
+            <div className="canvas-container" style={{ height: `${height}px`, border: '1px solid #dee2e6', borderRadius: '4px', backgroundColor: '#ffffff' }}>
+              <Stage
+                width={width}
+                height={height}
+                ref={stageRef}
+                scaleX={scale}
+                scaleY={scale}
+                x={offset.x}
+                y={offset.y}
+              >
+                <Layer ref={layerRef}>
+                  {zones.map(zone => renderZone(zone))}
+                </Layer>
+              </Stage>
+            </div>
+
+            {zones.length === 0 && (
+              <Alert variant="warning">
+                <i className="fas fa-exclamation-triangle me-2"></i>
+                Không có khu vực nào để hiển thị.
+              </Alert>
+            )}
+
+            <div className="legend mt-2">
+              <small className="text-muted">
+                <span className="legend-item">
+                  <span className="legend-color" style={{ backgroundColor: '#28a745', width: '12px', height: '12px', display: 'inline-block', marginRight: '5px' }}></span>
+                  Có vé
+                </span>
+                <span className="legend-item ms-3">
+                  <span className="legend-color" style={{ backgroundColor: '#dc3545', width: '12px', height: '12px', display: 'inline-block', marginRight: '5px' }}></span>
+                  Hết vé
+                </span>
+                <span className="legend-item ms-3">
+                  <span className="legend-color" style={{ backgroundColor: '#e9ecef', border: '1px solid #6c757d', width: '12px', height: '12px', display: 'inline-block', marginRight: '5px' }}></span>
+                  Không bán vé
+                </span>
+              </small>
+            </div>
+          </Card.Body>
+        </Card>
+      )}
     </div>
   );
 };

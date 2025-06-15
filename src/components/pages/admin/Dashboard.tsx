@@ -529,7 +529,6 @@ const DashboardPage: React.FC = () => {
                         </div>
                     )}
 
-                    {/* Top Customers by Date Range */}
                     {topCustomers.length > 0 && (
                         <div className="dashboard-page-range-results">
                             <Row>
@@ -544,7 +543,6 @@ const DashboardPage: React.FC = () => {
                     )}
                 </div>
 
-                {/* Event Top Customers */}
                 <div className="dashboard-page-section">
                     <h2 className="dashboard-page-section-title">
                         <i className="fas fa-trophy"></i>
