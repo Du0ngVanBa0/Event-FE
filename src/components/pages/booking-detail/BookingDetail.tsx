@@ -1,10 +1,11 @@
 import { useState, useEffect } from 'react';
-import { Container, Row, Col, Card, Badge, Button } from 'react-bootstrap';
+import { Container, Row, Col, Card, Badge, Button, Dropdown } from 'react-bootstrap';
 import { Link, useParams } from 'react-router-dom';
 import { formatDate, formatCurrency, getImageUrl, formatFullAddress } from '../../../utils/helper';
 import { bookTicketService } from '../../../api/bookTicketService';
 import { BookingTicket } from '../../../types/BookingTypes';
 import { generateTicketPDF } from '../../../utils/ticketGenerator';
+import { generateBillPDF, printBill } from '../../../utils/billGenerator';
 import './BookingDetail.css';
 
 const BookingDetail = () => {
@@ -12,6 +13,7 @@ const BookingDetail = () => {
     const [booking, setBooking] = useState<BookingTicket | null>(null);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
+    const [isGeneratingBill, setIsGeneratingBill] = useState(false);
 
     useEffect(() => {
         const fetchBooking = async () => {
@@ -39,6 +41,25 @@ const BookingDetail = () => {
         }
     };
 
+    const handleDownloadBill = async () => {
+        if (!booking) return;
+        
+        try {
+            setIsGeneratingBill(true);
+            await generateBillPDF(booking);
+        } catch (error) {
+            console.error('Error generating bill:', error);
+            alert('Có lỗi xảy ra khi tạo hóa đơn. Vui lòng thử lại.');
+        } finally {
+            setIsGeneratingBill(false);
+        }
+    };
+
+    const handlePrintBill = () => {
+        if (!booking) return;
+        printBill(booking);
+    };
+
     if (loading) {
         return (
             <div className="loading-container">
@@ -63,7 +84,25 @@ const BookingDetail = () => {
     return (
         <div className="booking-detail-container">
             <div className="booking-detail-wrapper">
-                <h2 className="page-title">Chi tiết đặt vé</h2>
+                <div className="d-flex justify-content-between align-items-center mb-4">
+                    <h2 className="page-title mb-0">Chi tiết đặt vé</h2>
+                    <Dropdown>
+                        <Dropdown.Toggle variant="outline-primary" id="export-dropdown">
+                            <i className="fas fa-download me-2"></i>
+                            Xuất hóa đơn
+                        </Dropdown.Toggle>
+                        <Dropdown.Menu>
+                            <Dropdown.Item onClick={handleDownloadBill} disabled={isGeneratingBill}>
+                                <i className="fas fa-file-pdf me-2"></i>
+                                {isGeneratingBill ? 'Đang tạo PDF...' : 'Tải về PDF'}
+                            </Dropdown.Item>
+                            <Dropdown.Item onClick={handlePrintBill}>
+                                <i className="fas fa-print me-2"></i>
+                                In hóa đơn
+                            </Dropdown.Item>
+                        </Dropdown.Menu>
+                    </Dropdown>
+                </div>
 
                 <Row>
                     <Col lg={8}>
@@ -214,4 +253,4 @@ const BookingDetail = () => {
     );
 };
 
-export default BookingDetail; 
+export default BookingDetail;
