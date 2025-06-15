@@ -15,6 +15,8 @@ const PAGE_SIZE_OPTIONS = [8, 12, 16, 20];
 const Events = () => {
     const [events, setEvents] = useState<SuKien[]>([]);
     const [categories, setCategories] = useState<DanhMucSuKien[]>([]);
+    const [name, setName] = useState<string>('');
+    const [searchInput, setSearchInput] = useState<string>('');
     const [selectedCategory, setSelectedCategory] = useState<string>('');
     const [currentPage, setCurrentPage] = useState(0);
     const [totalPages, setTotalPages] = useState(0);
@@ -23,6 +25,7 @@ const Events = () => {
     const [error, setError] = useState<string | null>(null);
     const [cardsVisible, setCardsVisible] = useState(false);
     const eventsGridRef = useRef<HTMLDivElement>(null);
+    const searchTimeoutRef = useRef<NodeJS.Timeout | null>(null);
     const navigate = useNavigate();
 
     const loadCategories = async () => {
@@ -41,7 +44,8 @@ const Events = () => {
                 page,
                 size,
                 selectedCategory || undefined,
-                true
+                true,
+                name
             );
             setEvents(response.data.content);
             setTotalPages(response.data.totalPages);
@@ -62,7 +66,7 @@ const Events = () => {
         setCurrentPage(0);
         loadEvents(0);
         // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [selectedCategory]);
+    }, [selectedCategory, name]);
 
     useEffect(() => {
         loadEvents(currentPage);
@@ -76,6 +80,23 @@ const Events = () => {
             }, 100);
         }
     }, [loading, events]);
+
+    // Handle search with debounce
+    useEffect(() => {
+        if (searchTimeoutRef.current) {
+            clearTimeout(searchTimeoutRef.current);
+        }
+
+        searchTimeoutRef.current = setTimeout(() => {
+            setName(searchInput);
+        }, 500); // 500ms debounce
+
+        return () => {
+            if (searchTimeoutRef.current) {
+                clearTimeout(searchTimeoutRef.current);
+            }
+        };
+    }, [searchInput]);
 
     const handlePageChange = (page: number) => {
         setCardsVisible(false);
@@ -100,6 +121,17 @@ const Events = () => {
         navigate(`/events/${eventId}`);
     };
 
+    const handleSearchKeyPress = (e: React.KeyboardEvent) => {
+        if (e.key === 'Enter') {
+            setName(searchInput);
+        }
+    };
+
+    const clearSearch = () => {
+        setSearchInput('');
+        setName('');
+    };
+
     return (
         <Container className="events-page-container">
             {error && (
@@ -113,26 +145,81 @@ const Events = () => {
                     <h2 className="events-page-title">Danh sách sự kiện</h2>
                 </div>
 
-                <div className="events-page-filter-container">
-                    <div className="events-page-filter">
-                        <div className="events-page-filter-label">
-                            <i className="fas fa-filter"></i>
-                            <span>Lọc theo danh mục</span>
+                <div className="events-page-filters-container">
+                    <div className="events-page-search-filter">
+                        <div className="events-page-search-wrapper">
+                            <div className="events-page-search-input-wrapper">
+                                <i className="fas fa-search events-page-search-icon"></i>
+                                <input
+                                    type="text"
+                                    className="events-page-search-input"
+                                    placeholder="Tìm sự kiện theo tên, mô tả..."
+                                    value={searchInput}
+                                    onChange={(e) => setSearchInput(e.target.value)}
+                                    onKeyDown={handleSearchKeyPress}
+                                />
+                                {searchInput && (
+                                    <button
+                                        className="events-page-clear-search"
+                                        onClick={clearSearch}
+                                        type="button"
+                                    >
+                                        <i className="fas fa-times"></i>
+                                    </button>
+                                )}
+                            </div>
                         </div>
-                        <Form.Select
-                            className="events-page-select"
-                            value={selectedCategory}
-                            onChange={(e) => setSelectedCategory(e.target.value)}
-                        >
-                            <option value="">Tất cả danh mục</option>
-                            {categories.map((category) => (
-                                <option key={category.maDanhMuc} value={category.maDanhMuc}>
-                                    {category.tenDanhMuc}
-                                </option>
-                            ))}
-                        </Form.Select>
+                    </div>
+
+                    <div className="events-page-category-filter">
+                        <div className="events-page-filter">
+                            <div className="events-page-filter-label">
+                                <i className="fas fa-filter"></i>
+                            </div>
+                            <Form.Select
+                                className="events-page-select"
+                                value={selectedCategory}
+                                onChange={(e) => setSelectedCategory(e.target.value)}
+                            >
+                                <option value="">Tất cả danh mục</option>
+                                {categories.map((category) => (
+                                    <option key={category.maDanhMuc} value={category.maDanhMuc}>
+                                        {category.tenDanhMuc}
+                                    </option>
+                                ))}
+                            </Form.Select>
+                        </div>
                     </div>
                 </div>
+
+                {(searchInput || selectedCategory) && (
+                    <div className="events-page-active-filters">
+                        <div className="events-page-active-filters-label">
+                            <i className="fas fa-tag"></i>
+                            <span>Bộ lọc đang áp dụng:</span>
+                        </div>
+                        <div className="events-page-active-filters-list">
+                            {searchInput && (
+                                <div className="events-page-active-filter-tag">
+                                    <span>Tìm kiếm: "{searchInput}"</span>
+                                    <button onClick={clearSearch}>
+                                        <i className="fas fa-times"></i>
+                                    </button>
+                                </div>
+                            )}
+                            {selectedCategory && (
+                                <div className="events-page-active-filter-tag">
+                                    <span>
+                                        Danh mục: {categories.find(c => c.maDanhMuc === selectedCategory)?.tenDanhMuc}
+                                    </span>
+                                    <button onClick={() => setSelectedCategory('')}>
+                                        <i className="fas fa-times"></i>
+                                    </button>
+                                </div>
+                            )}
+                        </div>
+                    </div>
+                )}
 
                 {loading ? (
                     <div className="events-page-loading">
@@ -204,7 +291,7 @@ const Events = () => {
                             {events.length === 0 && (
                                 <div className="events-page-no-events">
                                     <i className="fas fa-calendar-times"></i>
-                                    <p>Không có sự kiện nào</p>
+                                    <p>Không có sự kiện nào {searchInput ? `với từ khóa "${searchInput}"` : ''}</p>
                                 </div>
                             )}
                         </div>

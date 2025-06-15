@@ -8,11 +8,12 @@ class EventService extends BaseService<SuKien, CreateSuKienDTO> {
         super('events');
     }
 
-    async getPaginatedFiler(page: number, size: number, maDanhMuc?: string, hoatDong?: boolean) {
+    async getPaginatedFiler(page: number, size: number, maDanhMuc?: string, hoatDong?: boolean, name?: string) {
         const response = await axiosInstance.get<PaginatedResponse<SuKien>>(
             `${this.endpoint}/page-filter?page=${page}&size=${size}&sort=ngayTao,desc`
             + `${maDanhMuc ? `&maDanhMuc=${maDanhMuc}` : ''}`
             + `${hoatDong != null ? `&hoatDong=${hoatDong}` : ''}`
+            + `${name ? `&name=${encodeURIComponent(name)}` : ''}`
         );
         return response.data;
     }

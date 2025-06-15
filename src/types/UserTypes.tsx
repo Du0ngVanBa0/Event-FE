@@ -36,3 +36,11 @@ export interface SecurityUser {
     tenHienThi?: string;
     email?: string;
 }
+
+export interface ChangeInfoForm {
+  fullName: string;
+  email: string;
+  currentPassword: string;
+  newPassword: string;
+  confirmPassword: string;
+}

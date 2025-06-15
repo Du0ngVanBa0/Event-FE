@@ -1,6 +1,7 @@
 import axiosInstance from './axios';
 import { ApiResponse, PaginatedResponse } from '../types/ResponseTypes';
 import { UserProfile } from '../types/UserTypes';
+import { ChangeInfoRequest } from '../types/RequestTypes';
 
 class UserService {
     async getUsers(
@@ -95,6 +96,25 @@ class UserService {
 
     async deleteUser(userId: string) {
         const response = await axiosInstance.delete<ApiResponse<null>>(`admin/users/${userId}`);
+        return response.data;
+    }
+
+    async changeInfomation(req: ChangeInfoRequest) {
+        const formData = new FormData();
+        formData.append('hoVaTen', req.hoVaTen);
+        formData.append('matKhauHienTai', req.matKhauHienTai);
+        formData.append('matKhauMoi', req.matKhauMoi);
+
+        if (req.anhDaiDien instanceof File) {
+            formData.append('anhDaiDien', req.anhDaiDien);
+        }
+
+        const response = await axiosInstance.post<ApiResponse<UserProfile>>(`users/change-information`, formData, {
+            headers: {
+                'Content-Type': 'multipart/form-data'
+            }
+        });
+
         return response.data;
     }
 }
