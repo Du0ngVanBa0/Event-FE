@@ -628,6 +628,101 @@
     font-size: 1rem;
 }
 
+.dashboard-page-customers-table {
+    margin-bottom: 0;
+}
+
+.dashboard-page-customers-table th {
+    background: var(--color-background);
+    border-top: none;
+    color: var(--color-text);
+    font-weight: 600;
+    padding: 1rem;
+    border-bottom: 2px solid var(--color-border);
+}
+
+.dashboard-page-customers-table td {
+    padding: 1rem;
+    vertical-align: middle;
+    border-bottom: 1px solid var(--color-border-light);
+}
+
+.dashboard-page-rank-badge {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    background: var(--color-background);
+    border: 2px solid var(--color-border);
+    font-size: 1.2rem;
+}
+
+.dashboard-page-rank-badge .rank-number {
+    font-weight: 700;
+    color: var(--color-text);
+}
+
+.dashboard-page-customer-info {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+}
+
+.dashboard-page-customer-avatar {
+    position: relative;
+    width: 50px;
+    height: 50px;
+    border-radius: 50%;
+    overflow: hidden;
+    border: 2px solid var(--color-border);
+}
+
+.dashboard-page-customer-avatar img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+
+.dashboard-page-avatar-placeholder {
+    width: 100%;
+    height: 100%;
+    background: var(--color-background);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: var(--color-text-light);
+    font-size: 1.2rem;
+}
+
+.dashboard-page-customer-details {
+    flex: 1;
+}
+
+.dashboard-page-customer-name {
+    font-weight: 600;
+    color: var(--color-text);
+    margin-bottom: 0.25rem;
+}
+
+.dashboard-page-customer-email {
+    font-size: 0.9rem;
+    color: var(--color-text-light);
+}
+
+.dashboard-page-ticket-badge {
+    font-size: 0.9rem;
+    padding: 0.5rem 1rem;
+    border-radius: 20px;
+}
+
+.dashboard-page-revenue-amount {
+    font-weight: 700;
+    color: var(--color-success);
+    font-size: 1.1rem;
+}
+
 /* Responsive Design */
 @media (max-width: 768px) {
     .dashboard-page-container {

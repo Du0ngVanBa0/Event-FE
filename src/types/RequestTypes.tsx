@@ -21,8 +21,14 @@ export interface RegisterRequest {
 }
 
 export interface ThongKeRangeParams {
-  tuNgay: string;
-  denNgay: string;
+    tuNgay: string;
+    denNgay: string;
+}
+
+export interface TopKhachHangParams {
+    tuNgay: string;
+    denNgay: string;
+    limit?: number;
 }
 
 export interface BookTicketRequest {
@@ -31,8 +37,8 @@ export interface BookTicketRequest {
 }
 
 export interface CreatePaymentRequest {
-  maDatVe: string;
-  bankCode?: string;
+    maDatVe: string;
+    bankCode?: string;
 }
 
 export interface VerifyOtpRequest {
@@ -41,8 +47,8 @@ export interface VerifyOtpRequest {
 }
 
 export interface ChangeInfoRequest {
-  hoVaTen: string;
-  matKhauHienTai: string;
-  matKhauMoi: string;
-  anhDaiDien: File | null;
+    hoVaTen: string;
+    matKhauHienTai: string;
+    matKhauMoi: string;
+    anhDaiDien: File | null;
 }

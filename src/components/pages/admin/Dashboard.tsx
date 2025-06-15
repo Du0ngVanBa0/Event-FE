@@ -1,9 +1,12 @@
 import React, { useState, useEffect } from 'react';
-import { Container, Nav, Row, Col, Card, Button, Form, Alert, Spinner } from 'react-bootstrap';
+import { Container, Nav, Row, Col, Card, Button, Form, Alert, Spinner, Badge, Table } from 'react-bootstrap';
 import { Link, Outlet, useLocation } from 'react-router-dom';
 import reportService from '../../../api/reportService';
+import eventService from '../../../api/eventService';
 import './Dashboard.css';
-import { ThongKeResponse } from '../../../types/ReportTypes';
+import { ThongKeResponse, TopKhachHangResponse } from '../../../types/ReportTypes';
+import { SuKien } from '../../../types/EventTypes';
+import { getImageUrl, formatCurrency } from '../../../utils/helper';
 
 interface SummaryCardProps {
     icon: string;
@@ -81,15 +84,28 @@ const SummaryCard: React.FC<SummaryCardProps> = ({ icon, title, value, subtitle,
 const DashboardPage: React.FC = () => {
     const [allTimeData, setAllTimeData] = useState<ThongKeResponse | null>(null);
     const [rangeData, setRangeData] = useState<ThongKeResponse | null>(null);
+    const [topCustomers, setTopCustomers] = useState<TopKhachHangResponse[]>([]);
+    const [eventTopCustomers, setEventTopCustomers] = useState<TopKhachHangResponse[]>([]);
+    const [events, setEvents] = useState<SuKien[]>([]);
+    
     const [startDate, setStartDate] = useState('');
     const [endDate, setEndDate] = useState('');
+    const [selectedEvent, setSelectedEvent] = useState('');
+    const [customerLimit, setCustomerLimit] = useState(5);
+    
     const [loading, setLoading] = useState(true);
     const [rangeLoading, setRangeLoading] = useState(false);
+    const [customersLoading, setCustomersLoading] = useState(false);
+    const [eventCustomersLoading, setEventCustomersLoading] = useState(false);
+    
     const [error, setError] = useState('');
     const [rangeError, setRangeError] = useState('');
+    const [customersError, setCustomersError] = useState('');
+    const [eventCustomersError, setEventCustomersError] = useState('');
 
     useEffect(() => {
         fetchAllTimeData();
+        fetchEvents();
         const today = new Date();
         const thirtyDaysAgo = new Date(today.getTime() - 30 * 24 * 60 * 60 * 1000);
 
@@ -107,6 +123,15 @@ const DashboardPage: React.FC = () => {
             setError(err instanceof Error ? err.message : 'Không thể tải dữ liệu thống kê');
         } finally {
             setLoading(false);
+        }
+    };
+
+    const fetchEvents = async () => {
+        try {
+            const response = await eventService.getPaginatedFiler(0, 1000, undefined, true);
+            setEvents(response.data.content);
+        } catch (err) {
+            console.error('Error loading events:', err);
         }
     };
 
@@ -133,11 +158,49 @@ const DashboardPage: React.FC = () => {
         }
     };
 
-    const formatCurrency = (amount: number): string => {
-        return new Intl.NumberFormat('vi-VN', {
-            style: 'currency',
-            currency: 'VND'
-        }).format(amount);
+    const fetchTopCustomers = async () => {
+        if (!startDate || !endDate) {
+            setCustomersError('Vui lòng chọn ngày bắt đầu và ngày kết thúc');
+            return;
+        }
+
+        if (new Date(startDate) > new Date(endDate)) {
+            setCustomersError('Ngày bắt đầu không thể lớn hơn ngày kết thúc');
+            return;
+        }
+
+        try {
+            setCustomersLoading(true);
+            setCustomersError('');
+            const response = await reportService.getTopKhachHangByRange({
+                tuNgay: startDate,
+                denNgay: endDate,
+                limit: customerLimit
+            });
+            setTopCustomers(response.data);
+        } catch (err) {
+            setCustomersError(err instanceof Error ? err.message : 'Không thể tải dữ liệu khách hàng');
+        } finally {
+            setCustomersLoading(false);
+        }
+    };
+
+    const fetchEventTopCustomers = async () => {
+        if (!selectedEvent) {
+            setEventCustomersError('Vui lòng chọn sự kiện');
+            return;
+        }
+
+        try {
+            setEventCustomersLoading(true);
+            setEventCustomersError('');
+            const response = await reportService.getTopKhachHangByEvent(selectedEvent, customerLimit);
+            setEventTopCustomers(response.data);
+        } catch (err) {
+            setEventCustomersError(err instanceof Error ? err.message : 'Không thể tải dữ liệu khách hàng theo sự kiện');
+        } finally {
+            setEventCustomersLoading(false);
+        }
     };
 
     const formatDateRange = () => {
@@ -146,6 +209,82 @@ const DashboardPage: React.FC = () => {
         const end = new Date(endDate).toLocaleDateString('vi-VN');
         return `${start} - ${end}`;
     };
+
+    const CustomerTable: React.FC<{ customers: TopKhachHangResponse[]; title: string }> = ({ customers, title }) => (
+        <Card className="dashboard-page-chart-card">
+            <Card.Body>
+                <h4 className="dashboard-page-chart-title">
+                    <i className="fas fa-crown"></i>
+                    {title}
+                </h4>
+                {customers.length > 0 ? (
+                    <Table responsive className="dashboard-page-customers-table">
+                        <thead>
+                            <tr>
+                                <th>Hạng</th>
+                                <th>Khách hàng</th>
+                                <th>Số vé</th>
+                                <th>Tổng tiền</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {customers.map((customer, index) => (
+                                <tr key={customer.maNguoiDung}>
+                                    <td>
+                                        <div className="dashboard-page-rank-badge">
+                                            {index === 0 && <i className="fas fa-trophy" style={{ color: '#FFD700' }}></i>}
+                                            {index === 1 && <i className="fas fa-medal" style={{ color: '#C0C0C0' }}></i>}
+                                            {index === 2 && <i className="fas fa-award" style={{ color: '#CD7F32' }}></i>}
+                                            {index > 2 && <span className="rank-number">#{index + 1}</span>}
+                                        </div>
+                                    </td>
+                                    <td>
+                                        <div className="dashboard-page-customer-info">
+                                            <div className="dashboard-page-customer-avatar">
+                                                {customer.anhDaiDien ? (
+                                                    <img 
+                                                        src={getImageUrl(customer.anhDaiDien)} 
+                                                        alt={customer.tenHienThi}
+                                                        onError={(e) => {
+                                                            const target = e.target as HTMLImageElement;
+                                                            target.style.display = 'none';
+                                                        }}
+                                                    />
+                                                ) : null}
+                                                <div className="dashboard-page-avatar-placeholder" style={{ display: customer.anhDaiDien ? 'none' : 'flex' }}>
+                                                    <i className="fas fa-user"></i>
+                                                </div>
+                                            </div>
+                                            <div className="dashboard-page-customer-details">
+                                                <div className="dashboard-page-customer-name">{customer.tenHienThi}</div>
+                                                <div className="dashboard-page-customer-email">{customer.email}</div>
+                                            </div>
+                                        </div>
+                                    </td>
+                                    <td>
+                                        <Badge bg="primary" className="dashboard-page-ticket-badge">
+                                            <i className="fas fa-ticket-alt me-1"></i>
+                                            {customer.soVe}
+                                        </Badge>
+                                    </td>
+                                    <td>
+                                        <div className="dashboard-page-revenue-amount">
+                                            {formatCurrency(customer.tongTien)}
+                                        </div>
+                                    </td>
+                                </tr>
+                            ))}
+                        </tbody>
+                    </Table>
+                ) : (
+                    <div className="dashboard-page-no-data">
+                        <i className="fas fa-users-slash"></i>
+                        <p>Chưa có dữ liệu khách hàng</p>
+                    </div>
+                )}
+            </Card.Body>
+        </Card>
+    );
 
     if (loading) {
         return (
@@ -185,54 +324,53 @@ const DashboardPage: React.FC = () => {
 
                 {/* Summary Cards */}
                 {allTimeData && (
-                    <>
-                        <div className="dashboard-page-section">
-                            <h2 className="dashboard-page-section-title">
-                                <i className="fas fa-globe"></i>
-                                Thống kê tổng quan
-                            </h2>
-                            <Row className="dashboard-page-summary-grid">
-                                <Col xl={3} lg={6} md={6} sm={12}>
-                                    <SummaryCard
-                                        icon="fas fa-calendar-alt"
-                                        title="Tổng sự kiện"
-                                        value={allTimeData.tongSuKien}
-                                        subtitle="Tất cả thời gian"
-                                        color="blue"
-                                    />
-                                </Col>
-                                <Col xl={3} lg={6} md={6} sm={12}>
-                                    <SummaryCard
-                                        icon="fas fa-users"
-                                        title="Người dùng"
-                                        value={allTimeData.tongNguoiDung}
-                                        subtitle="Đã đăng ký"
-                                        color="green"
-                                    />
-                                </Col>
-                                <Col xl={3} lg={6} md={6} sm={12}>
-                                    <SummaryCard
-                                        icon="fas fa-clock"
-                                        title="Chờ duyệt"
-                                        value={allTimeData.tongSuKienChoDuyet}
-                                        subtitle="Sự kiện"
-                                        color="orange"
-                                    />
-                                </Col>
-                                <Col xl={3} lg={6} md={6} sm={12}>
-                                    <SummaryCard
-                                        icon="fas fa-money-bill-wave"
-                                        title="Doanh thu tổng"
-                                        value={formatCurrency(allTimeData.doanhThuThang)}
-                                        subtitle="Tổng doanh thú"
-                                        color="purple"
-                                    />
-                                </Col>
-                            </Row>
-                        </div>
-                    </>
+                    <div className="dashboard-page-section">
+                        <h2 className="dashboard-page-section-title">
+                            <i className="fas fa-globe"></i>
+                            Thống kê tổng quan
+                        </h2>
+                        <Row className="dashboard-page-summary-grid">
+                            <Col xl={3} lg={6} md={6} sm={12}>
+                                <SummaryCard
+                                    icon="fas fa-calendar-alt"
+                                    title="Tổng sự kiện"
+                                    value={allTimeData.tongSuKien}
+                                    subtitle="Tất cả thời gian"
+                                    color="blue"
+                                />
+                            </Col>
+                            <Col xl={3} lg={6} md={6} sm={12}>
+                                <SummaryCard
+                                    icon="fas fa-users"
+                                    title="Người dùng"
+                                    value={allTimeData.tongNguoiDung}
+                                    subtitle="Đã đăng ký"
+                                    color="green"
+                                />
+                            </Col>
+                            <Col xl={3} lg={6} md={6} sm={12}>
+                                <SummaryCard
+                                    icon="fas fa-clock"
+                                    title="Chờ duyệt"
+                                    value={allTimeData.tongSuKienChoDuyet}
+                                    subtitle="Sự kiện"
+                                    color="orange"
+                                />
+                            </Col>
+                            <Col xl={3} lg={6} md={6} sm={12}>
+                                <SummaryCard
+                                    icon="fas fa-money-bill-wave"
+                                    title="Doanh thu tổng"
+                                    value={formatCurrency(allTimeData.doanhThuThang)}
+                                    subtitle="Tổng doanh thu"
+                                    color="purple"
+                                />
+                            </Col>
+                        </Row>
+                    </div>
                 )}
 
+                {/* Date Range Filter */}
                 <div className="dashboard-page-section">
                     <h2 className="dashboard-page-section-title">
                         <i className="fas fa-calendar-week"></i>
@@ -242,7 +380,7 @@ const DashboardPage: React.FC = () => {
                     <Card className="dashboard-page-range-filter">
                         <Card.Body>
                             <Row className="align-items-end">
-                                <Col md={4}>
+                                <Col md={3}>
                                     <Form.Group>
                                         <Form.Label className="dashboard-page-label">
                                             <i className="fas fa-calendar-day"></i>
@@ -256,7 +394,7 @@ const DashboardPage: React.FC = () => {
                                         />
                                     </Form.Group>
                                 </Col>
-                                <Col md={4}>
+                                <Col md={3}>
                                     <Form.Group>
                                         <Form.Label className="dashboard-page-label">
                                             <i className="fas fa-calendar-day"></i>
@@ -270,7 +408,24 @@ const DashboardPage: React.FC = () => {
                                         />
                                     </Form.Group>
                                 </Col>
-                                <Col md={4}>
+                                <Col md={2}>
+                                    <Form.Group>
+                                        <Form.Label className="dashboard-page-label">
+                                            <i className="fas fa-hashtag"></i>
+                                            Số lượng
+                                        </Form.Label>
+                                        <Form.Select
+                                            value={customerLimit}
+                                            onChange={(e) => setCustomerLimit(Number(e.target.value))}
+                                            className="dashboard-page-date-input"
+                                        >
+                                            <option value={5}>Top 5</option>
+                                            <option value={10}>Top 10</option>
+                                            <option value={20}>Top 20</option>
+                                        </Form.Select>
+                                    </Form.Group>
+                                </Col>
+                                <Col md={2}>
                                     <Button
                                         variant="primary"
                                         onClick={fetchRangeData}
@@ -290,17 +445,38 @@ const DashboardPage: React.FC = () => {
                                         )}
                                     </Button>
                                 </Col>
+                                <Col md={2}>
+                                    <Button
+                                        variant="success"
+                                        onClick={fetchTopCustomers}
+                                        disabled={customersLoading || !startDate || !endDate}
+                                        className="dashboard-page-filter-btn"
+                                    >
+                                        {customersLoading ? (
+                                            <>
+                                                <Spinner animation="border" size="sm" className="me-2" />
+                                                Đang tải...
+                                            </>
+                                        ) : (
+                                            <>
+                                                <i className="fas fa-crown"></i>
+                                                Top KH
+                                            </>
+                                        )}
+                                    </Button>
+                                </Col>
                             </Row>
 
-                            {rangeError && (
+                            {(rangeError || customersError) && (
                                 <Alert variant="danger" className="mt-3 dashboard-page-range-error">
                                     <i className="fas fa-exclamation-circle"></i>
-                                    {rangeError}
+                                    {rangeError || customersError}
                                 </Alert>
                             )}
                         </Card.Body>
                     </Card>
 
+                    {/* Range Results */}
                     {rangeData && (
                         <div className="dashboard-page-range-results">
                             <div className="dashboard-page-range-header">
@@ -346,7 +522,114 @@ const DashboardPage: React.FC = () => {
                                         title="Người dùng hoạt động"
                                         value={rangeData.tongNguoiDung}
                                         subtitle="Tham gia"
-                                        color="orange"
+                                        color="green"
+                                    />
+                                </Col>
+                            </Row>
+                        </div>
+                    )}
+
+                    {/* Top Customers by Date Range */}
+                    {topCustomers.length > 0 && (
+                        <div className="dashboard-page-range-results">
+                            <Row>
+                                <Col lg={12}>
+                                    <CustomerTable 
+                                        customers={topCustomers} 
+                                        title={`Top ${customerLimit} khách hàng (${formatDateRange()})`}
+                                    />
+                                </Col>
+                            </Row>
+                        </div>
+                    )}
+                </div>
+
+                {/* Event Top Customers */}
+                <div className="dashboard-page-section">
+                    <h2 className="dashboard-page-section-title">
+                        <i className="fas fa-trophy"></i>
+                        Top khách hàng theo sự kiện
+                    </h2>
+
+                    <Card className="dashboard-page-range-filter">
+                        <Card.Body>
+                            <Row className="align-items-end">
+                                <Col md={6}>
+                                    <Form.Group>
+                                        <Form.Label className="dashboard-page-label">
+                                            <i className="fas fa-calendar-check"></i>
+                                            Chọn sự kiện
+                                        </Form.Label>
+                                        <Form.Select
+                                            value={selectedEvent}
+                                            onChange={(e) => setSelectedEvent(e.target.value)}
+                                            className="dashboard-page-date-input"
+                                        >
+                                            <option value="">-- Chọn sự kiện --</option>
+                                            {events.map((event) => (
+                                                <option key={event.maSuKien} value={event.maSuKien}>
+                                                    {event.tieuDe}
+                                                </option>
+                                            ))}
+                                        </Form.Select>
+                                    </Form.Group>
+                                </Col>
+                                <Col md={3}>
+                                    <Form.Group>
+                                        <Form.Label className="dashboard-page-label">
+                                            <i className="fas fa-hashtag"></i>
+                                            Số lượng
+                                        </Form.Label>
+                                        <Form.Select
+                                            value={customerLimit}
+                                            onChange={(e) => setCustomerLimit(Number(e.target.value))}
+                                            className="dashboard-page-date-input"
+                                        >
+                                            <option value={5}>Top 5</option>
+                                            <option value={10}>Top 10</option>
+                                            <option value={20}>Top 20</option>
+                                        </Form.Select>
+                                    </Form.Group>
+                                </Col>
+                                <Col md={3}>
+                                    <Button
+                                        variant="warning"
+                                        onClick={fetchEventTopCustomers}
+                                        disabled={eventCustomersLoading || !selectedEvent}
+                                        className="dashboard-page-filter-btn"
+                                    >
+                                        {eventCustomersLoading ? (
+                                            <>
+                                                <Spinner animation="border" size="sm" className="me-2" />
+                                                Đang tải...
+                                            </>
+                                        ) : (
+                                            <>
+                                                <i className="fas fa-search"></i>
+                                                Xem top KH
+                                            </>
+                                        )}
+                                    </Button>
+                                </Col>
+                            </Row>
+
+                            {eventCustomersError && (
+                                <Alert variant="danger" className="mt-3 dashboard-page-range-error">
+                                    <i className="fas fa-exclamation-circle"></i>
+                                    {eventCustomersError}
+                                </Alert>
+                            )}
+                        </Card.Body>
+                    </Card>
+
+                    {/* Event Top Customers Results */}
+                    {eventTopCustomers.length > 0 && (
+                        <div className="dashboard-page-range-results">
+                            <Row>
+                                <Col lg={12}>
+                                    <CustomerTable 
+                                        customers={eventTopCustomers} 
+                                        title={`Top ${customerLimit} khách hàng - ${events.find(e => e.maSuKien === selectedEvent)?.tieuDe || 'Sự kiện'}`}
                                     />
                                 </Col>
                             </Row>
@@ -414,7 +697,6 @@ const Dashboard = () => {
 
                 <Col md={10} className="admin-content">
                     {showDashboardPage && <DashboardPage />}
-                    
                     {!showDashboardPage && <Outlet />}
                 </Col>
             </Row>
