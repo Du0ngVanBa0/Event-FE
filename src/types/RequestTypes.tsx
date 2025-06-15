@@ -20,6 +20,11 @@ export interface RegisterRequest {
     tenHienThi: string;
 }
 
+export interface ThongKeRangeParams {
+  tuNgay: string;
+  denNgay: string;
+}
+
 export interface BookTicketRequest {
     maLoaiVe: string,
     soLuong: number

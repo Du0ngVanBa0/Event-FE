@@ -1,209 +1,368 @@
-import { Container, Nav, Row, Col, Card, Alert } from 'react-bootstrap';
+import React, { useState, useEffect } from 'react';
+import { Container, Nav, Row, Col, Card, Button, Form, Alert, Spinner } from 'react-bootstrap';
 import { Link, Outlet, useLocation } from 'react-router-dom';
-import './Dashboard.css';
-import { useEffect, useState } from 'react';
-import { ReportDataState } from '../../../types/ReportTypes';
 import reportService from '../../../api/reportService';
+import './Dashboard.css';
+import { ThongKeResponse } from '../../../types/ReportTypes';
 
-const Dashboard = () => {
-    const [reportData, setReportData] = useState<ReportDataState>({
-        totalEvents: 0,
-        pendingEvents: 0,
-        totalUsers: 0,
-        activeUsers: 0,
-        totalRevenue: 0,
-        monthlyRevenue: 0,
-        popularCategories: [],
-        recentEvents: []
-    });
+interface SummaryCardProps {
+    icon: string;
+    title: string;
+    value: number | string;
+    subtitle?: string;
+    color: string;
+    trend?: {
+        value: number;
+        isPositive: boolean;
+    };
+}
+
+const SummaryCard: React.FC<SummaryCardProps> = ({ icon, title, value, subtitle, color, trend }) => {
+    const [animatedValue, setAnimatedValue] = useState(0);
+
+    useEffect(() => {
+        if (typeof value === 'number' && value > 0) {
+            const increment = value / 50;
+            let current = 0;
+
+            const timer = setInterval(() => {
+                current += increment;
+                if (current >= value) {
+                    current = value;
+                    clearInterval(timer);
+                }
+                setAnimatedValue(Math.floor(current));
+            }, 30);
+
+            return () => clearInterval(timer);
+        }
+    }, [value]);
+
+    const formatValue = (val: number | string) => {
+        if (typeof val === 'number') {
+            if (val >= 1000000) {
+                return `${(val / 1000000).toFixed(1)}M`;
+            } else if (val >= 1000) {
+                return `${(val / 1000).toFixed(1)}K`;
+            }
+            return val.toLocaleString('vi-VN');
+        }
+        return val;
+    };
+
+    return (
+        <Card className="dashboard-page-summary-card">
+            <Card.Body>
+                <div className="dashboard-page-card-content">
+                    <div className={`dashboard-page-card-icon dashboard-page-icon-${color}`}>
+                        <i className={icon}></i>
+                    </div>
+                    <div className="dashboard-page-card-info">
+                        <div className="dashboard-page-card-value">
+                            {typeof value === 'number' ? formatValue(animatedValue) : value}
+                        </div>
+                        <div className="dashboard-page-card-title">{title}</div>
+                        {subtitle && (
+                            <div className="dashboard-page-card-subtitle">{subtitle}</div>
+                        )}
+                        {trend && (
+                            <div className={`dashboard-page-card-trend ${trend.isPositive ? 'positive' : 'negative'}`}>
+                                <i className={`fas fa-arrow-${trend.isPositive ? 'up' : 'down'}`}></i>
+                                {Math.abs(trend.value)}%
+                            </div>
+                        )}
+                    </div>
+                </div>
+            </Card.Body>
+        </Card>
+    );
+};
+
+const DashboardPage: React.FC = () => {
+    const [allTimeData, setAllTimeData] = useState<ThongKeResponse | null>(null);
+    const [rangeData, setRangeData] = useState<ThongKeResponse | null>(null);
+    const [startDate, setStartDate] = useState('');
+    const [endDate, setEndDate] = useState('');
     const [loading, setLoading] = useState(true);
+    const [rangeLoading, setRangeLoading] = useState(false);
     const [error, setError] = useState('');
-    const location = useLocation();
-    const currentPath = location.pathname;
+    const [rangeError, setRangeError] = useState('');
 
-    const formatCurrency = (amount: number) => {
+    useEffect(() => {
+        fetchAllTimeData();
+        const today = new Date();
+        const thirtyDaysAgo = new Date(today.getTime() - 30 * 24 * 60 * 60 * 1000);
+
+        setEndDate(today.toISOString().split('T')[0]);
+        setStartDate(thirtyDaysAgo.toISOString().split('T')[0]);
+    }, []);
+
+    const fetchAllTimeData = async () => {
+        try {
+            setLoading(true);
+            setError('');
+            const response = await reportService.getAll();
+            setAllTimeData(response.data);
+        } catch (err) {
+            setError(err instanceof Error ? err.message : 'Không thể tải dữ liệu thống kê');
+        } finally {
+            setLoading(false);
+        }
+    };
+
+    const fetchRangeData = async () => {
+        if (!startDate || !endDate) {
+            setRangeError('Vui lòng chọn ngày bắt đầu và ngày kết thúc');
+            return;
+        }
+
+        if (new Date(startDate) > new Date(endDate)) {
+            setRangeError('Ngày bắt đầu không thể lớn hơn ngày kết thúc');
+            return;
+        }
+
+        try {
+            setRangeLoading(true);
+            setRangeError('');
+            const response = await reportService.getThongKeByRange({ tuNgay: startDate, denNgay: endDate });
+            setRangeData(response.data);
+        } catch (err) {
+            setRangeError(err instanceof Error ? err.message : 'Không thể tải dữ liệu theo khoảng thời gian');
+        } finally {
+            setRangeLoading(false);
+        }
+    };
+
+    const formatCurrency = (amount: number): string => {
         return new Intl.NumberFormat('vi-VN', {
             style: 'currency',
             currency: 'VND'
         }).format(amount);
     };
-    
-    useEffect(() => {
-        const fetchData = async () => {
-            try {
-                setLoading(true);
-                setError('');
-                const dataa = await reportService.getAll();
 
-                const data = dataa.data;
-                setReportData({
-                    totalEvents: data.tongSuKien,
-                    pendingEvents: data.tongSuKienChoDuyet,
-                    totalUsers: data.tongNguoiDung,
-                    activeUsers: 0, 
-                    totalRevenue: 0,
-                    monthlyRevenue: data.doanhThuThang,
-                    popularCategories: data.danhMucPhoBien.map(cat => ({
-                        name: cat.tenDanhMuc,
-                        count: cat.soSuKien
-                    })),
-                    recentEvents: data.suKienHot.map(event => ({
-                        name: event.tenSuKien,
-                        tickets: event.soVeBan,
-                        revenue: event.doanhThu
-                    }))
-                });
-                
-            } catch (err) {
-                setError(err instanceof Error ? err.message : "Không thể tải dữ liệu thống kê");
-            } finally {
-                setLoading(false);
-            }
-        };
-        
-        fetchData();
-    }, []);
+    const formatDateRange = () => {
+        if (!startDate || !endDate) return '';
+        const start = new Date(startDate).toLocaleDateString('vi-VN');
+        const end = new Date(endDate).toLocaleDateString('vi-VN');
+        return `${start} - ${end}`;
+    };
 
-    const renderDashboardContent = () => {
-        if (loading) {
-            return (
-                <div className="dashboard-loading">
-                    <div className="text-center">
-                        <div className="spinner-border text-primary" role="status">
-                            <span className="visually-hidden">Đang tải...</span>
-                        </div>
-                        <p className="mt-2">Đang tải dữ liệu thống kê...</p>
-                    </div>
+    if (loading) {
+        return (
+            <div className="dashboard-page-loading">
+                <Spinner animation="border" variant="primary" />
+                <p className="mt-3">Đang tải dữ liệu thống kê...</p>
+            </div>
+        );
+    }
+
+    return (
+        <div className="dashboard-page-container">
+            <Container fluid>
+                <div className="dashboard-page-header">
+                    <h1 className="dashboard-page-title">
+                        <i className="fas fa-chart-line"></i>
+                        Bảng điều khiển thống kê
+                    </h1>
+                    <p className="dashboard-page-subtitle">
+                        Tổng quan hiệu suất và số liệu hệ thống
+                    </p>
                 </div>
-            );
-        }
 
-        if (error) {
-            return (
-                <Alert variant="danger" className="dashboard-error">
-                    <Alert.Heading>
-                        <i className="fas fa-exclamation-triangle"></i>
-                        Lỗi tải dữ liệu
-                    </Alert.Heading>
-                    <p className="mb-3">{error}</p>
-                    <div className="d-flex gap-2">
-                        <button 
-                            className="btn btn-outline-danger"
-                            onClick={() => window.location.reload()}
-                        >
+                {error && (
+                    <Alert variant="danger" className="dashboard-page-alert">
+                        <Alert.Heading>
+                            <i className="fas fa-exclamation-triangle"></i>
+                            Lỗi tải dữ liệu
+                        </Alert.Heading>
+                        <p>{error}</p>
+                        <Button variant="outline-danger" onClick={fetchAllTimeData}>
                             <i className="fas fa-redo"></i>
                             Thử lại
-                        </button>
-                    </div>
-                </Alert>
-            );
-        }
+                        </Button>
+                    </Alert>
+                )}
 
-        return (
-            <div className="dashboard-content">
-                <h2 className="mb-4">Tổng quan hệ thống</h2>
-                
-                <Row className="stats-cards">
-                    <Col md={3}>
-                        <Card className="stat-card">
-                            <Card.Body>
-                                <div className="stat-icon">
-                                    <i className="fas fa-calendar-alt"></i>
-                                </div>
-                                <div className="stat-info">
-                                    <h3>{reportData.totalEvents}</h3>
-                                    <p>Tổng số sự kiện</p>
-                                </div>
-                            </Card.Body>
-                        </Card>
-                    </Col>
-                    <Col md={3}>
-                        <Card className="stat-card">
-                            <Card.Body>
-                                <div className="stat-icon">
-                                    <i className="fas fa-users"></i>
-                                </div>
-                                <div className="stat-info">
-                                    <h3>{reportData.totalUsers}</h3>
-                                    <p>Người dùng</p>
-                                </div>
-                            </Card.Body>
-                        </Card>
-                    </Col>
-                    <Col md={3}>
-                        <Card className="stat-card">
-                            <Card.Body>
-                                <div className="stat-icon">
-                                    <i className="fas fa-clock"></i>
-                                </div>
-                                <div className="stat-info">
-                                    <h3>{reportData.pendingEvents}</h3>
-                                    <p>Sự kiện chờ duyệt</p>
-                                </div>
-                            </Card.Body>
-                        </Card>
-                    </Col>
-                    <Col md={3}>
-                        <Card className="stat-card">
-                            <Card.Body>
-                                <div className="stat-icon">
-                                    <i className="fas fa-money-bill-wave"></i>
-                                </div>
-                                <div className="stat-info">
-                                    <h3>{formatCurrency(reportData.monthlyRevenue)}</h3>
-                                    <p>Doanh thu tháng</p>
-                                </div>
-                            </Card.Body>
-                        </Card>
-                    </Col>
-                </Row>
+                {/* Summary Cards */}
+                {allTimeData && (
+                    <>
+                        <div className="dashboard-page-section">
+                            <h2 className="dashboard-page-section-title">
+                                <i className="fas fa-globe"></i>
+                                Thống kê tổng quan
+                            </h2>
+                            <Row className="dashboard-page-summary-grid">
+                                <Col xl={3} lg={6} md={6} sm={12}>
+                                    <SummaryCard
+                                        icon="fas fa-calendar-alt"
+                                        title="Tổng sự kiện"
+                                        value={allTimeData.tongSuKien}
+                                        subtitle="Tất cả thời gian"
+                                        color="blue"
+                                    />
+                                </Col>
+                                <Col xl={3} lg={6} md={6} sm={12}>
+                                    <SummaryCard
+                                        icon="fas fa-users"
+                                        title="Người dùng"
+                                        value={allTimeData.tongNguoiDung}
+                                        subtitle="Đã đăng ký"
+                                        color="green"
+                                    />
+                                </Col>
+                                <Col xl={3} lg={6} md={6} sm={12}>
+                                    <SummaryCard
+                                        icon="fas fa-clock"
+                                        title="Chờ duyệt"
+                                        value={allTimeData.tongSuKienChoDuyet}
+                                        subtitle="Sự kiện"
+                                        color="orange"
+                                    />
+                                </Col>
+                                <Col xl={3} lg={6} md={6} sm={12}>
+                                    <SummaryCard
+                                        icon="fas fa-money-bill-wave"
+                                        title="Doanh thu tổng"
+                                        value={formatCurrency(allTimeData.doanhThuThang)}
+                                        subtitle="Tổng doanh thú"
+                                        color="purple"
+                                    />
+                                </Col>
+                            </Row>
+                        </div>
+                    </>
+                )}
 
-                <Row className="mt-4">
-                    <Col md={6}>
-                        <Card className="chart-card">
-                            <Card.Body>
-                                <h4>Danh mục phổ biến</h4>
-                                <div className="category-stats">
-                                    {reportData.popularCategories.length > 0 ? (
-                                        reportData.popularCategories.map((category, index) => (
-                                            <div key={index} className="category-stat-item">
-                                                <span className="category-name">{category.name}</span>
-                                                <span className="category-count">{category.count} sự kiện</span>
-                                            </div>
-                                        ))
-                                    ) : (
-                                        <p className="text-muted">Chưa có dữ liệu danh mục</p>
-                                    )}
-                                </div>
-                            </Card.Body>
-                        </Card>
-                    </Col>
-                    <Col md={6}>
-                        <Card className="chart-card">
-                            <Card.Body>
-                                <h4>Sự kiện nổi bật gần đây</h4>
-                                <div className="recent-events">
-                                    {reportData.recentEvents.length > 0 ? (
-                                        reportData.recentEvents.map((event, index) => (
-                                            <div key={index} className="recent-event-item">
-                                                <span className="event-name">{event.name}</span>
-                                                <div className="event-stats">
-                                                    <span>{event.tickets} vé</span>
-                                                    <span>{formatCurrency(event.revenue)}</span>
-                                                </div>
-                                            </div>
-                                        ))
-                                    ) : (
-                                        <p className="text-muted">Chưa có dữ liệu sự kiện</p>
-                                    )}
-                                </div>
-                            </Card.Body>
-                        </Card>
-                    </Col>
-                </Row>
-            </div>
-        )
-    };
+                <div className="dashboard-page-section">
+                    <h2 className="dashboard-page-section-title">
+                        <i className="fas fa-calendar-week"></i>
+                        Thống kê theo khoảng thời gian
+                    </h2>
+
+                    <Card className="dashboard-page-range-filter">
+                        <Card.Body>
+                            <Row className="align-items-end">
+                                <Col md={4}>
+                                    <Form.Group>
+                                        <Form.Label className="dashboard-page-label">
+                                            <i className="fas fa-calendar-day"></i>
+                                            Từ ngày
+                                        </Form.Label>
+                                        <Form.Control
+                                            type="date"
+                                            value={startDate}
+                                            onChange={(e) => setStartDate(e.target.value)}
+                                            className="dashboard-page-date-input"
+                                        />
+                                    </Form.Group>
+                                </Col>
+                                <Col md={4}>
+                                    <Form.Group>
+                                        <Form.Label className="dashboard-page-label">
+                                            <i className="fas fa-calendar-day"></i>
+                                            Đến ngày
+                                        </Form.Label>
+                                        <Form.Control
+                                            type="date"
+                                            value={endDate}
+                                            onChange={(e) => setEndDate(e.target.value)}
+                                            className="dashboard-page-date-input"
+                                        />
+                                    </Form.Group>
+                                </Col>
+                                <Col md={4}>
+                                    <Button
+                                        variant="primary"
+                                        onClick={fetchRangeData}
+                                        disabled={rangeLoading || !startDate || !endDate}
+                                        className="dashboard-page-filter-btn"
+                                    >
+                                        {rangeLoading ? (
+                                            <>
+                                                <Spinner animation="border" size="sm" className="me-2" />
+                                                Đang tải...
+                                            </>
+                                        ) : (
+                                            <>
+                                                <i className="fas fa-search"></i>
+                                                Lấy thống kê
+                                            </>
+                                        )}
+                                    </Button>
+                                </Col>
+                            </Row>
+
+                            {rangeError && (
+                                <Alert variant="danger" className="mt-3 dashboard-page-range-error">
+                                    <i className="fas fa-exclamation-circle"></i>
+                                    {rangeError}
+                                </Alert>
+                            )}
+                        </Card.Body>
+                    </Card>
+
+                    {rangeData && (
+                        <div className="dashboard-page-range-results">
+                            <div className="dashboard-page-range-header">
+                                <h3 className="dashboard-page-range-title">
+                                    Kết quả thống kê
+                                </h3>
+                                <p className="dashboard-page-range-period">
+                                    Khoảng thời gian: {formatDateRange()}
+                                </p>
+                            </div>
+
+                            <Row className="dashboard-page-range-grid">
+                                <Col xl={3} lg={6} md={6} sm={12}>
+                                    <SummaryCard
+                                        icon="fas fa-clock"
+                                        title="Tổng sự kiện chờ duyệt"
+                                        value={rangeData.tongSuKienChoDuyet}
+                                        subtitle="Trong khoảng thời gian"
+                                        color="orange"
+                                    />
+                                </Col>
+                                <Col xl={3} lg={6} md={6} sm={12}>
+                                    <SummaryCard
+                                        icon="fas fa-chart-line"
+                                        title="Doanh thu"
+                                        value={formatCurrency(rangeData.doanhThuThang)}
+                                        subtitle="Tổng thu nhập"
+                                        color="blue"
+                                    />
+                                </Col>
+                                <Col xl={3} lg={6} md={6} sm={12}>
+                                    <SummaryCard
+                                        icon="fas fa-plus-circle"
+                                        title="Sự kiện tạo mới"
+                                        value={rangeData.tongSuKien}
+                                        subtitle="Được tạo"
+                                        color="purple"
+                                    />
+                                </Col>
+                                <Col xl={3} lg={6} md={6} sm={12}>
+                                    <SummaryCard
+                                        icon="fas fa-user-check"
+                                        title="Người dùng hoạt động"
+                                        value={rangeData.tongNguoiDung}
+                                        subtitle="Tham gia"
+                                        color="orange"
+                                    />
+                                </Col>
+                            </Row>
+                        </div>
+                    )}
+                </div>
+            </Container>
+        </div>
+    );
+};
+
+const Dashboard = () => {
+    const location = useLocation();
+    const currentPath = location.pathname;
+
+    const showDashboardPage = currentPath === '/admin' || currentPath === '/admin/' || currentPath === '/admin/dashboard';
 
     return (
         <Container fluid className="admin-dashboard">
@@ -213,7 +372,7 @@ const Dashboard = () => {
                         <Nav.Link
                             as={Link}
                             to="/admin/dashboard"
-                            className={currentPath.endsWith('/dashboard') || currentPath === '/admin' ? 'active' : ''}
+                            className={currentPath.endsWith('/dashboard') || currentPath === '/admin' || currentPath === '/admin/' ? 'active' : ''}
                         >
                             <i className="fas fa-chart-line"></i>
                             Thống kê
@@ -254,8 +413,9 @@ const Dashboard = () => {
                 </Col>
 
                 <Col md={10} className="admin-content">
-                    {(currentPath.endsWith('/dashboard') || currentPath === '/admin') && renderDashboardContent()}
-                    <Outlet />
+                    {showDashboardPage && <DashboardPage />}
+                    
+                    {!showDashboardPage && <Outlet />}
                 </Col>
             </Row>
         </Container>
