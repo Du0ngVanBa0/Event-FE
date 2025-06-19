@@ -18,11 +18,12 @@ const EventsSlider: React.FC = () => {
   useEffect(() => {
     const loadEvents = async () => {
       try {
-        const response = await eventService.getAllPaginated({
-          page: 0,
-          size: 12,
-          sort: "ngayTao,desc",
-        });
+        const response = await eventService.getPaginatedFiler(
+          0,
+          12,
+          undefined,
+          true
+        );
         setEvents(response.data.content);
         setError(null);
       } catch (err) {

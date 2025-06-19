@@ -1518,104 +1518,248 @@
     font-size: 1rem;
 }
 
-/* Enhanced Responsive Design */
+/* New Event Sections Styling */
+.landing-page-high-rated-events,
+.landing-page-recommended-events,
+.landing-page-upcoming-events,
+.landing-page-latest-events {
+    padding: 5rem 0;
+    position: relative;
+}
+
+.landing-page-high-rated-events {
+    background: linear-gradient(135deg, #fff5f5 0%, #ffffff 100%);
+}
+
+.landing-page-recommended-events {
+    background: linear-gradient(135deg, #f0f9ff 0%, #ffffff 100%);
+}
+
+.landing-page-upcoming-events {
+    background: linear-gradient(135deg, #fef7e0 0%, #ffffff 100%);
+}
+
+.landing-page-latest-events {
+    background: linear-gradient(135deg, #f5f3ff 0%, #ffffff 100%);
+}
+
+/* Popular Events Grid - Special styling for 4 items in 1 row */
+.landing-page-popular-grid .landing-page-events-scroll {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+    gap: 2rem;
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 0 1rem;
+}
+
+/* Enhanced Section Titles with Different Colors */
+.landing-page-high-rated-events .landing-page-section-title span {
+    background: linear-gradient(45deg, #f59e0b, #d97706);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+}
+
+.landing-page-recommended-events .landing-page-section-title span {
+    background: linear-gradient(45deg, #8b5cf6, #7c3aed);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+}
+
+.landing-page-upcoming-events .landing-page-section-title span {
+    background: linear-gradient(45deg, #10b981, #059669);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+}
+
+.landing-page-latest-events .landing-page-section-title span {
+    background: linear-gradient(45deg, #ec4899, #db2777);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+}
+
+/* Enhanced Event Cards with Category-specific Hover Effects */
+.landing-page-high-rated-events .landing-page-event-card:hover {
+    transform: translateY(-10px);
+    box-shadow: 0 25px 50px rgba(245, 158, 11, 0.15);
+}
+
+.landing-page-recommended-events .landing-page-event-card:hover {
+    transform: translateY(-10px);
+    box-shadow: 0 25px 50px rgba(139, 92, 246, 0.15);
+}
+
+.landing-page-upcoming-events .landing-page-event-card:hover {
+    transform: translateY(-10px);
+    box-shadow: 0 25px 50px rgba(16, 185, 129, 0.15);
+}
+
+.landing-page-latest-events .landing-page-event-card:hover {
+    transform: translateY(-10px);
+    box-shadow: 0 25px 50px rgba(236, 72, 153, 0.15);
+}
+
+/* Category-specific "See More" Button Colors */
+.landing-page-high-rated-events .landing-page-see-more-btn {
+    background: linear-gradient(45deg, #f59e0b, #d97706);
+    border-color: #f59e0b;
+}
+
+.landing-page-high-rated-events .landing-page-see-more-btn:hover {
+    background: linear-gradient(45deg, #d97706, #b45309);
+    box-shadow: 0 10px 30px rgba(245, 158, 11, 0.3);
+}
+
+.landing-page-recommended-events .landing-page-see-more-btn {
+    background: linear-gradient(45deg, #8b5cf6, #7c3aed);
+    border-color: #8b5cf6;
+}
+
+.landing-page-recommended-events .landing-page-see-more-btn:hover {
+    background: linear-gradient(45deg, #7c3aed, #6d28d9);
+    box-shadow: 0 10px 30px rgba(139, 92, 246, 0.3);
+}
+
+.landing-page-upcoming-events .landing-page-see-more-btn {
+    background: linear-gradient(45deg, #10b981, #059669);
+    border-color: #10b981;
+}
+
+.landing-page-upcoming-events .landing-page-see-more-btn:hover {
+    background: linear-gradient(45deg, #059669, #047857);
+    box-shadow: 0 10px 30px rgba(16, 185, 129, 0.3);
+}
+
+.landing-page-latest-events .landing-page-see-more-btn {
+    background: linear-gradient(45deg, #ec4899, #db2777);
+    border-color: #ec4899;
+}
+
+.landing-page-latest-events .landing-page-see-more-btn:hover {
+    background: linear-gradient(45deg, #db2777, #be185d);
+    box-shadow: 0 10px 30px rgba(236, 72, 153, 0.3);
+}
+
+/* Section Separators */
+.landing-page-high-rated-events::before,
+.landing-page-recommended-events::before,
+.landing-page-upcoming-events::before,
+.landing-page-latest-events::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 100px;
+    height: 4px;
+    background: linear-gradient(45deg, var(--color-primary), var(--color-secondary));
+    border-radius: 2px;
+}
+
+/* Enhanced Loading States for Each Section */
+.landing-page-high-rated-events .landing-page-loading .landing-page-spinner {
+    color: #f59e0b;
+}
+
+.landing-page-recommended-events .landing-page-loading .landing-page-spinner {
+    color: #8b5cf6;
+}
+
+.landing-page-upcoming-events .landing-page-loading .landing-page-spinner {
+    color: #10b981;
+}
+
+.landing-page-latest-events .landing-page-loading .landing-page-spinner {
+    color: #ec4899;
+}
+
+/* Responsive Adjustments for New Sections */
 @media (max-width: 768px) {
-    .landing-page-spotlight-title {
-        font-size: 2rem;
-    }
-    
-    .landing-page-spotlight-details {
-        flex-direction: column;
-        gap: 1rem;
-    }
-    
-    .landing-page-countdown {
-        gap: 1rem;
-    }
-    
-    .landing-page-countdown-item {
-        padding: 1rem;
-        min-width: 80px;
-    }
-    
-    .landing-page-countdown-number {
-        font-size: 2rem;
-    }
-    
-    .landing-page-events-scroll {
+    .landing-page-popular-grid .landing-page-events-scroll {
         grid-template-columns: 1fr;
         gap: 1.5rem;
     }
     
-    .landing-page-newsletter-form {
-        flex-direction: column;
-        max-width: 100%;
-    }
-    
-    .landing-page-newsletter-input {
-        margin-bottom: 1rem;
-    }
-    
-    .landing-page-categories-grid {
-        margin: 0;
-    }
-    
-    .landing-page-category-card {
-        height: 250px;
-    }
-}
-
-@media (max-width: 480px) {
-    .landing-page-spotlight-banner {
-        min-height: 300px;
-    }
-    
-    .landing-page-spotlight-content {
-        padding: 2rem 1rem;
-    }
-    
-    .landing-page-popular-events,
-    .landing-page-category-section,
-    .landing-page-features-section {
-        padding: 4rem 0;
+    .landing-page-high-rated-events,
+    .landing-page-recommended-events,
+    .landing-page-upcoming-events,
+    .landing-page-latest-events {
+        padding: 3rem 0;
     }
     
     .landing-page-section-title {
         font-size: 2rem;
     }
+}
+
+@media (max-width: 480px) {
+    .landing-page-popular-grid .landing-page-events-scroll {
+        padding: 0 0.5rem;
+    }
     
-    .landing-page-newsletter-title {
-        font-size: 2rem;
+    .landing-page-events-scroll {
+        gap: 1rem;
     }
 }
 
-/* Print Styles Enhancement */
-@media print {
-    .landing-page-mouse-particles,
-    .landing-page-bg-elements,
-    .landing-page-spotlight-overlay,
-    .landing-page-event-overlay,
-    .landing-page-category-bg-overlay,
-    .landing-page-newsletter-section {
-        display: none !important;
-    }
-    
-    .landing-page-spotlight-banner,
-    .landing-page-popular-events,
-    .landing-page-category-section,
-    .landing-page-features-section {
-        background: white !important;
-    }
-    
-    .landing-page-spotlight-content,
-    .landing-page-category-content {
-        color: black !important;
-    }
-    
-    .landing-page-event-card,
-    .landing-page-category-card,
-    .landing-page-feature-card {
-        box-shadow: none !important;
-        border: 1px solid #ccc !important;
-    }
+/* Animation Delays for Staggered Loading */
+.landing-page-high-rated-events .landing-page-event-card {
+    animation-delay: calc(var(--delay) + 0.2s);
+}
+
+.landing-page-recommended-events .landing-page-event-card {
+    animation-delay: calc(var(--delay) + 0.4s);
+}
+
+.landing-page-upcoming-events .landing-page-event-card {
+    animation-delay: calc(var(--delay) + 0.6s);
+}
+
+.landing-page-latest-events .landing-page-event-card {
+    animation-delay: calc(var(--delay) + 0.8s);
+}
+
+/* Enhanced Gradient Overlays for Visual Appeal */
+.landing-page-high-rated-events::after {
+    content: '';
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    height: 2px;
+    background: linear-gradient(90deg, transparent, #f59e0b, transparent);
+}
+
+.landing-page-recommended-events::after {
+    content: '';
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    height: 2px;
+    background: linear-gradient(90deg, transparent, #8b5cf6, transparent);
+}
+
+.landing-page-upcoming-events::after {
+    content: '';
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    height: 2px;
+    background: linear-gradient(90deg, transparent, #10b981, transparent);
+}
+
+.landing-page-latest-events::after {
+    content: '';
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    height: 2px;
+    background: linear-gradient(90deg, transparent, #ec4899, transparent);
 }

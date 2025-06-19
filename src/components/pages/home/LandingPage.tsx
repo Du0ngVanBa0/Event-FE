@@ -32,7 +32,7 @@ const LandingPage = () => {
         const events = response.data.content;
 
         if (events.length > 0) {
-          setPopularEvents(events.slice(0, 8));
+          setPopularEvents(events.slice(0, 4));
           setSpotlightEvent(events[0]);
         }
       } catch (error) {

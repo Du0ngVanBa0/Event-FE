@@ -754,7 +754,6 @@
     flex: 1;
 }
 
-/* Responsive Design */
 @media (max-width: 768px) {
     .dashboard-page-container {
         padding: 1rem 0;
