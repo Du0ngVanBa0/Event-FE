@@ -1,0 +1,213 @@
+.review-form-container {
+    background: #ffffff;
+    border-radius: 16px;
+    box-shadow: 0 8px 25px rgba(0, 0, 0, 0.08);
+    border: 1px solid #e5e7eb;
+    padding: 2rem;
+    margin-bottom: 2rem;
+}
+
+.review-form-header {
+    margin-bottom: 2rem;
+    padding-bottom: 1rem;
+    border-bottom: 2px solid #f3f4f6;
+}
+
+.review-form-title {
+    font-size: 1.5rem;
+    font-weight: 700;
+    color: #1f2937;
+    margin: 0 0 0.5rem 0;
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+}
+
+.review-form-title i {
+    color: #6366f1;
+}
+
+.review-form-subtitle {
+    color: #6b7280;
+    margin: 0;
+    font-size: 0.95rem;
+}
+
+.review-form {
+    display: flex;
+    flex-direction: column;
+    gap: 1.5rem;
+}
+
+.review-form-rating {
+    display: flex;
+    flex-direction: column;
+    gap: 0.75rem;
+}
+
+.review-form-label {
+    font-weight: 600;
+    color: #374151;
+    margin: 0;
+    font-size: 1rem;
+}
+
+.review-form-stars {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.review-form-star {
+    background: none;
+    border: none;
+    font-size: 2rem;
+    color: #d1d5db;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    padding: 0.25rem;
+    border-radius: 4px;
+}
+
+.review-form-star:hover {
+    color: #fbbf24;
+    transform: scale(1.1);
+}
+
+.review-form-star.filled {
+    color: #fbbf24;
+}
+
+.review-form-star:disabled {
+    cursor: not-allowed;
+    opacity: 0.5;
+}
+
+.review-form-rating-text {
+    margin-left: 1rem;
+    font-weight: 600;
+    color: #6366f1;
+    font-size: 1.1rem;
+}
+
+.review-form-content {
+    display: flex;
+    flex-direction: column;
+    gap: 0.75rem;
+}
+
+.review-form-textarea {
+    border: 2px solid #e5e7eb !important;
+    border-radius: 12px !important;
+    padding: 1rem !important;
+    font-size: 1rem !important;
+    line-height: 1.6 !important;
+    resize: vertical;
+    transition: all 0.2s ease;
+}
+
+.review-form-textarea:focus {
+    border-color: #6366f1 !important;
+    box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.1) !important;
+}
+
+.review-form-counter {
+    color: #6b7280;
+    text-align: right;
+    font-size: 0.875rem;
+}
+
+.review-form-success {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    background: #f0fdf4 !important;
+    border: 1px solid #bbf7d0 !important;
+    color: #166534 !important;
+    border-radius: 12px;
+    padding: 1rem;
+    margin: 0;
+}
+
+.review-form-error {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    background: #fef2f2 !important;
+    border: 1px solid #fecaca !important;
+    color: #dc2626 !important;
+    border-radius: 12px;
+    padding: 1rem;
+    margin: 0;
+}
+
+.review-form-actions {
+    display: flex;
+    justify-content: flex-end;
+    padding-top: 1rem;
+    border-top: 1px solid #f3f4f6;
+}
+
+.review-form-submit {
+    background: linear-gradient(45deg, #6366f1, #8b5cf6) !important;
+    border: none !important;
+    border-radius: 50px;
+    padding: 0.75rem 2rem;
+    font-weight: 600;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    transition: all 0.3s ease;
+    color: white !important;
+}
+
+.review-form-submit:hover:not(:disabled) {
+    transform: translateY(-2px);
+    box-shadow: 0 8px 25px rgba(99, 102, 241, 0.3);
+}
+
+.review-form-submit:disabled {
+    background: #9ca3af !important;
+    cursor: not-allowed;
+    transform: none;
+    box-shadow: none;
+}
+
+.review-form-spinner {
+    width: 16px;
+    height: 16px;
+    border: 2px solid rgba(255, 255, 255, 0.3);
+    border-top: 2px solid white;
+    border-radius: 50%;
+    animation: review-form-spin 1s linear infinite;
+}
+
+@keyframes review-form-spin {
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
+}
+
+@media print {
+    .review-form-container {
+        display: none !important;
+    }
+}
+
+@media (max-width: 768px) {
+    .review-form-container {
+        padding: 1.5rem;
+    }
+    
+    .review-form-star {
+        font-size: 1.75rem;
+    }
+    
+    .review-form-actions {
+        justify-content: center;
+    }
+    
+    .review-form-submit {
+        width: 100%;
+        justify-content: center;
+    }
+}

@@ -5,6 +5,8 @@ import { SuKien } from '../../../types/EventTypes';
 import eventService from '../../../api/eventService';
 import { formatDate, getImageUrl, getDefaulImagetUrl } from '../../../utils/helper';
 import './EventDetail.css';
+import ReviewSection from './ReviewSection';
+import ReviewForm from './ReviewForm';
 
 const EventDetail = () => {
     const { id } = useParams();
@@ -13,6 +15,7 @@ const EventDetail = () => {
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
     const [sectionsVisible, setSectionsVisible] = useState(false);
+    const [reviewsKey, setReviewsKey] = useState(0);
 
     useEffect(() => {
         const loadEvent = async () => {
@@ -51,6 +54,11 @@ const EventDetail = () => {
         if (ticketSection) {
             ticketSection.scrollIntoView({ behavior: 'smooth', block: 'center' });
         }
+    };
+
+    const handleReviewSubmitted = () => {
+        // Force refresh reviews when new review is submitted
+        setReviewsKey(prev => prev + 1);
     };
 
     if (loading) {
@@ -289,6 +297,24 @@ const EventDetail = () => {
                             dangerouslySetInnerHTML={{ __html: event.moTa }}
                         />
                     </div>
+                </div>
+
+                <div className={`event-detail-page-section ${sectionsVisible ? 'event-detail-page-section-visible' : ''}`}>
+                    <h2 className="event-detail-page-section-title">
+                        <i className="fas fa-comments"></i>
+                        <span>Đánh giá & Nhận xét</span>
+                        <div className="event-detail-page-title-underline"></div>
+                    </h2>
+                    
+                    <ReviewForm 
+                        maSuKien={id!} 
+                        onReviewSubmitted={handleReviewSubmitted}
+                    />
+                    
+                    <ReviewSection 
+                        key={reviewsKey} 
+                        maSuKien={id!} 
+                    />
                 </div>
 
                 <div className={`event-detail-page-section event-detail-page-cta-section ${sectionsVisible ? 'event-detail-page-section-visible' : ''}`}>
