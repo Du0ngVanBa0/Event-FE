@@ -274,7 +274,7 @@ const CreateEvent = () => {
             showNotification('Tạo sự kiện thành công! Sự kiện đang chờ phê duyệt.', 'success');
             
             setTimeout(() => {
-                window.location.href = '/organizer/my-events';
+                window.location.href = '/my-events';
             }, 2000);
 
         } catch (error) {
