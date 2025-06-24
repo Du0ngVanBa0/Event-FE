@@ -5,9 +5,8 @@ import { formatDate, formatCurrency, formatFullAddress } from './helper';
 
 const createBillElement = (booking: BookingTicket): HTMLElement => {
     const billContainer = document.createElement('div');
-    billContainer.className = 'bill-container';
+    billContainer.className = 'bill-generator-container';
     
-    // Calculate subtotals for each ticket type
     const ticketSummary = booking.chiTietVes.reduce((acc, ticket) => {
         const key = ticket.loaiVe.tenLoaiVe;
         if (!acc[key]) {
@@ -25,111 +24,193 @@ const createBillElement = (booking: BookingTicket): HTMLElement => {
     const currentDate = new Date().toLocaleDateString('vi-VN', {
         day: '2-digit',
         month: '2-digit',
-        year: 'numeric',
+        year: 'numeric'
+    });
+
+    const currentTime = new Date().toLocaleTimeString('vi-VN', {
         hour: '2-digit',
         minute: '2-digit'
     });
 
+    const invoiceNumber = `${String(Date.now()).slice(-7)}`;
+
     billContainer.innerHTML = `
-        <div class="bill-wrapper">
-            <!-- Header -->
-            <div class="bill-header">
-                <div class="company-info">
-                    <h1>UNIVERSE EVENT</h1>
-                    <p>Nền tảng bán vé sự kiện hàng đầu Việt Nam</p>
-                    <p>Địa chỉ: 02 Thanh Sơn, Thanh Bình, Hải Châu, Đà Nẵng</p>
-                    <p>Điện thoại: 032 858 0103 | Email: info@universeevent.vn</p>
+        <div class="bill-generator-wrapper">
+            <!-- Header Section -->
+            <div class="bill-generator-header">
+                <div class="bill-generator-company-info">
+                    <h1 class="bill-generator-company-name">CÔNG TY CỔ PHẦN UNIVERSE EVENT</h1>
+                    <div class="bill-generator-company-details">
+                        <p><strong>Mã số thuế:</strong> 0101245789</p>
+                        <p><strong>Địa chỉ:</strong> 02 Thanh Sơn, Thanh Bình, Hải Châu, Đà Nẵng</p>
+                        <p><strong>Điện thoại:</strong> 032 858 0103 | <strong>Email:</strong> info@universeevent.vn</p>
+                        <p><strong>Số tài khoản:</strong> 123456789 - Ngân hàng ABC Bank</p>
+                    </div>
                 </div>
-                <div class="bill-number">
-                    <h2>HÓA ĐƠN BÁN VÉ</h2>
-                    <p>Số: ${booking.maDatVe}</p>
-                    <p>Ngày: ${currentDate}</p>
-                </div>
-            </div>
-
-            <div class="customer-section">
-                <h3>THÔNG TIN KHÁCH HÀNG</h3>
-                <div class="customer-details">
-                    <p><strong>Họ tên:</strong> ${booking.khachHang?.tenHienThi || 'N/A'}</p>
-                    <p><strong>Email:</strong> ${booking.khachHang?.email || 'N/A'}</p>
-                </div>
-            </div>
-
-            <!-- Event Info -->
-            <div class="event-section">
-                <h3>THÔNG TIN SỰ KIỆN</h3>
-                <div class="event-details">
-                    <p><strong>Tên sự kiện:</strong> ${booking.suKien.tieuDe}</p>
-                    <p><strong>Thời gian:</strong> ${formatDate(booking.suKien.thoiGianBatDau)} đến ${formatDate(booking.suKien.thoiGianKetThuc)}</p>
-                    <p><strong>Địa điểm:</strong> ${formatFullAddress(booking.suKien.diaDiem)}</p>
+                <div class="bill-generator-invoice-metadata">
+                    <div class="bill-generator-invoice-form">
+                        <p><strong>Mẫu số:</strong> 01GTKT0/001</p>
+                        <p><strong>Ký hiệu:</strong> HA/19E</p>
+                    </div>
+                    <div class="bill-generator-invoice-number">
+                        <p><strong>Số:</strong> ${invoiceNumber}</p>
+                    </div>
                 </div>
             </div>
 
-            <div class="bill-items">
-                <h3>CHI TIẾT VÉ</h3>
-                <table class="items-table">
+            <!-- Invoice Title -->
+            <div class="bill-generator-title-section">
+                <h2 class="bill-generator-invoice-title">HÓA ĐƠN GIÁ TRỊ GIA TĂNG</h2>
+                <p class="bill-generator-invoice-subtitle">(Bán hàng hóa, dịch vụ)</p>
+                <div class="bill-generator-date-info">
+                    <p>Ngày ${currentDate.split('/')[0]} tháng ${currentDate.split('/')[1]} năm ${currentDate.split('/')[2]}</p>
+                </div>
+            </div>
+
+            <!-- Buyer Information -->
+            <div class="bill-generator-buyer-section">
+                <h3 class="bill-generator-section-title">Thông tin người mua</h3>
+                <div class="bill-generator-buyer-info">
+                    <div class="bill-generator-info-row">
+                        <span class="bill-generator-label">Họ tên người mua:</span>
+                        <span class="bill-generator-value">${booking.khachHang?.tenHienThi || 'Khách lẻ'}</span>
+                    </div>
+                    <div class="bill-generator-info-row">
+                        <span class="bill-generator-label">Tên đơn vị:</span>
+                        <span class="bill-generator-value">---</span>
+                    </div>
+                    <div class="bill-generator-info-row">
+                        <span class="bill-generator-label">Mã số thuế:</span>
+                        <span class="bill-generator-value">---</span>
+                    </div>
+                    <div class="bill-generator-info-row">
+                        <span class="bill-generator-label">Địa chỉ:</span>
+                        <span class="bill-generator-value">---</span>
+                    </div>
+                    <div class="bill-generator-info-row">
+                        <span class="bill-generator-label">Hình thức thanh toán:</span>
+                        <span class="bill-generator-value">Online</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Event Information -->
+            <div class="bill-generator-event-section">
+                <h3 class="bill-generator-section-title">Thông tin sự kiện</h3>
+                <div class="bill-generator-event-details">
+                    <div class="bill-generator-info-row">
+                        <span class="bill-generator-label">Tên sự kiện:</span>
+                        <span class="bill-generator-value">${booking.suKien.tieuDe}</span>
+                    </div>
+                    <div class="bill-generator-info-row">
+                        <span class="bill-generator-label">Thời gian:</span>
+                        <span class="bill-generator-value">${formatDate(booking.suKien.thoiGianBatDau)} - ${formatDate(booking.suKien.thoiGianKetThuc)}</span>
+                    </div>
+                    <div class="bill-generator-info-row">
+                        <span class="bill-generator-label">Địa điểm:</span>
+                        <span class="bill-generator-value">${formatFullAddress(booking.suKien.diaDiem)}</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Purchase Table -->
+            <div class="bill-generator-purchase-section">
+                <table class="bill-generator-purchase-table">
                     <thead>
                         <tr>
-                            <th>STT</th>
-                            <th>Loại vé</th>
-                            <th>Số lượng</th>
-                            <th>Đơn giá</th>
-                            <th>Thành tiền</th>
+                            <th rowspan="2">STT</th>
+                            <th rowspan="2">Tên hàng hóa, dịch vụ</th>
+                            <th rowspan="2">Đơn vị tính</th>
+                            <th rowspan="2">Số lượng</th>
+                            <th rowspan="2">Đơn giá</th>
+                            <th rowspan="2">Thành tiền</th>
+                            <th colspan="3">Thuế GTGT</th>
+                        </tr>
+                        <tr>
+                            <th>Thuế suất</th>
+                            <th>Tiền thuế</th>
+                            <th>Tổng cộng</th>
                         </tr>
                     </thead>
                     <tbody>
                         ${Object.entries(ticketSummary).map(([ticketType, details], index) => `
                             <tr>
-                                <td>${index + 1}</td>
-                                <td>${ticketType}</td>
-                                <td>${details.count}</td>
-                                <td class="text-right">${formatCurrency(details.price)}</td>
-                                <td class="text-right">${formatCurrency(details.total)}</td>
+                                <td class="bill-generator-text-center">${index + 1}</td>
+                                <td>Vé ${ticketType}</td>
+                                <td class="bill-generator-text-center">Vé</td>
+                                <td class="bill-generator-text-center">${details.count}</td>
+                                <td class="bill-generator-text-right">${formatCurrency(details.price)}</td>
+                                <td class="bill-generator-text-right">${formatCurrency(details.total)}</td>
+                                <td class="bill-generator-text-center">0%</td>
+                                <td class="bill-generator-text-right">0đ</td>
+                                <td class="bill-generator-text-right">${formatCurrency(details.total)}</td>
                             </tr>
                         `).join('')}
+                        <tr class="bill-generator-total-row">
+                            <td colspan="5" class="bill-generator-text-right bill-generator-total-label">
+                                <strong>Cộng tiền hàng:</strong>
+                            </td>
+                            <td class="bill-generator-text-right">
+                                <strong>${formatCurrency(booking.tongTien)}</strong>
+                            </td>
+                            <td class="bill-generator-text-center">---</td>
+                            <td class="bill-generator-text-right">
+                                <strong>0đ</strong>
+                            </td>
+                            <td class="bill-generator-text-right">
+                                <strong>${formatCurrency(booking.tongTien)}</strong>
+                            </td>
+                        </tr>
+                        <tr class="bill-generator-grand-total-row">
+                            <td colspan="8" class="bill-generator-text-right bill-generator-grand-total-label">
+                                <strong>Tổng tiền thanh toán:</strong>
+                            </td>
+                            <td class="bill-generator-text-right bill-generator-grand-total-amount">
+                                <strong>${formatCurrency(booking.tongTien)}</strong>
+                            </td>
+                        </tr>
                     </tbody>
                 </table>
-            </div>
-
-            <div class="total-section">
-                <div class="total-row">
-                    <span class="label">Tạm tính:</span>
-                    <span class="value">${formatCurrency(booking.tongTien)}</span>
-                </div>
-                <div class="total-row">
-                    <span class="label">Thuế VAT (0%):</span>
-                    <span class="value">0đ</span>
-                </div>
-                <div class="total-row final-total">
-                    <span class="label">TỔNG CỘNG:</span>
-                    <span class="value">${formatCurrency(booking.tongTien)}</span>
-                </div>
-                <div class="total-words">
-                    <p><strong>Bằng chữ:</strong> ${convertNumberToWords(booking.tongTien)} đồng</p>
+                
+                <div class="bill-generator-amount-words">
+                    <p><strong>Số tiền viết bằng chữ:</strong> <em>${convertNumberToWords(booking.tongTien)} đồng</em></p>
                 </div>
             </div>
 
-            <div class="payment-section">
-                <div class="payment-status ${booking.hoatDong ? 'paid' : 'pending'}">
-                    <p><strong>Trạng thái:</strong> ${booking.hoatDong ? 'ĐÃ THANH TOÁN' : 'CHƯA THANH TOÁN'}</p>
+            <!-- Payment Status -->
+            <div class="bill-generator-payment-status">
+                <div class="bill-generator-status-info ${booking.hoatDong ? 'bill-generator-status-paid' : 'bill-generator-status-pending'}">
+                    <p><strong>Trạng thái thanh toán:</strong> 
+                        ${booking.hoatDong ? 'ĐÃ THANH TOÁN' : 'CHƯA THANH TOÁN'}
+                    </p>
                     ${booking.hoatDong ? 
-                        `<p><strong>Phương thức:</strong> Chuyển khoản/Thẻ tín dụng</p>` : 
+                        `<p><strong>Thời gian thanh toán:</strong> ${currentDate} ${currentTime}</p>` : 
                         `<p><strong>Hạn thanh toán:</strong> ${formatDate(booking.thoiGianHetHan)}</p>`
                     }
                 </div>
             </div>
 
-            <!-- Footer -->
-            <div class="bill-footer">
-                <div class="terms">
-                    <h4>ĐIỀU KHOẢN & LưU Ý:</h4>
-                    <ul>
-                        <li>Vui lòng xuất trình vé (điện tử hoặc in) khi tham dự sự kiện</li>
-                        <li>Vé chỉ có giá trị cho sự kiện được ghi trên vé</li>
-                    </ul>
+            <!-- Signature Section -->
+            <div class="bill-generator-signature-section">
+                <div class="bill-generator-signatures">
+                    <div class="bill-generator-signature-buyer">
+                        <h4>Người mua hàng</h4>
+                        <p class="bill-generator-signature-instruction">(Ký, ghi rõ họ, tên)</p>
+                        <div class="bill-generator-signature-line"></div>
+                    </div>
+                    <div class="bill-generator-signature-seller">
+                        <h4>Người bán hàng</h4>
+                        <p class="bill-generator-signature-instruction">(Ký, ghi rõ họ, tên)</p>
+                        <div class="bill-generator-signature-line"></div>
+                    </div>
                 </div>
-                <div class="print-info">
-                    <p>Hóa đơn được in ngày: ${currentDate}</p>
+            </div>
+
+            <!-- Footer Information -->
+            <div class="bill-generator-footer">
+                <div class="bill-generator-print-info">
+                    <p>Hóa đơn được xuất ngày: ${currentDate} lúc ${currentTime}</p>
+                    <p>Mã đặt vé: ${booking.maDatVe}</p>
                 </div>
             </div>
         </div>
@@ -137,237 +218,326 @@ const createBillElement = (booking: BookingTicket): HTMLElement => {
 
     const style = document.createElement('style');
     style.textContent = `
-        .bill-container {
+        .bill-generator-container {
             width: 210mm;
             min-height: 297mm;
-            padding: 20mm;
-            background: white;
-            color: #000;
-            font-family: 'Times New Roman', serif;
+            padding: 15mm;
+            background: #ffffff;
+            color: #000000;
             font-size: 12px;
             line-height: 1.4;
             box-shadow: 0 0 10px rgba(0,0,0,0.1);
+            margin: 0 auto;
         }
 
-        .bill-wrapper {
+        .bill-generator-wrapper {
             width: 100%;
             height: 100%;
         }
 
-        .bill-header {
+        /* Header Section */
+        .bill-generator-header {
             display: flex;
             justify-content: space-between;
             align-items: flex-start;
-            margin-bottom: 30px;
-            padding-bottom: 20px;
-            border-bottom: 2px solid #000;
+            margin-bottom: 20px;
+            padding-bottom: 15px;
+            border-bottom: 2px solid #000000;
         }
 
-        .company-info h1 {
-            font-size: 24px;
+        .bill-generator-company-info {
+            flex: 1;
+            padding-right: 20px;
+        }
+
+        .bill-generator-company-name {
+            font-size: 16px;
             font-weight: bold;
-            color: #1a365d;
-            margin: 0 0 5px 0;
+            color: #000000;
+            margin: 0 0 10px 0;
             text-transform: uppercase;
+            letter-spacing: 0.5px;
         }
 
-        .company-info p {
+        .bill-generator-company-details p {
+            margin: 3px 0;
+            font-size: 11px;
+            line-height: 1.3;
+        }
+
+        .bill-generator-invoice-metadata {
+            text-align: right;
+            border: 1px solid #000000;
+            padding: 10px;
+            min-width: 150px;
+        }
+
+        .bill-generator-invoice-form {
+            margin-bottom: 8px;
+            padding-bottom: 8px;
+            border-bottom: 1px solid #000000;
+        }
+
+        .bill-generator-invoice-form p,
+        .bill-generator-invoice-number p {
             margin: 2px 0;
             font-size: 11px;
-            color: #555;
-        }
-
-        .bill-number {
-            text-align: right;
-        }
-
-        .bill-number h2 {
-            font-size: 20px;
-            font-weight: bold;
-            margin: 0 0 10px 0;
-            color: #1a365d;
-            text-transform: uppercase;
-        }
-
-        .bill-number p {
-            margin: 2px 0;
-            font-size: 12px;
             font-weight: bold;
         }
 
-        .customer-section,
-        .event-section,
-        .payment-section {
-            margin-bottom: 20px;
-        }
-
-        .customer-section h3,
-        .event-section h3,
-        .payment-section h3 {
-            font-size: 14px;
-            font-weight: bold;
-            margin: 0 0 5px 0;
-            padding: 5px 0;
-            border-bottom: 1px solid #ccc;
-            text-transform: uppercase;
-        }
-
-        .customer-details p,
-        .event-details p {
-            margin: 5px 0;
-            padding-left: 20px;
-        }
-
-        .bill-items {
+        /* Title Section */
+        .bill-generator-title-section {
+            text-align: center;
             margin-bottom: 25px;
         }
 
-        .bill-items h3 {
-            font-size: 14px;
+        .bill-generator-invoice-title {
+            font-size: 18px;
             font-weight: bold;
-            margin: 0 0 10px 0;
-            padding: 5px 0;
-            border-bottom: 1px solid #ccc;
+            margin: 0 0 5px 0;
             text-transform: uppercase;
+            letter-spacing: 1px;
         }
 
-        .items-table {
-            width: 100%;
-            border-collapse: collapse;
-            margin-bottom: 20px;
-        }
-
-        .items-table th,
-        .items-table td {
-            border: 1px solid #000;
-            padding: 8px;
-            text-align: left;
-        }
-
-        .items-table th {
-            background-color: #f0f0f0;
-            font-weight: bold;
-            text-align: center;
-        }
-
-        .items-table .text-right {
-            text-align: right;
-        }
-
-        .total-section {
-            margin-bottom: 15px;
-            border-top: 2px solid #000;
-            padding-top: 15px;
-        }
-
-        .total-row {
-            display: flex;
-            justify-content: space-between;
-            margin-bottom: 8px;
-            padding: 0 20px;
-        }
-
-        .total-row.final-total {
-            font-weight: bold;
-            font-size: 14px;
-            border-top: 1px solid #000;
-            border-bottom: 1px solid #000;
-            padding: 10px 20px;
-            margin: 10px 0;
-        }
-
-        .total-words {
-            padding: 10px 20px;
+        .bill-generator-invoice-subtitle {
+            font-size: 12px;
+            margin: 0 0 10px 0;
             font-style: italic;
         }
 
-        .payment-status {
-            padding: 10px 20px;
-            border-radius: 5px;
-            margin-top: 10px;
-        }
-
-        .payment-status.paid {
-            background-color: #d4edda;
-            border: 1px solid #c3e6cb;
-        }
-
-        .payment-status.pending {
-            background-color: #fff3cd;
-            border: 1px solid #ffeaa7;
-        }
-
-        .ticket-codes {
-            padding-left: 20px;
-        }
-
-        .ticket-code-item {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            padding: 5px 0;
-            border-bottom: 1px dotted #ccc;
-        }
-
-        .ticket-code-item:last-child {
-            border-bottom: none;
-        }
-
-        .ticket-status.used {
-            color: #28a745;
-            font-weight: bold;
-        }
-
-        .ticket-status.unused {
-            color: #6c757d;
-        }
-
-        .bill-footer {
-            margin-top: 40px;
-            border-top: 1px solid #ccc;
-            padding-top: 20px;
-        }
-
-        .terms h4 {
+        .bill-generator-date-info p {
             font-size: 12px;
+            margin: 0;
             font-weight: bold;
-            margin-bottom: 10px;
+        }
+
+        /* Section Styles */
+        .bill-generator-buyer-section,
+        .bill-generator-event-section {
+            margin-bottom: 20px;
+        }
+
+        .bill-generator-section-title {
+            font-size: 13px;
+            font-weight: bold;
+            margin: 0 0 8px 0;
+            padding: 5px 0;
+            border-bottom: 1px solid #000000;
             text-transform: uppercase;
         }
 
-        .terms ul {
-            margin: 0;
-            padding-left: 20px;
+        .bill-generator-buyer-info,
+        .bill-generator-event-details {
+            padding-left: 10px;
         }
 
-        .terms li {
-            margin-bottom: 3px;
+        .bill-generator-info-row {
+            display: flex;
+            margin-bottom: 5px;
+            align-items: baseline;
+        }
+
+        .bill-generator-label {
+            font-weight: bold;
+            min-width: 140px;
+            margin-right: 10px;
+        }
+
+        .bill-generator-value {
+            flex: 1;
+            border-bottom: 1px dotted #666666;
+            padding-bottom: 1px;
+            min-height: 16px;
+        }
+
+        /* Purchase Table */
+        .bill-generator-purchase-section {
+            margin-bottom: 20px;
+        }
+
+        .bill-generator-purchase-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-bottom: 15px;
             font-size: 11px;
         }
 
-        .print-info {
+        .bill-generator-purchase-table th,
+        .bill-generator-purchase-table td {
+            border: 1px solid #000000;
+            padding: 6px 4px;
+            text-align: left;
+            vertical-align: middle;
+        }
+
+        .bill-generator-purchase-table th {
+            background-color: #f5f5f5;
+            font-weight: bold;
             text-align: center;
-            margin-top: 30px;
             font-size: 10px;
-            color: #666;
         }
 
-        .print-info p {
+        .bill-generator-text-center {
+            text-align: center !important;
+        }
+
+        .bill-generator-text-right {
+            text-align: right !important;
+        }
+
+        .bill-generator-total-row,
+        .bill-generator-grand-total-row {
+            background-color: #f9f9f9;
+        }
+
+        .bill-generator-total-label,
+        .bill-generator-grand-total-label {
+            font-weight: bold;
+        }
+
+        .bill-generator-grand-total-amount {
+            font-size: 13px;
+            color: #d63384;
+        }
+
+        .bill-generator-amount-words {
+            margin-top: 10px;
+            padding: 8px;
+            border: 1px solid #000000;
+            background-color: #f8f9fa;
+        }
+
+        .bill-generator-amount-words p {
+            margin: 0;
+            font-size: 12px;
+        }
+
+        /* Payment Status */
+        .bill-generator-payment-status {
+            margin-bottom: 25px;
+        }
+
+        .bill-generator-status-info {
+            padding: 10px;
+            border-radius: 4px;
+            border: 1px solid #000000;
+        }
+
+        .bill-generator-status-paid {
+            background-color: #d4edda;
+            border-color: #c3e6cb;
+        }
+
+        .bill-generator-status-pending {
+            background-color: #fff3cd;
+            border-color: #ffeaa7;
+        }
+
+        .bill-generator-status-info p {
+            margin: 3px 0;
+            font-weight: bold;
+        }
+
+        /* Signature Section */
+        .bill-generator-signature-section {
+            margin-bottom: 30px;
+            margin-top: 40px;
+        }
+
+        .bill-generator-signatures {
+            display: flex;
+            justify-content: space-between;
+            gap: 40px;
+        }
+
+        .bill-generator-signature-buyer,
+        .bill-generator-signature-seller {
+            flex: 1;
+            text-align: center;
+        }
+
+        .bill-generator-signature-buyer h4,
+        .bill-generator-signature-seller h4 {
+            font-size: 13px;
+            font-weight: bold;
+            margin: 0 0 5px 0;
+            text-transform: uppercase;
+        }
+
+        .bill-generator-signature-instruction {
+            font-size: 10px;
+            margin: 0 0 30px 0;
+            font-style: italic;
+            color: #666666;
+        }
+
+        .bill-generator-signature-line {
+            height: 1px;
+            border-bottom: 1px dotted #000000;
+            margin-top: 50px;
+            position: relative;
+        }
+
+        .bill-generator-signature-line::after {
+            content: '';
+            position: absolute;
+            bottom: -20px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 80%;
+            height: 1px;
+            border-bottom: 1px dotted #cccccc;
+        }
+
+        /* Footer */
+        .bill-generator-footer {
+            margin-top: 30px;
+            border-top: 1px solid #cccccc;
+            padding-top: 15px;
+        }
+
+        .bill-generator-print-info {
+            text-align: center;
+            margin-bottom: 15px;
+        }
+
+        .bill-generator-print-info p {
             margin: 2px 0;
+            font-size: 10px;
+            color: #666666;
+            font-style: italic;
         }
 
+        /* Print Styles */
         @media print {
-            .bill-container {
+            .bill-generator-container {
                 width: 210mm;
                 min-height: 297mm;
                 margin: 0;
-                padding: 15mm;
+                padding: 10mm;
                 box-shadow: none;
+                page-break-inside: avoid;
             }
             
             body {
                 margin: 0;
                 padding: 0;
+                -webkit-print-color-adjust: exact;
+                color-adjust: exact;
+            }
+
+            .bill-generator-status-paid,
+            .bill-generator-status-pending,
+            .bill-generator-amount-words,
+            .bill-generator-total-row,
+            .bill-generator-grand-total-row {
+                -webkit-print-color-adjust: exact;
+                color-adjust: exact;
+            }
+
+            .bill-generator-signature-line,
+            .bill-generator-signature-line::after {
+                border-color: #000000 !important;
             }
         }
     `;
@@ -474,7 +644,7 @@ export const generateBillPDF = async (booking: BookingTicket): Promise<void> => 
         let heightLeft = imgHeight;
         let position = 0;
 
-       pdf.addImage(imgData, 'PNG', 0, position, imgWidth, imgHeight, '', 'FAST');
+        pdf.addImage(imgData, 'PNG', 0, position, imgWidth, imgHeight, '', 'FAST');
         heightLeft -= pageHeight;
 
         while (heightLeft >= 0) {
@@ -484,7 +654,14 @@ export const generateBillPDF = async (booking: BookingTicket): Promise<void> => 
             heightLeft -= pageHeight;
         }
 
-        const fileName = `hoa-don-${booking.maDatVe}-${new Date().toISOString().split('T')[0]}.pdf`;
+        pdf.setProperties({
+            title: `Hóa đơn GTGT - ${booking.maDatVe}`,
+            subject: `Hóa đơn bán vé sự kiện - ${booking.suKien.tieuDe}`,
+            author: 'CÔNG TY CỔ PHẦN UNIVERSE EVENT',
+            creator: 'Universe Event System'
+        });
+
+        const fileName = `hoa-don-GTGT-${booking.maDatVe}-${new Date().toISOString().split('T')[0]}.pdf`;
         pdf.save(fileName);
     } catch (error) {
         console.error('Error generating bill:', error);
@@ -501,13 +678,13 @@ export const printBill = (booking: BookingTicket): void => {
             <!DOCTYPE html>
             <html>
             <head>
-                <title>Hóa đơn - ${booking.maDatVe}</title>
+                <title>Hóa đơn GTGT - ${booking.maDatVe}</title>
                 <meta charset="utf-8">
                 <style>
                     body { margin: 0; padding: 0; }
                     @media print {
                         body { margin: 0; }
-                        .bill-container { 
+                        .bill-generator-container { 
                             box-shadow: none !important; 
                             margin: 0 !important;
                         }
