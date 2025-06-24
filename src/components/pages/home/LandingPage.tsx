@@ -124,7 +124,6 @@ const LandingPage = () => {
     const now = new Date();
     const openSaleDate = new Date(event.ngayMoBanVe);
     const closeSaleDate = new Date(event.ngayDongBanVe);
-    const eventDate = new Date(event.ngayDongBanVe);
     
     if (now > closeSaleDate) {
       return { label: "Hết bán vé", color: "#EF4444" };
@@ -155,11 +154,6 @@ const LandingPage = () => {
       return { label: "Sắp hết vé", color: "#F59E0B" };
     }
     
-    const daysUntilEvent = Math.ceil((eventDate.getTime() - now.getTime()) / (1000 * 60 * 60 * 24));
-    if (daysUntilEvent <= 3) {
-      return { label: `Còn ${daysUntilEvent} ngày`, color: "#F59E0B" };
-    }
-    
     return { label: "Đang mở bán", color: "#10B981" };
   };
 
@@ -179,67 +173,72 @@ const LandingPage = () => {
         <div className="landing-page-bg-ticket landing-page-bg-ticket-1">🎫</div>
         <div className="landing-page-bg-ticket landing-page-bg-ticket-2">🎪</div>
         <div className="landing-page-bg-ticket landing-page-bg-ticket-3">🎵</div>
-      </div>
-
-
-      {spotlightEvent && (
+      </div>      {spotlightEvent && (
         <section className="landing-page-spotlight-banner">
-          <div className="landing-page-spotlight-bg">
-            <img
-              src={getImageUrl(spotlightEvent.anhBia) || getDefaulImagetUrl()}
-              alt={spotlightEvent.tieuDe}
-              className="landing-page-spotlight-bg-image"
-            />
-            <div className="landing-page-spotlight-overlay"></div>
-          </div>
-
           <Container fluid>
-            <div className="landing-page-spotlight-content">
-              <div className="landing-page-spotlight-badge">
-                <i className="fas fa-star"></i>
-                <span>VỪA CÔNG BỐ</span>
-              </div>
+            <div className="landing-page-spotlight-card">
+              <Row className="landing-page-spotlight-row align-items-center">
+                <div className="col-lg-6 landing-page-spotlight-image-col">
+                  <div className="landing-page-spotlight-image-container">
+                    <img
+                      src={getImageUrl(spotlightEvent.anhBia) || getDefaulImagetUrl()}
+                      alt={spotlightEvent.tieuDe}
+                      className="landing-page-spotlight-image"
+                      onError={(e) => {
+                        const target = e.target as HTMLImageElement;
+                        target.src = getDefaulImagetUrl();
+                      }}
+                    />
+                  </div>
+                </div>
+                
+                <div className="col-lg-6 landing-page-spotlight-content">
+                  <div className="landing-page-spotlight-badge">
+                    <i className="fas fa-star"></i>
+                    <span>VỪA CÔNG BỐ</span>
+                  </div>
 
-              <h2 className="landing-page-spotlight-title">{spotlightEvent.tieuDe}</h2>
+                  <h2 className="landing-page-spotlight-title">{spotlightEvent.tieuDe}</h2>
 
-              <div className="landing-page-spotlight-details">
-                <div className="landing-page-spotlight-info">
-                  <i className="fas fa-calendar"></i>
-                  <span>{formatDate(spotlightEvent.thoiGianBatDau)}</span>
-                </div>
-                <div className="landing-page-spotlight-info">
-                  <i className="fas fa-map-marker-alt"></i>
-                  <span>{spotlightEvent.diaDiem?.tenDiaDiem}</span>
-                </div>
-              </div>
+                  <div className="landing-page-spotlight-details">
+                    <div className="landing-page-spotlight-info">
+                      <i className="fas fa-calendar"></i>
+                      <span>{formatDate(spotlightEvent.thoiGianBatDau)}</span>
+                    </div>
+                    <div className="landing-page-spotlight-info">
+                      <i className="fas fa-map-marker-alt"></i>
+                      <span>{spotlightEvent.diaDiem?.tenDiaDiem}</span>
+                    </div>
+                  </div>
 
-              <div className="landing-page-countdown">
-                <div className="landing-page-countdown-item">
-                  <span className="landing-page-countdown-number">{timeLeft.days}</span>
-                  <span className="landing-page-countdown-label">Ngày</span>
-                </div>
-                <div className="landing-page-countdown-item">
-                  <span className="landing-page-countdown-number">{timeLeft.hours}</span>
-                  <span className="landing-page-countdown-label">Giờ</span>
-                </div>
-                <div className="landing-page-countdown-item">
-                  <span className="landing-page-countdown-number">{timeLeft.minutes}</span>
-                  <span className="landing-page-countdown-label">Phút</span>
-                </div>
-                <div className="landing-page-countdown-item">
-                  <span className="landing-page-countdown-number">{timeLeft.seconds}</span>
-                  <span className="landing-page-countdown-label">Giây</span>
-                </div>
-              </div>
+                  <div className="landing-page-spotlight-countdown">
+                    <div className="landing-page-spotlight-countdown-item">
+                      <span className="landing-page-spotlight-countdown-number">{timeLeft.days}</span>
+                      <span className="landing-page-spotlight-countdown-label">Ngày</span>
+                    </div>
+                    <div className="landing-page-spotlight-countdown-item">
+                      <span className="landing-page-spotlight-countdown-number">{timeLeft.hours}</span>
+                      <span className="landing-page-spotlight-countdown-label">Giờ</span>
+                    </div>
+                    <div className="landing-page-spotlight-countdown-item">
+                      <span className="landing-page-spotlight-countdown-number">{timeLeft.minutes}</span>
+                      <span className="landing-page-spotlight-countdown-label">Phút</span>
+                    </div>
+                    <div className="landing-page-spotlight-countdown-item">
+                      <span className="landing-page-spotlight-countdown-number">{timeLeft.seconds}</span>
+                      <span className="landing-page-spotlight-countdown-label">Giây</span>
+                    </div>
+                  </div>
 
-              <Button
-                className="landing-page-spotlight-cta"
-                onClick={() => navigate(`/events/${spotlightEvent.maSuKien}`)}
-              >
-                <i className="fas fa-bolt"></i>
-                <span>Đặt vé độc quyền</span>
-                <div className="landing-page-button-shine"></div>
-              </Button>
+                  <Button
+                    className="landing-page-spotlight-cta"
+                    onClick={() => navigate(`/events/${spotlightEvent.maSuKien}`)}
+                  >
+                    <i className="fas fa-bolt"></i>
+                    <span>Đặt vé độc quyền</span>
+                  </Button>
+                </div>
+              </Row>
             </div>
           </Container>
         </section>
