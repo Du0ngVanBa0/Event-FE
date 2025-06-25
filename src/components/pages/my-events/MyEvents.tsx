@@ -5,11 +5,13 @@ import eventService from '../../../api/eventService';
 import { getImageUrl, getDefaulImagetUrl } from '../../../utils/helper';
 import MyEventDetailModal from './MyEventDetailModal';
 import './MyEvents.css';
+import { useNavigate } from 'react-router-dom';
 
 const PAGE_SIZE_OPTIONS = [6, 12, 18, 24];
 const ITEMS_PER_PAGE = 6;
 
 const MyEvents = () => {
+    const navigate = useNavigate();
     const [activeTab, setActiveTab] = useState<'all' | 'approved' | 'pending'>('all');
     const [events, setEvents] = useState<SuKien[]>([]);
     const [currentPage, setCurrentPage] = useState(0);
@@ -69,7 +71,7 @@ const MyEvents = () => {
             });
             return;
         }
-        window.location.href = `/organizer/edit-event/${eventId}`;
+        navigate(`/organizer/edit-event/${eventId}`);
     };
 
     const handleDelete = async (eventId: string) => {
@@ -161,7 +163,7 @@ const MyEvents = () => {
                     <Button
                         variant="primary"
                         className="my-events-page-create-button"
-                        onClick={() => window.location.href = '/organizer/create-event'}
+                        onClick={() => navigate('/organizer/create-event')}
                     >
                         <i className="fas fa-plus"></i>
                         <span>Tạo sự kiện mới</span>
@@ -354,7 +356,7 @@ const MyEvents = () => {
                                     <Button
                                         variant="primary"
                                         className="my-events-page-create-event-button"
-                                        onClick={() => window.location.href = '/organizer/create-event'}
+                                        onClick={() => navigate('/organizer/create-event')}
                                     >
                                         <i className="fas fa-plus"></i>
                                         <span>Tạo sự kiện đầu tiên</span>

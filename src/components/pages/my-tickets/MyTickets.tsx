@@ -69,7 +69,7 @@ const MyTickets = () => {
   }, [currentPage, pageSize]);
 
   const handlePayment = (paymentUrl: string) => {
-    window.location.href = paymentUrl;
+    navigate(paymentUrl);
   };
 
   const handleTicketClick = (ticketId: string) => {

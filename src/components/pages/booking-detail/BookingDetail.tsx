@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { Container, Row, Col, Card, Badge, Button, Dropdown } from 'react-bootstrap';
-import { Link, useParams } from 'react-router-dom';
+import { Link, useNavigate, useParams } from 'react-router-dom';
 import { formatDate, formatCurrency, getImageUrl, formatFullAddress } from '../../../utils/helper';
 import { bookTicketService } from '../../../api/bookTicketService';
 import { BookingTicket } from '../../../types/BookingTypes';
@@ -9,6 +9,7 @@ import { generateBillPDF, printBill } from '../../../utils/billGenerator';
 import './BookingDetail.css';
 
 const BookingDetail = () => {
+    const navigate = useNavigate();
     const { id } = useParams();
     const [booking, setBooking] = useState<BookingTicket | null>(null);
     const [loading, setLoading] = useState(true);
@@ -150,7 +151,7 @@ const BookingDetail = () => {
                                             <Button 
                                                 variant="primary"
                                                 className="pay-now-btn"
-                                                onClick={() => window.location.href = booking.url ?? ''}
+                                                onClick={() => navigate(booking.url ?? '')}
                                             >
                                                 <i className="fas fa-credit-card"></i>
                                                 Thanh toán ngay
