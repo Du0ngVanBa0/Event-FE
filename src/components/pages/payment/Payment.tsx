@@ -107,7 +107,7 @@ const Payment = () => {
     }
 
     if (paymentUrl) {
-        navigate(paymentUrl);
+        window.location.href = paymentUrl;
         return (
             <Container className="payment-container">
                 <div className="payment-loading-container">

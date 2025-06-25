@@ -401,7 +401,7 @@ const EditEvent = () => {
     }
     loadEvent();
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [places])
+  }, [id])
 
   useEffect(() => {
     if (places.length > 0 && eventForm.tinhThanh) {
