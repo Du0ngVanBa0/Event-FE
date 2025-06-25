@@ -9,7 +9,6 @@ import { generateBillPDF, printBill } from '../../../utils/billGenerator';
 import './BookingDetail.css';
 
 const BookingDetail = () => {
-    const navigate = useNavigate();
     const { id } = useParams();
     const [booking, setBooking] = useState<BookingTicket | null>(null);
     const [loading, setLoading] = useState(true);
@@ -151,7 +150,7 @@ const BookingDetail = () => {
                                             <Button 
                                                 variant="primary"
                                                 className="pay-now-btn"
-                                                onClick={() => navigate(booking.url ?? '')}
+                                                onClick={() => window.location.href = booking.url ?? ''}
                                             >
                                                 <i className="fas fa-credit-card"></i>
                                                 Thanh toán ngay
