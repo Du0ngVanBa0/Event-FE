@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { Container, Row, Col, Card, Badge, Button, Dropdown } from 'react-bootstrap';
-import { Link, useNavigate, useParams } from 'react-router-dom';
+import { Link, useParams } from 'react-router-dom';
 import { formatDate, formatCurrency, getImageUrl, formatFullAddress } from '../../../utils/helper';
 import { bookTicketService } from '../../../api/bookTicketService';
 import { BookingTicket } from '../../../types/BookingTypes';
