@@ -10,6 +10,7 @@ import CategorySelector from './CategorySelector';
 import TicketTypeModal from './TicketTypeModal';
 import ZoneDesignerTab from './ZoneDesignerTab';
 import './CreateEvent.css';
+import { useNavigate } from 'react-router-dom';
 
 interface EventForm {
     tieuDe: string;
@@ -45,6 +46,7 @@ type EditorType = ComponentProps<typeof CKEditor>['editor'];
 const EditorWithTypes = ClassicEditor as unknown as EditorType;
 
 const CreateEvent = () => {
+    const navigate = useNavigate();
     const [activeTab, setActiveTab] = useState('basic-info');
     const [notification, setNotification] = useState<{ message: string; type: string } | null>(null);
     const [eventForm, setEventForm] = useState<EventForm>({
@@ -274,7 +276,7 @@ const CreateEvent = () => {
             showNotification('Tạo sự kiện thành công! Sự kiện đang chờ phê duyệt.', 'success');
             
             setTimeout(() => {
-                window.location.href = '/my-events';
+                navigate('/my-events');
             }, 2000);
 
         } catch (error) {
