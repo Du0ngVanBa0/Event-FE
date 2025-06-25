@@ -1,31 +1,21 @@
 <!DOCTYPE html>
 <html>
+  <head>
+    <meta charset="utf-8">
+    <title>Redirecting...</title>
+    <script>
+      (function () {
+        const l = window.location;
+        const redirectUrl =
+          l.protocol + '//' + l.host + '/?/' +
+          l.pathname.slice(1) +
+          l.search +
+          l.hash;
 
-<head>
-  <meta charset="utf-8">
-  <title>Duong Van Bao</title>
-  <script type="text/javascript">
-    (function () {
-      var l = window.location;
-      var pathSegmentsToKeep = 1;
-
-      var newPath = l.protocol + '//' + l.hostname + (l.port ? ':' + l.port : '') +
-        l.pathname.split('/').slice(0, 1 + pathSegmentsToKeep).join('/') + '/?/' +
-        l.pathname.slice(1).split('/').slice(pathSegmentsToKeep).join('/').replace(/&/g, '~and~');
-
-      var search = l.search.length > 0 ? l.search.slice(1).replace(/&/g, '~and~') : '';
-      if (search.length > 0) {
-        newPath += '&' + search;
-      }
-      newPath += l.hash;
-
-      l.replace(newPath);
-    })();
-  </script>
-
-</head>
-
-<body>
-</body>
-
+        window.location.replace(redirectUrl);
+      })();
+    </script>
+  </head>
+  <body>
+  </body>
 </html>
