@@ -1,4 +1,4 @@
-import { ComponentProps, useState, useEffect } from "react";
+import { ComponentProps, useState, useEffect, useRef } from "react";
 import {
   Container,
   Form,
@@ -83,6 +83,14 @@ const EditEvent = () => {
     danhMucSuKiens: [],
   });
 
+  // Loading states
+  const [isLoadingPlaces, setIsLoadingPlaces] = useState(true);
+  const [isLoadingEvent, setIsLoadingEvent] = useState(true);
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [isInitialDataLoaded, setIsInitialDataLoaded] = useState(false);
+  const [isZoneDataReady, setIsZoneDataReady] = useState(false);
+  const [isZoneTabMountReady, setIsZoneTabMountReady] = useState(false);
+
   const { id } = useParams();
   const [ticketTypes, setTicketTypes] = useState<TicketType[]>([]);
   const [zones, setZones] = useState<KhuVucEventRequest[]>([]);
@@ -100,6 +108,11 @@ const EditEvent = () => {
     null
   );
   const [validationErrors, setValidationErrors] = useState<ValidationErrors>({});
+
+  // Use refs to maintain zone data consistency
+  const zonesRef = useRef<KhuVucEventRequest[]>([]);
+  const zoneDataLoadedRef = useRef(false);
+  const initialZonesSetRef = useRef(false);
 
   const handleImageChange = (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
@@ -248,6 +261,8 @@ const EditEvent = () => {
         return;
       }
 
+      setIsSubmitting(true);
+
       const combinedDateTime = {
         thoiGianBatDau: `${eventForm.ngayBatDau}T${eventForm.gioBatDau}:00`,
         thoiGianKetThuc: `${eventForm.ngayKetThuc}T${eventForm.gioKetThuc}:00`,
@@ -288,6 +303,8 @@ const EditEvent = () => {
         message: "Không thể cập nhật sự kiện",
         type: "danger",
       });
+    } finally {
+      setIsSubmitting(false);
     }
   };
 
@@ -309,99 +326,130 @@ const EditEvent = () => {
   useEffect(() => {
     const loadData = async () => {
       try {
+        setIsLoadingPlaces(true);
         const placesData = await placeService.getAll();
         setPlaces(placesData);
       } catch (error) {
-        console.error('Error loading data:', error);
+        console.error('Error loading places:', error);
         setNotification({
-          message: "Không thể tải thông tin sự kiện",
+          message: "Không thể tải dữ liệu địa điểm",
           type: "danger",
         });
+      } finally {
+        setIsLoadingPlaces(false);
       }
     };
 
     loadData();
-  }, [id]);
+  }, []);
 
   useEffect(() => {
     const loadEvent = async () => {
       if (id) {
-        const response = await eventService.getEventById(id);
-        if (response.data) {
-          const eventData = response.data;
+        try {
+          setIsLoadingEvent(true);
+          const response = await eventService.getEventById(id);
+          if (response.data) {
+            const eventData = response.data;
 
-          if (eventData.anhBia) {
-            setSelectedImage(eventData.anhBia);
-          }
-
-          const tinhThanh = places.find(p => p.maTinhThanh === eventData.diaDiem.maTinhThanh);
-          if (tinhThanh) {
-            setSelectedTinhThanh(tinhThanh);
-            const quanHuyen = tinhThanh.quanHuyens.find(q => q.maQuanHuyen === eventData.diaDiem.maQuanHuyen);
-            if (quanHuyen) {
-              setSelectedQuanHuyen(quanHuyen);
+            if (eventData.anhBia) {
+              setSelectedImage(eventData.anhBia);
             }
-          }
 
-          setEventForm({
-            maSuKien: eventData?.maSuKien,
-            tieuDe: eventData.tieuDe,
-            moTa: eventData.moTa,
-            anhBiaFile: null,
-            tinhThanh: eventData.diaDiem.maTinhThanh,
-            quanHuyen: eventData.diaDiem.maQuanHuyen,
-            phuongXa: eventData.diaDiem.maPhuongXa,
-            tenDiaDiem: eventData.diaDiem.tenDiaDiem,
-            ngayMoBanVe: eventData.ngayMoBanVe.split('T')[0],
-            gioMoBanVe: eventData.ngayMoBanVe.split('T')[1].substring(0, 5),
-            ngayDongBanVe: eventData.ngayDongBanVe.split('T')[0],
-            gioDongBanVe: eventData.ngayDongBanVe.split('T')[1].substring(0, 5),
-            ngayBatDau: eventData.thoiGianBatDau.split('T')[0],
-            gioBatDau: eventData.thoiGianBatDau.split('T')[1].substring(0, 5),
-            ngayKetThuc: eventData.thoiGianKetThuc.split('T')[0],
-            gioKetThuc: eventData.thoiGianKetThuc.split('T')[1].substring(0, 5),
-            danhMucSuKiens: eventData.danhMucs.map((dm) => dm.maDanhMuc)
-          });
+            setEventForm({
+              maSuKien: eventData?.maSuKien,
+              tieuDe: eventData.tieuDe,
+              moTa: eventData.moTa,
+              anhBiaFile: null,
+              tinhThanh: eventData.diaDiem.maTinhThanh,
+              quanHuyen: eventData.diaDiem.maQuanHuyen,
+              phuongXa: eventData.diaDiem.maPhuongXa,
+              tenDiaDiem: eventData.diaDiem.tenDiaDiem,
+              ngayMoBanVe: eventData.ngayMoBanVe.split('T')[0],
+              gioMoBanVe: eventData.ngayMoBanVe.split('T')[1].substring(0, 5),
+              ngayDongBanVe: eventData.ngayDongBanVe.split('T')[0],
+              gioDongBanVe: eventData.ngayDongBanVe.split('T')[1].substring(0, 5),
+              ngayBatDau: eventData.thoiGianBatDau.split('T')[0],
+              gioBatDau: eventData.thoiGianBatDau.split('T')[1].substring(0, 5),
+              ngayKetThuc: eventData.thoiGianKetThuc.split('T')[0],
+              gioKetThuc: eventData.thoiGianKetThuc.split('T')[1].substring(0, 5),
+              danhMucSuKiens: eventData.danhMucs.map((dm) => dm.maDanhMuc)
+            });
 
-          setTicketTypes(eventData.loaiVes.map((ve) => {
-            const correspondingZone = eventData.khuVucs?.find(kv => kv.maKhuVuc === ve.maKhuVuc);
-            const templateId = correspondingZone?.template?.maKhuVucMau;
-            
-            return {
-              id: ve.maLoaiVe || Date.now().toString(),
-              maLoaiVe: ve.maLoaiVe,
-              tenLoaiVe: ve.tenLoaiVe,
-              moTa: ve.moTa,
-              soLuong: ve.soLuong,
-              giaTien: ve.giaTien,
-              soLuongToiThieu: ve.soLuongToiThieu,
-              soLuongToiDa: ve.soLuongToiDa,
-              veConLai: ve.veConLai,
-              maKhuVuc: templateId || ve.maKhuVuc,
-              tenKhuVuc: correspondingZone?.tenHienThi || 'Unknown Zone'
-            };
-          }));
-
-          if (eventData.khuVucs && eventData.khuVucs.length > 0) {
-            const existingZones: KhuVucEventRequest[] = eventData.khuVucs.map(kv => ({
-              maKhuVucMau: kv.template?.maKhuVucMau || '',
-              tenTuyChon: kv.tenHienThi !== kv.tenGoc ? kv.tenHienThi : undefined,
-              moTaTuyChon: kv.moTa,
-              mauSacTuyChon: kv.mauSacHienThi !== kv.template?.mauSac ? kv.mauSacHienThi : undefined,
-              toaDoX: kv.toaDoX,
-              toaDoY: kv.toaDoY,
-              chieuRong: kv.chieuRong,
-              chieuCao: kv.chieuCao,
-              viTri: `Vị trí (${kv.toaDoX}, ${kv.toaDoY})`
+            setTicketTypes(eventData.loaiVes.map((ve) => {
+              const correspondingZone = eventData.khuVucs?.find(kv => kv.maKhuVuc === ve.maKhuVuc);
+              const templateId = correspondingZone?.template?.maKhuVucMau;
+              
+              return {
+                id: ve.maLoaiVe || Date.now().toString(),
+                maLoaiVe: ve.maLoaiVe,
+                tenLoaiVe: ve.tenLoaiVe,
+                moTa: ve.moTa,
+                soLuong: ve.soLuong,
+                giaTien: ve.giaTien,
+                soLuongToiThieu: ve.soLuongToiThieu,
+                soLuongToiDa: ve.soLuongToiDa,
+                veConLai: ve.veConLai,
+                maKhuVuc: templateId || ve.maKhuVuc,
+                tenKhuVuc: correspondingZone?.tenHienThi || 'Unknown Zone'
+              };
             }));
-            setZones(existingZones);
+
+            let processedZones: KhuVucEventRequest[] = [];
+            
+            if (eventData.khuVucs && eventData.khuVucs.length > 0) {
+              processedZones = eventData.khuVucs.map(kv => ({
+                maKhuVucMau: kv.template?.maKhuVucMau || '',
+                tenTuyChon: kv.tenHienThi !== kv.tenGoc ? kv.tenHienThi : undefined,
+                moTaTuyChon: kv.moTa,
+                mauSacTuyChon: kv.mauSacHienThi !== kv.template?.mauSac ? kv.mauSacHienThi : undefined,
+                toaDoX: kv.toaDoX,
+                toaDoY: kv.toaDoY,
+                chieuRong: kv.chieuRong,
+                chieuCao: kv.chieuCao,
+                viTri: `Vị trí (${kv.toaDoX}, ${kv.toaDoY})`
+              }));
+              
+            } else {
+              console.log('No zones found in event data');
+            }
+            
+            setZones(processedZones);
+            zonesRef.current = processedZones;
+            initialZonesSetRef.current = true;
+            
+            zoneDataLoadedRef.current = true;
+            setIsZoneDataReady(true);
+            
+            setTimeout(() => {
+              setIsZoneTabMountReady(true);
+            }, 100);
           }
+        } catch (error) {
+          console.error('Error loading event:', error);
+          setNotification({
+            message: "Không thể tải thông tin sự kiện",
+            type: "danger",
+          });
+        } finally {
+          setIsLoadingEvent(false);
         }
+      } else {
+        setIsLoadingEvent(false);
+        setIsZoneDataReady(true); // For create mode
+        zoneDataLoadedRef.current = true;
+        initialZonesSetRef.current = true;
+        setIsZoneTabMountReady(true); // For create mode
       }
     }
     loadEvent();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [id])
+  }, [id]);
+
+  useEffect(() => {
+    if (!isLoadingPlaces && !isLoadingEvent) {
+      setIsInitialDataLoaded(true);
+    }
+  }, [isLoadingPlaces, isLoadingEvent]);
 
   useEffect(() => {
     if (places.length > 0 && eventForm.tinhThanh) {
@@ -493,6 +541,51 @@ const EditEvent = () => {
     return [...selectedQuanHuyen.phuongXas].sort((a, b) => a.tenPhuongXa.localeCompare(b.tenPhuongXa, 'vi'));
   };
 
+  // Show loading screen while initial data is being fetched
+  if (!isInitialDataLoaded) {
+    return (
+      <Container className="create-event-page-container">
+        <div className="d-flex flex-column justify-content-center align-items-center my-5 py-5">
+          <div className="spinner-border text-primary" role="status" style={{ width: "3rem", height: "3rem" }}>
+            <span className="visually-hidden">Đang tải...</span>
+          </div>
+          <h4 className="mt-3">Đang tải thông tin sự kiện...</h4>
+          <div className="mt-2">
+            <div className="d-flex flex-column align-items-center">
+              <div className="d-flex gap-3 mb-2">
+                <div className="d-flex align-items-center">
+                  {!isLoadingPlaces ? (
+                    <i className="fas fa-check-circle text-success me-1"></i>
+                  ) : (
+                    <div className="spinner-border spinner-border-sm text-primary me-1" role="status"></div>
+                  )}
+                  <small className="text-muted">Địa điểm</small>
+                </div>
+                <div className="d-flex align-items-center">
+                  {!isLoadingEvent ? (
+                    <i className="fas fa-check-circle text-success me-1"></i>
+                  ) : (
+                    <div className="spinner-border spinner-border-sm text-primary me-1" role="status"></div>
+                  )}
+                  <small className="text-muted">Thông tin sự kiện</small>
+                </div>
+                <div className="d-flex align-items-center">
+                  {isZoneTabMountReady ? (
+                    <i className="fas fa-check-circle text-success me-1"></i>
+                  ) : (
+                    <div className="spinner-border spinner-border-sm text-primary me-1" role="status"></div>
+                  )}
+                  <small className="text-muted">Dữ liệu khu vực</small>
+                </div>
+              </div>
+              <p className="text-muted text-center">Vui lòng đợi trong giây lát</p>
+            </div>
+          </div>
+        </div>
+      </Container>
+    );
+  }
+
   return (
     <Container className="create-event-page-container">
       {notification && (
@@ -517,7 +610,7 @@ const EditEvent = () => {
         </div>
 
         <Tab.Container activeKey={activeTab} onSelect={handleTabChange}>
-          <div className="create-event-page-tabs-container">
+          <div className="create-event-page_tabs-container">
             <Nav variant="tabs" className="create-event-page-tabs">
               <Nav.Item>
                 <Nav.Link 
@@ -925,12 +1018,30 @@ const EditEvent = () => {
                     </p>
                   </div>
 
-                  <ZoneDesignerTab
-                    zones={zones}
-                    onZonesChange={setZones}
-                    onTemplatesLoad={handleTemplatesLoad}
-                    isEditMode={true}
-                  />
+                  {isInitialDataLoaded && isZoneDataReady && isZoneTabMountReady ? (
+                    <ZoneDesignerTab
+                      zones={zones}
+                      onZonesChange={setZones}
+                      onTemplatesLoad={handleTemplatesLoad}
+                      isEditMode={true}
+                      key={`zones-edit-${id}`}
+                    />
+                  ) : (
+                    <div className="d-flex justify-content-center align-items-center py-5">
+                      <div className="text-center">
+                        <div className="spinner-border text-primary mb-3" role="status">
+                          <span className="visually-hidden">Đang tải...</span>
+                        </div>
+                        <p className="text-muted">Đang tải dữ liệu khu vực...</p>
+                        <small className="text-muted d-block">
+                          Zones: {zones.length} | Zone data loaded: {zoneDataLoadedRef.current ? 'Yes' : 'No'}
+                        </small>
+                        <small className="text-muted d-block">
+                          Initial set: {initialZonesSetRef.current ? 'Yes' : 'No'} | Mount ready: {isZoneTabMountReady ? 'Yes' : 'No'}
+                        </small>
+                      </div>
+                    </div>
+                  )}
                 </div>
               </Tab.Pane>
 
@@ -1062,11 +1173,20 @@ const EditEvent = () => {
                 <Button
                   variant="success"
                   onClick={handleSubmit}
-                  disabled={!validateTicketTypes() || !validateZones()}
+                  disabled={!validateTicketTypes() || !validateZones() || isSubmitting}
                   className="create-event-page-button-submit"
                 >
-                  <i className="fas fa-save"></i>
-                  Cập nhật sự kiện
+                  {isSubmitting ? (
+                    <>
+                      <span className="spinner-border spinner-border-sm me-2" role="status" aria-hidden="true"></span>
+                      Đang cập nhật...
+                    </>
+                  ) : (
+                    <>
+                      <i className="fas fa-save"></i>
+                      Cập nhật sự kiện
+                    </>
+                  )}
                 </Button>
               )}
             </div>
