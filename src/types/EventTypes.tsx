@@ -118,6 +118,13 @@ export interface SuKien {
     loaiVes: TicketType[];
     khuVucs?: KhuVucResponse[];
     ngayTao?: string;
+    nguoiToChuc?: NDResponse;
+}
+
+export interface NDResponse {
+    maNguoiDung: string;
+    tenHienThi: string;
+    email: string;
 }
 
 export interface KhuVucTemplate {
