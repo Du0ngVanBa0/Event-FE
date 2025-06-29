@@ -19,28 +19,43 @@ import {
   formatDate,
   formatFullAddress,
 } from "../../../utils/helper";
-import {
-  TicketResponse,
-} from "../../../types/BookingTypes";
+import { TicketResponse } from "../../../types/BookingTypes";
 import "./TicketScanner.css";
+import 'webrtc-adapter';
 
 const EventTicketScanner = () => {
   const [ticketCode, setTicketCode] = useState<string>("");
-
   const [ticketData, setTicketData] = useState<TicketResponse | null>(null);
-  const [processingTicket, setProcessingTicket] =
-    useState<TicketResponse | null>(null);
+  const [processingTicket, setProcessingTicket] = useState<TicketResponse | null>(null);
   const [loading, setLoading] = useState<boolean>(false);
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState<string>("");
-  const [activeTab, setActiveTab] = useState<"scan" | "manual" | "result">(
-    "scan"
-  );
+  const [activeTab, setActiveTab] = useState<"scan" | "manual" | "result">("manual"); // Default to manual to avoid permission prompt immediately
   const [showVerifyModal, setShowVerifyModal] = useState<boolean>(false);
   const [verifyLoading, setVerifyLoading] = useState<boolean>(false);
-  const [facingMode, setFacingMode] = useState<"environment" | "user">(
-    "environment"
-  );
+  const [facingMode, setFacingMode] = useState<"environment" | "user">("environment");
+  const [hasCameraPermission, setHasCameraPermission] = useState<boolean | null>(null);
+  
+  const requestCameraPermission = async () => {
+    try {
+      const stream = await navigator.mediaDevices.getUserMedia({ video: true });
+      setHasCameraPermission(true);
+      stream.getTracks().forEach(track => track.stop());
+    } catch (err) {
+      console.error("Camera permission error:", err);
+      setHasCameraPermission(false);
+      setError("Không thể truy cập camera. Vui lòng cấp quyền camera cho trình duyệt hoặc sử dụng chế độ nhập mã thủ công.");
+    }
+  };
+
+  const handleTabChange = (tab: "scan" | "manual" | "result") => {
+    if (tab === "scan" && hasCameraPermission === null) {
+      setActiveTab(tab);
+      requestCameraPermission();
+    } else {
+      setActiveTab(tab);
+    }
+  };
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setTicketCode(e.target.value);
@@ -221,12 +236,12 @@ const EventTicketScanner = () => {
           </Alert>
         )}
 
-        {/* Tab navigation */}
+        {/* Tab navigation - modified to use handleTabChange */}
         <div className="scanner-tabs">
           <Button
             variant={activeTab === "scan" ? "primary" : "outline-primary"}
             className="tab-btn"
-            onClick={() => setActiveTab("scan")}
+            onClick={() => handleTabChange("scan")}
           >
             <i className="fas fa-qrcode me-2"></i>
             Quét mã QR
@@ -234,7 +249,7 @@ const EventTicketScanner = () => {
           <Button
             variant={activeTab === "manual" ? "primary" : "outline-primary"}
             className="tab-btn"
-            onClick={() => setActiveTab("manual")}
+            onClick={() => handleTabChange("manual")}
           >
             <i className="fas fa-keyboard me-2"></i>
             Nhập mã thủ công
@@ -243,7 +258,7 @@ const EventTicketScanner = () => {
             <Button
               variant={activeTab === "result" ? "primary" : "outline-primary"}
               className="tab-btn"
-              onClick={() => setActiveTab("result")}
+              onClick={() => handleTabChange("result")}
             >
               <i className="fas fa-ticket-alt me-2"></i>
               Kết quả
@@ -251,50 +266,95 @@ const EventTicketScanner = () => {
           )}
         </div>
 
-        {/* Scanner view */}
+        {/* Scanner view with error handling */}
         {activeTab === "scan" && (
           <div className="scanner-view">
             <div className="scanner-card">
               <div className="scanner-video-container">
-                <QrReader
-                  constraints={{
-                    facingMode,
-                    aspectRatio: 1,
-                    width: { min: 640, ideal: 1280, max: 1920 },
-                    height: { min: 480, ideal: 720, max: 1080 },
-                  }}
-                  onResult={handleScan}
-                  className="scanner-video"
-                  videoStyle={{
-                    width: "100%",
-                    height: "100%",
-                    objectFit: "contain",
-                  }}
-                  videoId="qr-video-element"
-                  scanDelay={500}
-                />
-                <div className="scanner-overlay">
-                  <div className="scanner-target">
-                    <div className="scanner-corner top-left"></div>
-                    <div className="scanner-corner top-right"></div>
-                    <div className="scanner-corner bottom-left"></div>
-                    <div className="scanner-corner bottom-right"></div>
-                    <div className="scanner-line"></div>
+                {hasCameraPermission === null ? (
+                  <div className="camera-permission-request">
+                    <i className="fas fa-camera fa-3x mb-3"></i>
+                    <h5>Cho phép truy cập camera</h5>
+                    <p>Ứng dụng cần quyền truy cập camera để quét mã QR. Vui lòng chấp nhận yêu cầu truy cập camera khi trình duyệt hiển thị.</p>
+                    <Button 
+                      variant="primary" 
+                      onClick={requestCameraPermission}
+                      className="permission-request-btn"
+                    >
+                      <i className="fas fa-video me-2"></i>
+                      Cho phép truy cập camera
+                    </Button>
                   </div>
-                  <div className="scanner-instructions">
-                    <p>Đặt mã QR vào trong khung</p>
+                ) : hasCameraPermission === false ? (
+                  <div className="camera-permission-error">
+                    <i className="fas fa-camera-slash fa-3x mb-3"></i>
+                    <h5>Không có quyền truy cập camera</h5>
+                    <p>Vui lòng cấp quyền camera trong cài đặt trình duyệt hoặc sử dụng chế độ nhập mã thủ công.</p>
+                    <Button 
+                      variant="primary" 
+                      onClick={() => {
+                        setHasCameraPermission(null); // Reset permission state
+                        requestCameraPermission();
+                      }}
+                    >
+                      <i className="fas fa-redo me-2"></i>
+                      Thử lại
+                    </Button>
                   </div>
-                </div>
+                ) : (
+                  <>
+                    <QrReader
+                      constraints={{
+                        facingMode,
+                        aspectRatio: 1,
+                        width: { min: 640, ideal: 1280, max: 1920 },
+                        height: { min: 480, ideal: 720, max: 1080 },
+                      }}
+                      onResult={handleScan}
+                      className="scanner-video"
+                      videoStyle={{
+                        width: "100%",
+                        height: "100%",
+                        objectFit: "contain",
+                      }}
+                      videoId="qr-video-element"
+                      scanDelay={500}
+                    />
+                    <div className="scanner-overlay">
+                      <div className="scanner-target">
+                        <div className="scanner-corner top-left"></div>
+                        <div className="scanner-corner top-right"></div>
+                        <div className="scanner-corner bottom-left"></div>
+                        <div className="scanner-corner bottom-right"></div>
+                        <div className="scanner-line"></div>
+                      </div>
+                      <div className="scanner-instructions">
+                        <p>Đặt mã QR vào trong khung</p>
+                      </div>
+                    </div>
+                  </>
+                )}
               </div>
               <div className="scanner-actions">
-                <Button
-                  variant="primary"
-                  className="universe-btn"
-                  onClick={toggleCamera}
-                >
-                  <i className="fas fa-sync-alt me-2"></i>
-                  Đổi camera
-                </Button>
+                {hasCameraPermission && (
+                  <Button
+                    variant="primary"
+                    className="universe-btn"
+                    onClick={toggleCamera}
+                  >
+                    <i className="fas fa-sync-alt me-2"></i>
+                    Đổi camera
+                  </Button>
+                )}
+                {hasCameraPermission === false && (
+                  <Button
+                    variant="outline-primary"
+                    onClick={() => setActiveTab("manual")}
+                  >
+                    <i className="fas fa-keyboard me-2"></i>
+                    Chuyển sang nhập mã thủ công
+                  </Button>
+                )}
               </div>
             </div>
           </div>

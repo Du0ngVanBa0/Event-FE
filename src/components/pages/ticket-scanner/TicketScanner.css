@@ -657,3 +657,40 @@
     flex-direction: column;
   }
 }
+
+.camera-permission-request {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  padding: 2rem;
+  background-color: #f0f8ff;
+  border-radius: 8px;
+  min-height: 300px;
+  width: 100%;
+  color: #333;
+}
+
+.camera-permission-request i {
+  color: #007bff;
+}
+
+.camera-permission-request h5 {
+  margin-bottom: 1rem;
+  font-weight: 600;
+}
+
+.camera-permission-request p {
+  margin-bottom: 1.5rem;
+}
+
+.permission-request-btn {
+  padding: 0.5rem 1.5rem;
+  font-weight: 500;
+}
+
+.permission-request-btn:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+}
