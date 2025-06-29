@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { Container, Nav, Card, Alert, Form, Button } from "react-bootstrap";
 import { useNavigate } from "react-router-dom";
 import { formatCurrency, formatFullAddress, getImageUrl } from "../../../utils/helper";
@@ -28,6 +28,7 @@ const MyTickets = () => {
   const [loading, setLoading] = useState(true);
   const [pageSize, setPageSize] = useState(ITEMS_PER_PAGE);
   const [error, setError] = useState<string | null>(null);
+  const isFirstLoad = useRef(true);
 
   const getStatusParam = (tab: string) => {
     switch (tab) {
@@ -58,12 +59,26 @@ const MyTickets = () => {
   };
 
   useEffect(() => {
+    const initializeData = async () => {
+      await loadTickets(0);
+      isFirstLoad.current = false;
+    };
+
+    initializeData();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  useEffect(() => {
+    if (isFirstLoad.current) return;
+
     setCurrentPage(0);
     loadTickets(0);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [activeTab]);
 
   useEffect(() => {
+    if (isFirstLoad.current) return;
+
     loadTickets(currentPage);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [currentPage, pageSize]);
@@ -287,7 +302,7 @@ const MyTickets = () => {
                               <span>{ticket.maDatVe}</span>
                             </div>
                           </div>
-                          
+
                           <div className="my-tickets-page-ticket-types">
                             {groupTickets(ticket.chiTietVes).map((groupedTicket) => (
                               <div
@@ -339,12 +354,11 @@ const MyTickets = () => {
                   </div>
                   <h3>Không có vé nào</h3>
                   <p>
-                    {activeTab === "all" 
+                    {activeTab === "all"
                       ? "Bạn chưa có vé nào. Hãy đặt vé cho sự kiện yêu thích!"
-                      : `Không có vé nào trong trạng thái "${
-                          activeTab === "pending" ? "Chờ thanh toán" :
-                          activeTab === "paid" ? "Đã thanh toán" : "Đã hủy"
-                        }"`
+                      : `Không có vé nào trong trạng thái "${activeTab === "pending" ? "Chờ thanh toán" :
+                        activeTab === "paid" ? "Đã thanh toán" : "Đã hủy"
+                      }"`
                     }
                   </p>
                   <Button

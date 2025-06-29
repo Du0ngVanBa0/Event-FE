@@ -7,6 +7,9 @@ import { KhuVucEventRequest, KhuVucTemplate } from '../../../types/EventTypes';
 import DefaultZoneService from '../../../api/DefaultZoneService';
 import './ZoneDesignerTab.css';
 
+let templateCache: KhuVucTemplate[] | null = null;
+let zonesCache: KhuVucEventRequest[] | null = null;
+
 interface ZoneDesignerTabProps {
   zones: KhuVucEventRequest[];
   onZonesChange: (zones: KhuVucEventRequest[]) => void;
@@ -47,11 +50,17 @@ const ZoneDesignerTab: React.FC<ZoneDesignerTabProps> = ({
   const transformerRef = useRef<Konva.Transformer>(null);
 
   const fetchData = async () => {
+    if (templateCache) {
+      setMockTemplates(templateCache);
+      setIsLoading(false);
+      return;
+    }
+
     try {
       setIsLoading(true);
       const data = await DefaultZoneService.getAll();
+      templateCache = data;
       setMockTemplates(data);
-      console.log('Fetched templates:', data);
     } catch (error) {
       setNotification({
         message: 'Không thể tải danh sách mẫu khu vực. Vui lòng thử lại sau.',
@@ -65,6 +74,7 @@ const ZoneDesignerTab: React.FC<ZoneDesignerTabProps> = ({
 
   useEffect(() => {
     fetchData();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   useEffect(() => {
@@ -83,17 +93,28 @@ const ZoneDesignerTab: React.FC<ZoneDesignerTabProps> = ({
 
   // Convert templates to zone templates with proper edit mode handling
   useEffect(() => {
-    if (mockTemplates.length === 0) return;
-    
+    // If in edit mode and we have zones data, update our cache
+    if (isEditMode && zones.length > 0) {
+      zonesCache = [...zones];
+    }
+  }, [zones, isEditMode]);
+
+  useEffect(() => {
+    const zonesToProcess = (isEditMode && zones.length === 0 && zonesCache) ? zonesCache : zones;
+
+    if (mockTemplates.length === 0 || (isEditMode && zonesToProcess.length === 0)) {
+      if (isEditMode && mockTemplates.length > 0) {
+        return;
+      }
+      if (mockTemplates.length === 0) return;
+    }
+
     setIsLoading(true);
-    console.log('Processing templates for', isEditMode ? 'edit' : 'create', 'mode');
-    console.log('Existing zones:', zones);
-    
+
     onTemplatesLoad?.(mockTemplates);
 
     const convertedTemplates: ZoneTemplate[] = mockTemplates.map((template) => {
-      // Find existing zone for this template (only in edit mode)
-      const existingZone = isEditMode ? zones.find(z => z.maKhuVucMau === template.maKhuVucMau) : null;
+      const existingZone = isEditMode ? zonesToProcess.find(z => z.maKhuVucMau === template.maKhuVucMau) : null;
       const isSelected = !!existingZone;
 
       return {
@@ -125,7 +146,7 @@ const ZoneDesignerTab: React.FC<ZoneDesignerTabProps> = ({
         labelPosition: 'center',
         properties: template.hinhDang === 'CIRCLE' ? {
           radius: Math.max(
-            existingZone?.chieuRong ?? template.chieuRongMacDinh ?? 200, 
+            existingZone?.chieuRong ?? template.chieuRongMacDinh ?? 200,
             existingZone?.chieuCao ?? template.chieuCaoMacDinh ?? 150
           ) / 2
         } : {},
@@ -143,7 +164,7 @@ const ZoneDesignerTab: React.FC<ZoneDesignerTabProps> = ({
 
     const khuVucRequests: KhuVucEventRequest[] = selectedZones.map((zone) => {
       const originalTemplate = mockTemplates.find(t => t.maKhuVucMau === zone.templateId);
-      
+
       return {
         maKhuVucMau: zone.templateId,
         tenTuyChon: zone.name !== zone.tenGoc ? zone.name : undefined,
@@ -163,7 +184,7 @@ const ZoneDesignerTab: React.FC<ZoneDesignerTabProps> = ({
 
   useEffect(() => {
     convertToKhuVucEventRequests();
-  }, [convertToKhuVucEventRequests]);
+  }, [zoneTemplates, convertToKhuVucEventRequests]);
 
   useEffect(() => {
     if (selectedId && transformerRef.current && layerRef.current) {
@@ -485,7 +506,7 @@ const ZoneDesignerTab: React.FC<ZoneDesignerTabProps> = ({
                 </Badge>
               </div>
             </Card.Header>
-            
+
             <Card.Body className="zone-designer-tab-card-body">
               {/* Quick Actions */}
               <div className="zone-designer-tab-section">
@@ -495,18 +516,18 @@ const ZoneDesignerTab: React.FC<ZoneDesignerTabProps> = ({
                 </h6>
                 <div className="zone-designer-tab-actions">
                   <ButtonGroup className="zone-designer-tab-button-group">
-                    <Button 
-                      variant="success" 
-                      size="sm" 
+                    <Button
+                      variant="success"
+                      size="sm"
                       onClick={selectAllZones}
                       className="zone-designer-tab-button zone-designer-tab-button-select-all"
                     >
                       <i className="fas fa-check-double"></i>
                       Chọn tất cả
                     </Button>
-                    <Button 
-                      variant="outline-secondary" 
-                      size="sm" 
+                    <Button
+                      variant="outline-secondary"
+                      size="sm"
                       onClick={deselectAllZones}
                       className="zone-designer-tab-button zone-designer-tab-button-deselect-all"
                     >
@@ -516,7 +537,7 @@ const ZoneDesignerTab: React.FC<ZoneDesignerTabProps> = ({
                   </ButtonGroup>
                   <small className="zone-designer-tab-help-text">
                     <i className="fas fa-lightbulb"></i>
-                    {isEditMode ? 
+                    {isEditMode ?
                       'Nhấp vào khu vực để thêm/bỏ khỏi sự kiện' :
                       'Nhấp vào khu vực trên sơ đồ để chọn/bỏ chọn'
                     }
@@ -531,11 +552,11 @@ const ZoneDesignerTab: React.FC<ZoneDesignerTabProps> = ({
                     <i className="fas fa-edit"></i>
                     Tùy chỉnh khu vực
                   </h6>
-                  
+
                   <div className="zone-designer-tab-zone-header">
                     <div className="zone-designer-tab-zone-name">{selectedZone.tenGoc}</div>
-                    <Badge 
-                      bg={selectedZone.isSelected ? "success" : "secondary"} 
+                    <Badge
+                      bg={selectedZone.isSelected ? "success" : "secondary"}
                       className="zone-designer-tab-status-badge"
                     >
                       <i className={`fas fa-${selectedZone.isSelected ? 'check' : 'times'}`}></i>
@@ -570,7 +591,7 @@ const ZoneDesignerTab: React.FC<ZoneDesignerTabProps> = ({
                           }}
                           className="zone-designer-tab-color-input"
                         />
-                        <div 
+                        <div
                           className="zone-designer-tab-color-preview"
                           style={{ backgroundColor: selectedZone.borderColor }}
                         ></div>
@@ -605,13 +626,12 @@ const ZoneDesignerTab: React.FC<ZoneDesignerTabProps> = ({
                       <Button
                         variant={selectedZone.isSelected ? "warning" : "success"}
                         onClick={() => toggleZoneSelection(selectedZone.templateId)}
-                        className={`zone-designer-tab-toggle-button ${
-                          selectedZone.isSelected ? 'zone-designer-tab-toggle-remove' : 'zone-designer-tab-toggle-add'
-                        }`}
+                        className={`zone-designer-tab-toggle-button ${selectedZone.isSelected ? 'zone-designer-tab-toggle-remove' : 'zone-designer-tab-toggle-add'
+                          }`}
                       >
                         <i className={`fas fa-${selectedZone.isSelected ? 'minus' : 'plus'}`}></i>
-                        {selectedZone.isSelected ? 
-                          (isEditMode ? 'Bỏ khỏi sự kiện' : 'Bỏ chọn khu vực') : 
+                        {selectedZone.isSelected ?
+                          (isEditMode ? 'Bỏ khỏi sự kiện' : 'Bỏ chọn khu vực') :
                           (isEditMode ? 'Thêm vào sự kiện' : 'Chọn khu vực')
                         }
                       </Button>
@@ -626,16 +646,14 @@ const ZoneDesignerTab: React.FC<ZoneDesignerTabProps> = ({
                   <i className="fas fa-list"></i>
                   Danh sách mẫu ({zoneTemplates.length})
                 </h6>
-                
+
                 <div className="zone-designer-tab-zone-list">
                   {zoneTemplates.map((zone) => (
                     <div
                       key={zone.id}
-                      className={`zone-designer-tab-zone-item ${
-                        selectedId === zone.id ? 'zone-designer-tab-zone-item-selected' : ''
-                      } ${
-                        zone.isSelected ? 'zone-designer-tab-zone-item-active' : 'zone-designer-tab-zone-item-inactive'
-                      }`}
+                      className={`zone-designer-tab-zone-item ${selectedId === zone.id ? 'zone-designer-tab-zone-item-selected' : ''
+                        } ${zone.isSelected ? 'zone-designer-tab-zone-item-active' : 'zone-designer-tab-zone-item-inactive'
+                        }`}
                       onClick={() => setSelectedId(zone.id)}
                       onDoubleClick={() => toggleZoneSelection(zone.templateId)}
                     >
@@ -649,15 +667,14 @@ const ZoneDesignerTab: React.FC<ZoneDesignerTabProps> = ({
                             className="zone-designer-tab-item-checkbox"
                           />
                         </div>
-                        
+
                         <div className="zone-designer-tab-zone-item-icon">
-                          <i className={`fas fa-${
-                            zone.type === 'rectangle' || zone.type === 'square' ? 'square' :
-                            zone.type === 'circle' ? 'circle' :
-                            zone.type === 'triangle' ? 'play' : 'square'
-                          } zone-designer-tab-icon`}></i>
+                          <i className={`fas fa-${zone.type === 'rectangle' || zone.type === 'square' ? 'square' :
+                              zone.type === 'circle' ? 'circle' :
+                                zone.type === 'triangle' ? 'play' : 'square'
+                            } zone-designer-tab-icon`}></i>
                         </div>
-                        
+
                         <div className="zone-designer-tab-zone-item-info">
                           <div className="zone-designer-tab-zone-item-name">{zone.name}</div>
                           {zone.name !== zone.tenGoc && (
@@ -665,13 +682,13 @@ const ZoneDesignerTab: React.FC<ZoneDesignerTabProps> = ({
                           )}
                           <div className="zone-designer-tab-zone-item-type">{zone.type}</div>
                         </div>
-                        
-                        <div 
+
+                        <div
                           className="zone-designer-tab-zone-item-color"
                           style={{ backgroundColor: zone.borderColor }}
                         ></div>
                       </div>
-                      
+
                       {zone.isSelected && (
                         <div className="zone-designer-tab-zone-item-badge">
                           <i className="fas fa-check"></i>
@@ -680,11 +697,11 @@ const ZoneDesignerTab: React.FC<ZoneDesignerTabProps> = ({
                     </div>
                   ))}
                 </div>
-                
+
                 <div className="zone-designer-tab-list-help">
                   <small className="zone-designer-tab-help-text">
                     <i className="fas fa-info-circle"></i>
-                    {isEditMode ? 
+                    {isEditMode ?
                       'Nhấp đúp để thêm/bỏ khu vực khỏi sự kiện' :
                       'Nhấp đúp để chọn/bỏ chọn khu vực'
                     }
@@ -705,8 +722,8 @@ const ZoneDesignerTab: React.FC<ZoneDesignerTabProps> = ({
                   {isEditMode ? 'Sơ đồ khu vực hiện tại' : 'Sơ đồ khu vực sự kiện'}
                 </h6>
                 <div className="zone-designer-tab-canvas-info">
-                  <Badge 
-                    bg={selectedZonesCount > 0 ? "success" : "secondary"} 
+                  <Badge
+                    bg={selectedZonesCount > 0 ? "success" : "secondary"}
                     className="zone-designer-tab-info-badge"
                   >
                     <i className="fas fa-check"></i>
@@ -719,7 +736,7 @@ const ZoneDesignerTab: React.FC<ZoneDesignerTabProps> = ({
                 </div>
               </div>
             </Card.Header>
-            
+
             <Card.Body className="zone-designer-tab-canvas-body">
               <div className="zone-designer-tab-canvas-instructions">
                 <div className="zone-designer-tab-instruction-item">
@@ -729,7 +746,7 @@ const ZoneDesignerTab: React.FC<ZoneDesignerTabProps> = ({
                 <div className="zone-designer-tab-instruction-item">
                   <i className="fas fa-hand-pointer zone-designer-tab-instruction-icon"></i>
                   <span>
-                    {isEditMode ? 
+                    {isEditMode ?
                       'Nhấp vào khu vực để thêm/bỏ' :
                       'Nhấp vào khu vực để chọn/bỏ chọn'
                     }
@@ -740,7 +757,7 @@ const ZoneDesignerTab: React.FC<ZoneDesignerTabProps> = ({
                   <span>Kéo thả để di chuyển</span>
                 </div>
               </div>
-              
+
               <div className="zone-designer-tab-canvas-wrapper">
                 <Stage
                   width={canvas.width}
@@ -797,8 +814,8 @@ const ZoneDesignerTab: React.FC<ZoneDesignerTabProps> = ({
             <Card.Header className="zone-designer-tab-card-header">
               <h6 className="zone-designer-tab-header-title">
                 <i className="fas fa-check-circle zone-designer-tab-header-icon"></i>
-                {isEditMode ? 
-                  `Khu vực trong sự kiện (${zones.length})` : 
+                {isEditMode ?
+                  `Khu vực trong sự kiện (${zones.length})` :
                   `Khu vực đã chọn (${zones.length})`
                 }
               </h6>

@@ -26,6 +26,7 @@ const Events = () => {
     const [cardsVisible, setCardsVisible] = useState(false);
     const eventsGridRef = useRef<HTMLDivElement>(null);
     const searchTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+    const isFirstLoad = useRef(true);
     const navigate = useNavigate();
 
     const loadCategories = async () => {
@@ -58,17 +59,29 @@ const Events = () => {
         }
     };
 
+    // Initial load - run only once on component mount
     useEffect(() => {
-        loadCategories();
+        const initializeData = async () => {
+            await loadCategories();
+            await loadEvents(0);
+            isFirstLoad.current = false; // Set ref immediately
+        };
+
+        initializeData();
+        // eslint-disable-next-line react-hooks/exhaustive-deps
     }, []);
 
     useEffect(() => {
+        if (isFirstLoad.current) return;
+
         setCurrentPage(0);
         loadEvents(0);
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [selectedCategory, name]);
 
     useEffect(() => {
+        if (isFirstLoad.current) return;
+
         loadEvents(currentPage);
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [currentPage, pageSize]);
@@ -101,12 +114,12 @@ const Events = () => {
     const handlePageChange = (page: number) => {
         setCardsVisible(false);
         setCurrentPage(page);
-        
+
         setTimeout(() => {
             if (eventsGridRef.current) {
-                eventsGridRef.current.scrollIntoView({ 
-                    behavior: 'smooth', 
-                    block: 'start' 
+                eventsGridRef.current.scrollIntoView({
+                    behavior: 'smooth',
+                    block: 'start'
                 });
             }
         }, 100);
@@ -229,7 +242,7 @@ const Events = () => {
                     </div>
                 ) : (
                     <>
-                        <div 
+                        <div
                             ref={eventsGridRef}
                             className={`events-page-grid ${cardsVisible ? 'events-page-cards-visible' : ''}`}
                         >
@@ -317,11 +330,11 @@ const Events = () => {
                                     </Form.Select>
                                     <span className="events-page-page-size-label">dòng</span>
                                 </div>
-                                
+
                                 <UniversePagination
                                     currentPage={currentPage}
                                     onPageChange={handlePageChange}
-                                    totalPages={totalPages} 
+                                    totalPages={totalPages}
                                 />
                             </div>
                         )}
