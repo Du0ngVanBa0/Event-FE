@@ -155,7 +155,6 @@
   display: -webkit-box;
   -webkit-box-orient: vertical;
   overflow: hidden;
-  max-width: 200px;
 }
 
 .admin-action-cell {
