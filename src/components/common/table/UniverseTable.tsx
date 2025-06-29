@@ -89,7 +89,7 @@ function UniverseTable<T extends Record<keyof T, unknown>>({
 
             <div className="d-flex justify-content-between align-items-center mt-4">
                 <div className="d-flex align-items-center gap-2">
-                    <span className="text-light">Hiển thị</span>
+                    <span className="p-2">Hiển thị</span>
                     <Form.Select
                         size="sm"
                         value={pageSize}

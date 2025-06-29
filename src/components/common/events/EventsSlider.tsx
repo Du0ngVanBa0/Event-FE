@@ -15,6 +15,54 @@ const EventsSlider: React.FC = () => {
   const [currentIndex, setCurrentIndex] = useState(0);
   const navigate = useNavigate();
 
+  // Add getEventStatus function from LandingPage
+  const getEventStatus = (event: SuKien) => {
+    const now = new Date();
+    const openSaleDate = new Date(event.ngayMoBanVe);
+    const closeSaleDate = new Date(event.ngayDongBanVe);
+
+    if (now > closeSaleDate) {
+      return { label: "Hết bán vé", color: "#EF4444" };
+    }
+
+    if (now < openSaleDate) {
+      const daysUntilSale = Math.ceil(
+        (openSaleDate.getTime() - now.getTime()) / (1000 * 60 * 60 * 24)
+      );
+      if (daysUntilSale <= 7) {
+        return {
+          label: `Mở bán sau ${daysUntilSale} ngày`,
+          color: "#F59E0B",
+        };
+      }
+      return { label: "Sắp mở bán", color: "#8B5CF6" };
+    }
+
+    const totalOriginalTickets =
+      event.loaiVes?.reduce((sum, ticket) => sum + ticket.soLuong, 0) || 0;
+    const totalRemainingTickets =
+      event.loaiVes?.reduce(
+        (sum, ticket) => sum + (ticket.veConLai || ticket.soLuong),
+        0
+      ) || 0;
+
+    if (totalRemainingTickets === 0) {
+      return { label: "Hết vé", color: "#EF4444" };
+    }
+
+    const percentageRemaining = (totalRemainingTickets / totalOriginalTickets) * 100;
+
+    if (percentageRemaining < 10) {
+      return { label: `Chỉ còn ${totalRemainingTickets} vé`, color: "#EF4444" };
+    }
+
+    if (percentageRemaining < 50) {
+      return { label: "Sắp hết vé", color: "#F59E0B" };
+    }
+
+    return { label: "Đang mở bán", color: "#10B981" };
+  };
+
   useEffect(() => {
     const loadEvents = async () => {
       try {
@@ -129,8 +177,9 @@ const EventsSlider: React.FC = () => {
     <div className="event-slider-container">
       <div className="event-slider-wrapper">
         <button
-          className={`event-slider-nav-btn event-slider-nav-prev ${!canScrollLeft ? "event-slider-nav-disabled" : ""
-            }`}
+          className={`event-slider-nav-btn event-slider-nav-prev ${
+            !canScrollLeft ? "event-slider-nav-disabled" : ""
+          }`}
           onClick={() => scroll("left")}
           disabled={!canScrollLeft}
           aria-label="Previous events"
@@ -140,8 +189,9 @@ const EventsSlider: React.FC = () => {
         </button>
 
         <button
-          className={`event-slider-nav-btn event-slider-nav-next ${!canScrollRight ? "event-slider-nav-disabled" : ""
-            }`}
+          className={`event-slider-nav-btn event-slider-nav-next ${
+            !canScrollRight ? "event-slider-nav-disabled" : ""
+          }`}
           onClick={() => scroll("right")}
           disabled={!canScrollRight}
           aria-label="Next events"
@@ -152,97 +202,112 @@ const EventsSlider: React.FC = () => {
 
         <div className="event-slider-track" ref={sliderRef}>
           <div className="event-slider-content">
-            {events.map((event, index) => (
-              <div
-                key={event.maSuKien}
-                className="event-slider-card"
-                onClick={() => handleCardClick(event.maSuKien)}
-                style={{
-                  "--card-index": index,
-                  "--animation-delay": `${index * 0.1}s`,
-                } as React.CSSProperties}
-              >
-                <div className="event-slider-card-inner">
-                  <div className="event-slider-image-container">
-                    <img
-                      src={getImageUrl(event.anhBia)}
-                      alt={event.tieuDe}
-                      className="event-slider-image"
-                      loading="lazy"
-                    />
-                    <div className="event-slider-image-overlay"></div>
-                    <div className="event-slider-status-badge">
-                      <i className="fas fa-calendar-check"></i>
-                      <span>Đang bán</span>
+            {events.map((event, index) => {
+              // Get dynamic status for each event
+              const status = getEventStatus(event);
+
+              return (
+                <div
+                  key={event.maSuKien}
+                  className="event-slider-card"
+                  onClick={() => handleCardClick(event.maSuKien)}
+                  style={{
+                    "--card-index": index,
+                    "--animation-delay": `${index * 0.1}s`,
+                  } as React.CSSProperties}
+                >
+                  <div className="event-slider-card-inner">
+                    <div className="event-slider-image-container">
+                      <img
+                        src={getImageUrl(event.anhBia)}
+                        alt={event.tieuDe}
+                        className="event-slider-image"
+                        loading="lazy"
+                      />
+                      <div className="event-slider-image-overlay"></div>
+                      {/* Updated status badge with dynamic content and color */}
+                      <div
+                        className="event-slider-status-badge"
+                        style={{ backgroundColor: status.color }}
+                      >
+                        <i
+                          className={`fas ${
+                            status.label.includes("Hết")
+                              ? "fa-calendar-times"
+                              : "fa-calendar-check"
+                          }`}
+                        ></i>
+                        <span>{status.label}</span>
+                      </div>
+                    </div>
+
+                    <div className="event-slider-content-area">
+                      <div className="event-slider-header">
+                        <h3 className="event-slider-title">{event.tieuDe}</h3>
+                      </div>
+
+                      <div className="event-slider-details">
+                        <div className="event-slider-detail-item">
+                          <div className="event-slider-detail-icon">
+                            <i className="fas fa-calendar-alt"></i>
+                          </div>
+                          <div className="event-slider-detail-text">
+                            <span className="event-slider-detail-label">
+                              Ngày diễn ra
+                            </span>
+                            <span className="event-slider-detail-value">
+                              {formatDate(event.thoiGianBatDau)}
+                            </span>
+                          </div>
+                        </div>
+
+                        <div className="event-slider-detail-item">
+                          <div className="event-slider-detail-icon">
+                            <i className="fas fa-map-marker-alt"></i>
+                          </div>
+                          <div className="event-slider-detail-text">
+                            <span className="event-slider-detail-label">Địa điểm</span>
+                            <span className="event-slider-detail-value">
+                              {event.diaDiem.tenDiaDiem}
+                            </span>
+                          </div>
+                        </div>
+
+                        <div className="event-slider-detail-item">
+                          <div className="event-slider-detail-icon">
+                            <i className="fas fa-clock"></i>
+                          </div>
+                          <div className="event-slider-detail-text">
+                            <span className="event-slider-detail-label">
+                              Bán vé đến
+                            </span>
+                            <span className="event-slider-detail-value">
+                              {formatDate(event.ngayDongBanVe)}
+                            </span>
+                          </div>
+                        </div>
+                      </div>
+
+                      <button
+                        className="event-slider-book-btn"
+                        onClick={(e) => handleBookNow(event.maSuKien, e)}
+                      >
+                        <i className="fas fa-ticket-alt"></i>
+                        <span>Đặt vé ngay</span>
+                        <div className="event-slider-btn-shine"></div>
+                      </button>
                     </div>
                   </div>
 
-                  <div className="event-slider-content-area">
-                    <div className="event-slider-header">
-                      <h3 className="event-slider-title">{event.tieuDe}</h3>
-                    </div>
-
-                    <div className="event-slider-details">
-                      <div className="event-slider-detail-item">
-                        <div className="event-slider-detail-icon">
-                          <i className="fas fa-calendar-alt"></i>
-                        </div>
-                        <div className="event-slider-detail-text">
-                          <span className="event-slider-detail-label">
-                            Ngày diễn ra
-                          </span>
-                          <span className="event-slider-detail-value">
-                            {formatDate(event.thoiGianBatDau)}
-                          </span>
-                        </div>
-                      </div>
-
-                      <div className="event-slider-detail-item">
-                        <div className="event-slider-detail-icon">
-                          <i className="fas fa-map-marker-alt"></i>
-                        </div>
-                        <div className="event-slider-detail-text">
-                          <span className="event-slider-detail-label">Địa điểm</span>
-                          <span className="event-slider-detail-value">
-                            {event.diaDiem.tenDiaDiem}
-                          </span>
-                        </div>
-                      </div>
-
-                      <div className="event-slider-detail-item">
-                        <div className="event-slider-detail-icon">
-                          <i className="fas fa-clock"></i>
-                        </div>
-                        <div className="event-slider-detail-text">
-                          <span className="event-slider-detail-label">
-                            Bán vé đến
-                          </span>
-                          <span className="event-slider-detail-value">
-                            {formatDate(event.ngayDongBanVe)}
-                          </span>
-                        </div>
-                      </div>
-                    </div>
-
-                    <button
-                      className="event-slider-book-btn"
-                      onClick={(e) => handleBookNow(event.maSuKien, e)}
-                    >
-                      <i className="fas fa-ticket-alt"></i>
-                      <span>Đặt vé ngay</span>
-                      <div className="event-slider-btn-shine"></div>
-                    </button>
+                  <div className="event-slider-card-glow"></div>
+                  <div className="event-slider-card-particles">
+                    <div className="event-slider-particle"></div>
+                    <div className="event-slider-particle"></div>
+                    <div className="event-slider-particle"></div>
                   </div>
                 </div>
-
-                <div className="event-slider-card-glow"></div>
-                <div className="event-slider-card-particles">
-                  <div className="event-slider-particle"></div>
-                  <div className="event-slider-particle"></div>
-                  <div className="event-slider-particle"></div>
-                </div>
-              </div>
-            ))}
+              );
+            })}
           </div>
         </div>
 
@@ -250,10 +315,11 @@ const EventsSlider: React.FC = () => {
           {Array.from({ length: Math.ceil(events.length / 3) }).map((_, index) => (
             <div
               key={index}
-              className={`event-slider-indicator ${Math.floor(currentIndex / 3) === index
-                ? "event-slider-indicator-active"
-                : ""
-                }`}
+              className={`event-slider-indicator ${
+                Math.floor(currentIndex / 3) === index
+                  ? "event-slider-indicator-active"
+                  : ""
+              }`}
             ></div>
           ))}
         </div>
