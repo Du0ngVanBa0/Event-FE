@@ -22,6 +22,7 @@ const MyEvents = () => {
     const [selectedEvent, setSelectedEvent] = useState<SuKien | null>(null);
     const [showModal, setShowModal] = useState(false);
     const [notification, setNotification] = useState<{ message: string, type: string } | null>(null);
+    const [hasApprovedEvents, setHasApprovedEvents] = useState(false);
 
     const loadEvents = async (page: number, size: number = pageSize) => {
         try {
@@ -39,6 +40,9 @@ const MyEvents = () => {
             }
             setEvents(response.data.content);
             setTotalPages(response.data.totalPages);
+            
+            const hasApproved = response.data.content.some((event: SuKien) => event.hoatDong);
+            setHasApprovedEvents(hasApproved);
         } catch (error) {
             setError('Không thể tải danh sách sự kiện');
             console.error('Error loading events:', error);
@@ -160,14 +164,26 @@ const MyEvents = () => {
                             Quản lý và theo dõi tất cả các sự kiện bạn đã tạo
                         </p>
                     </div>
-                    <Button
-                        variant="primary"
-                        className="my-events-page-create-button"
-                        onClick={() => navigate('/organizer/create-event')}
-                    >
-                        <i className="fas fa-plus"></i>
-                        <span>Tạo sự kiện mới</span>
-                    </Button>
+                    <div className="my-events-page-buttons-group">
+                        {hasApprovedEvents && (
+                            <Button
+                                variant="success"
+                                className="my-events-page-scanner-button me-2"
+                                onClick={() => navigate('/organizer/scan-event')}
+                            >
+                                <i className="fas fa-qrcode me-1"></i>
+                                <span>Quét vé</span>
+                            </Button>
+                        )}
+                        <Button
+                            variant="primary"
+                            className="my-events-page-create-button"
+                            onClick={() => navigate('/organizer/create-event')}
+                        >
+                            <i className="fas fa-plus me-1"></i>
+                            <span>Tạo sự kiện mới</span>
+                        </Button>
+                    </div>
                 </div>
 
                 <div className="my-events-page-tabs-wrapper">

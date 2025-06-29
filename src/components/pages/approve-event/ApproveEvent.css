@@ -166,6 +166,10 @@
   color: var(--color-primary);
 }
 
+.approve-event-title {
+  color: var(--color-primary);
+}
+
 .approve-event-modal-status {
   font-weight: 500;
   padding: 0.35rem 0.65rem;
